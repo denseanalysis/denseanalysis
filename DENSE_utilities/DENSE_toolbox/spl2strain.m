@@ -416,6 +416,7 @@ function fv = spl2patchLA(api)
 
     % define the 7 segments, via their node indices
     tmp = map(1:numel(i));
+    tmp = tmp(:)';
 
     N1 = map(epidx);
     N2 = size(node,1);
