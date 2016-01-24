@@ -296,7 +296,7 @@ function output = mainFcn(api)
     data(idx).NumberOfLayers   = 1;
     data(idx).Color = hsv(data(idx).NumberOfSegments);
 
-    api.hseg = bullseye(api.haxseg,data);
+    api.hseg = dense_bullseye(api.haxseg,data);
 
 
     % ADDITIONAL SETUP-----------------------------------------------------
@@ -1788,7 +1788,7 @@ function api = initBullseye(api,fridx)
         bdata(k).Text = api.data(k).RegionalTwistValue(:,fridx);
     end
     [api.hbullseye,api.hbface,api.hbedge,api.hbtext] = ...
-        bullseye(api.haxbullseye,bdata,...
+        dense_bullseye(api.haxbullseye,bdata,...
         'SegmentEdgeColor',api.edgecolor,'FontColor',api.textcolor);
 
     % add context menu
