@@ -1,0 +1,94 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: mpisearchmex - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\DANIEL~1\LOCALS~1\Temp\RSP1B9.tmp" with contents
+[
+/nologo /MD /W3 /O2 /Ob2 /I "../../src" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "MEXFILE_EXPORTS" /D "MATLAB_MEX_FILE" /FR"Release/" /Fp"Release/mpisearchmex.pch" /YX /Fo"Release/" /Fd"Release/" /FD /TP /c 
+"G:\normxcorr2_mex\cv_src\cvabsdiff.cpp"
+"G:\normxcorr2_mex\cv_src\cvalloc.cpp"
+"G:\normxcorr2_mex\cv_src\cvarithm.cpp"
+"G:\normxcorr2_mex\cv_src\cvarray.cpp"
+"G:\normxcorr2_mex\cv_src\cvconvert.cpp"
+"G:\normxcorr2_mex\cv_src\cvcopy.cpp"
+"G:\normxcorr2_mex\cv_src\cvdatastructs.cpp"
+"G:\normxcorr2_mex\cv_src\cvdxt.cpp"
+"G:\normxcorr2_mex\cv_src\cverror.cpp"
+"G:\normxcorr2_mex\cv_src\cvmathfuncs.cpp"
+"G:\normxcorr2_mex\cv_src\cvtables.cpp"
+"G:\normxcorr2_mex\cv_src\cvtemplmatch.cpp"
+"G:\normxcorr2_mex\normxcorr2_mex.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DANIEL~1\LOCALS~1\Temp\RSP1B9.tmp" 
+Creating temporary file "C:\DOCUME~1\DANIEL~1\LOCALS~1\Temp\RSP1BA.tmp" with contents
+[
+libmx.lib libmex.lib libmat.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"Release/normxcorr2_mex.pdb" /machine:I386 /def:".\mexFunction.def" /out:"../normxcorr2_mex.dll" /implib:"Release/normxcorr2_mex.lib" /libpath:"../../windows/Release" 
+.\Release\cvabsdiff.obj
+.\Release\cvalloc.obj
+.\Release\cvarithm.obj
+.\Release\cvarray.obj
+.\Release\cvconvert.obj
+.\Release\cvcopy.obj
+.\Release\cvdatastructs.obj
+.\Release\cvdxt.obj
+.\Release\cverror.obj
+.\Release\cvmathfuncs.obj
+.\Release\cvtables.obj
+.\Release\cvtemplmatch.obj
+.\Release\normxcorr2_mex.obj
+]
+Creating command line "link.exe @C:\DOCUME~1\DANIEL~1\LOCALS~1\Temp\RSP1BA.tmp"
+<h3>Output Window</h3>
+Compiling...
+cvabsdiff.cpp
+cvalloc.cpp
+cvarithm.cpp
+cvarray.cpp
+cvconvert.cpp
+cvcopy.cpp
+cvdatastructs.cpp
+cvdxt.cpp
+cverror.cpp
+cvmathfuncs.cpp
+cvtables.cpp
+cvtemplmatch.cpp
+normxcorr2_mex.cpp
+G:\normxcorr2_mex\normxcorr2_mex.cpp(51) : warning C4018: '<' : signed/unsigned mismatch
+G:\normxcorr2_mex\normxcorr2_mex.cpp(104) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\normxcorr2_mex\normxcorr2_mex.cpp(105) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\normxcorr2_mex\normxcorr2_mex.cpp(116) : warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+G:\normxcorr2_mex\normxcorr2_mex.cpp(124) : warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+Linking...
+   Creating library Release/normxcorr2_mex.lib and object Release/normxcorr2_mex.exp
+normxcorr2_mex.exp : warning LNK4070: /OUT:mpisearchMex.dll directive in .EXP differs from output filename "../normxcorr2_mex.dll"; ignoring directive
+Creating temporary file "C:\DOCUME~1\DANIEL~1\LOCALS~1\Temp\RSP1BE.tmp" with contents
+[
+/nologo /o"Release/mpisearchmex.bsc" 
+.\Release\cvabsdiff.sbr
+.\Release\cvalloc.sbr
+.\Release\cvarithm.sbr
+.\Release\cvarray.sbr
+.\Release\cvconvert.sbr
+.\Release\cvcopy.sbr
+.\Release\cvdatastructs.sbr
+.\Release\cvdxt.sbr
+.\Release\cverror.sbr
+.\Release\cvmathfuncs.sbr
+.\Release\cvtables.sbr
+.\Release\cvtemplmatch.sbr
+.\Release\normxcorr2_mex.sbr]
+Creating command line "bscmake.exe @C:\DOCUME~1\DANIEL~1\LOCALS~1\Temp\RSP1BE.tmp"
+Creating browse info file...
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+normxcorr2_mex.dll - 0 error(s), 6 warning(s)
+</pre>
+</body>
+</html>

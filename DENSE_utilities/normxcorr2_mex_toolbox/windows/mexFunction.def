@@ -1,0 +1,8 @@
+; mexFunction.def : Declares the module parameters for the DLL.
+LIBRARY      "mpisearchMex"
+DESCRIPTION  'mpisearchMex Windows Dynamic Link Library'
+EXPORTS
+    ; Explicit exports can go here
+    mexFunction
+    
+    

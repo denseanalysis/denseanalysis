@@ -1,3 +1,6 @@
+All code in this project is released under the following License, except as
+listed below in Third Party Software Sources.
+
 Mozilla Public License Version 2.0
 ==================================
 
@@ -371,3 +374,20 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
   defined by the Mozilla Public License, v. 2.0.
+
+
+Third Party Software Sources
+============================
+
+This Software uses code from other open source projects.
+
+* imcapture.m by Joaquim Luis from https://github.com/joa-quim/mirone/blob/master/utils/imcapture.m
+* gridfit.m by John D'Errico from http://www.mathworks.com/matlabcentral/fileexchange/8998-surface-fitting-using-gridfit
+* findjobj.m by Yair Altman from http://www.mathworks.com/matlabcentral/fileexchange/14317-findjobj-find-java-handles-of-matlab-graphic-objects
+* intersections.m by Douglas M. Schwarz from http://www.mathworks.com/matlabcentral/fileexchange/11837-fast-and-robust-curve-intersections
+* sort_nat.m by Douglas M. Schwarz from  http://www.mathworks.com/matlabcentral/fileexchange/10959-sort-nat--natural-order-sort
+* Mesh2D Toolbox by Darren Engwirda from http://www.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-automatic-mesh-generation
+* plotboxpos.m by Kelly Kearney originally from https://github.com/kakearney/plotboxpos-pkg
+* normxcorr2_mex by Daniel Eaton from http://www.cs.ubc.ca/research/deaton/remarks_ncc.html
+* xlswrite1.m by Matt Swartz from http://www.mathworks.com/matlabcentral/fileexchange/10465-xlswrite1/content//xlswrite1.m
+* lsequal.m by D.C. Hanselman from http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=6728&objectType=file
