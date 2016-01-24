@@ -187,7 +187,7 @@ function strain = patchstrain(varargin)
             % radial/circumferential strain tensor
             Erot = Rot*E*Rot';
 
-            % principle strains
+            % principal strains
             [v,d] = eig(E,'nobalance');
 
             % record output

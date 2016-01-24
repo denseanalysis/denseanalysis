@@ -12,7 +12,7 @@ function strain = pixelstrain(varargin)
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
 %-----------------------------------------------------------------------------
-  
+
     %% PARSE APPLICATION DATA
 
     errid = sprintf('%s:invalidInput',mfilename);
@@ -196,7 +196,7 @@ function strain = pixelstrain(varargin)
                     % radial/circumferential strain tensor
                     Erot = Rot*E*Rot';
 
-                    % principle strains
+                    % principal strains
                     [v,d] = eig(E,'nobalance');
 
                     % record output

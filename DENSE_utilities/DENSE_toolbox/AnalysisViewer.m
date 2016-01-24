@@ -235,10 +235,10 @@ function opt = controlOptions()
     opt(idx).Fcn   = @(obj)fvDisplay(obj,{'XY'});
     opt(idx).Type  = {'curve','line','SA','LA'};
 
-    % principle strain
+    % principal strain
     idx = idx+1;
     opt(idx).Name  = 'prinstrain';
-    opt(idx).Label = 'Principle Strain';
+    opt(idx).Label = 'Principal Strain';
     opt(idx).Fcn   = @(obj)fvDisplay(obj,{'p1','p2'});
     opt(idx).Type  = {'curve','line','SA','LA'};
 
@@ -257,10 +257,10 @@ function opt = controlOptions()
     opt(idx).Type  = {'open','closed'};
 
 
-    % principle strain/time curve
+    % principal strain/time curve
     idx = idx+1;
     opt(idx).Name  = 'prinstraintime';
-    opt(idx).Label = 'Principle Strain/Time Curves';
+    opt(idx).Label = 'Principal Strain/Time Curves';
     opt(idx).Fcn   = @(obj)timeDisplay(obj,{'p1','p2'});
     opt(idx).Type  = {'SA','LA'};
 
@@ -1061,7 +1061,7 @@ function api = timeDisplay(obj,names)
     allnames = {'XX','YY','p1','p2','RR','CC','RURE','CURE','twist','SS'};
     alltags  = {'XX','YY','p1','p2','RR','CC','RR','CC','twist','SS'};
     alltitles = {'Horizontal Strain','Vertical Strain',...
-        '1st Principle Strain','2nd Principle Strain',...
+        '1st Principal Strain','2nd Principal Strain',...
         'Radial Strain','Circumferential Strain',...
         'RURE Index','CURE Index','Twist Angle (degrees)',...
         'Contour Strain'};
@@ -1328,8 +1328,8 @@ function api = fvDisplay(obj,tag,flag_nobulk)
             'YY',       'Vertical Strain';
             'XY',       'Shear Strain';
             'YX',       'Shear Strain';
-            'p1',       '1st Principle Strain';
-            'p2',       '2nd Principle Strain';
+            'p1',       '1st Principal Strain';
+            'p2',       '2nd Principal Strain';
             'RR',       'Radial Strain';
             'CC',       'Circumferential Strain';
             'dX',       'Horizontal Disp. (pix)';
