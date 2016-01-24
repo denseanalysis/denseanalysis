@@ -2353,7 +2353,7 @@ function exportExcel(hfig)
     Ctwist = cell(Nsl+2,Nfr+1);
 
     % title
-    Ctwist{1,1} = 'Average Twist (°)';
+    Ctwist{1,1} = 'Average Twist (degrees)';
 
     % frames
     Ctwist{2,1}     = 'Frame';
@@ -2372,7 +2372,7 @@ function exportExcel(hfig)
     Ctorsion = cell(3,Nfr+1);
 
     % title
-    Ctorsion{1,1} = 'Torsion (°/mm)';
+    Ctorsion{1,1} = 'Torsion (degrees/mm)';
 
     % frames
     Ctorsion{2,1}     = 'Frame';
@@ -2398,7 +2398,7 @@ function exportExcel(hfig)
 
     % initialize
     Cregion = cell(Nseg+2+Nsl,Nfr+1);
-    Cregion{1,1} = 'Regional Twist (°)';
+    Cregion{1,1} = 'Regional Twist (degrees)';
 
     Cregion{2,1} = 'Frame';
     Cregion(2,2:end) = num2cell(api.Frames);
