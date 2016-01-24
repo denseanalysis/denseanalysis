@@ -150,24 +150,24 @@ function opt = controlOptions()
     opt(idx).Label = 'Phase Imagery';
     opt(idx).Fcn   = @(obj)phaseDisplay(obj);
 
-    % Eularian 2D wrapped
+    % Eulerian 2D wrapped
     idx = idx+1;
     opt(idx).Name  = 'euler2Dwrap';
-    opt(idx).Label = 'Eularian 2D wrapped';
+    opt(idx).Label = 'Eulerian 2D wrapped';
     opt(idx).Fcn   = @(obj)vectorDisplay(obj,'euler','2D','wrap',true);
     opt(idx).Type  = [];
 
-    % Eularian 2D unwrapped
+    % Eulerian 2D unwrapped
     idx = idx+1;
     opt(idx).Name  = 'euler2Dunwrap';
-    opt(idx).Label = 'Eularian 2D unwrapped';
+    opt(idx).Label = 'Eulerian 2D unwrapped';
     opt(idx).Fcn   = @(obj)vectorDisplay(obj,'euler','2D','unwrap',true);
     opt(idx).Type  = [];
 
-    % Eularian 3D unwrapped
+    % Eulerian 3D unwrapped
     idx = idx+1;
     opt(idx).Name  = 'euler3Dunwrap';
-    opt(idx).Label = 'Eularian 3D unwrapped';
+    opt(idx).Label = 'Eulerian 3D unwrapped';
     opt(idx).Fcn   = @(obj)vectorDisplay(obj,'euler','3D','unwrap',true);
     opt(idx).Type  = [];
 
