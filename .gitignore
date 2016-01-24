@@ -1,0 +1,12 @@
+# Index files on Macs
+.DS_Store
+
+# Matlab auto-save files
+*.asv
+
+# Temporary Swap files
+*.m~
+
+*.log
+*.zip
+*.info
