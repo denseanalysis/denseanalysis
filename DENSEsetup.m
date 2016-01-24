@@ -155,11 +155,8 @@ function DENSEsetup(varargin)
     %% COMPILE MEX FILES
 
     % compilation options
-    switch computer
-        case 'PCWIN64'
-            opts = {'-largeArrayDims'};
-        otherwise
-            opts = {};
+    if regexp(computer, '64$')
+        opts = {'-largeArrayDims'};
     end
 
     % files to compile
