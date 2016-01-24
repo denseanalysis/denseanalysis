@@ -168,6 +168,7 @@ function loadFcn(handles,type)
     switch type
         case 'dicom',
             handles.dicompath = uipath;
+            handles.matfile = '';
             f = 'new';
         otherwise,
             handles.matpath = uipath;
