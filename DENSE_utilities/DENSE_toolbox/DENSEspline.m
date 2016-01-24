@@ -553,9 +553,6 @@ function metadata = DENSEspline(varargin)
         end
     end
 
-    xseed, yseed, zseed
-
-
     %% UNWRAP DENSE & GENERATE DISPLACEMENT MATRICES
 
     % unwrap2mov seed input
