@@ -5,13 +5,11 @@ function p = csaps_param(x,lam,w)
 %smoothing spline smoothing parameter that would be calculated by that
 %function. Here, we only require the "x" input to determine this parameter.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
 
     if nargin<2, lam = []; end
     if nargin<3,   w = []; end

@@ -19,7 +19,6 @@ function pos = plotboxpos(hax,varargin)
 %WRITTEN BY:  Kelly Kearney, Copyright 2006
 %ADAPTED BY:  Drew Gilliam
 %
-%-----------------------------------------------------------------------------
 % Original License:  
 % The MIT License (MIT)
 % 
@@ -41,7 +40,6 @@ function pos = plotboxpos(hax,varargin)
 % COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 % IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 % CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-%-----------------------------------------------------------------------------
   
 %MODIFICATION HISTORY:
 %   2006        Kelly Kearney

@@ -45,13 +45,11 @@ function Vunwrap = unwrap3mov_timepath(...
 %   choose multiple seed points and loop the UNWRAP3MOV_TIMEPATH function
 %   externally. However, the paths will not be allowed to overlap.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
   
 %WRITTEN BY:    Drew Gilliam
 %

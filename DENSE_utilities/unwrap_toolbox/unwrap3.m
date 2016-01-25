@@ -70,13 +70,11 @@ function Vunwrap = unwrap3(Vwrap, varargin)
 %       When this input is used, the "seed" input is ignored.  Instead,
 %       the previously unwrapped values serve as unwrapping seeds.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
 
 %% WRITTEN BY: Drew Gilliam
 %MODIFICATION HISTORY:

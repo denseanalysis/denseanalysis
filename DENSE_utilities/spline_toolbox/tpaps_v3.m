@@ -8,13 +8,11 @@ function [st,p] = tpaps_v3(x,y,p)
 % point-by-point smoothing, all smoothing parameters must be non-zero to
 % avoid singularities.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
 
     %% SETUP
 

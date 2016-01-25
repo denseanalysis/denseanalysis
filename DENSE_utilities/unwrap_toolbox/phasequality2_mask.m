@@ -56,13 +56,11 @@ function qual = phasequality2_mask(phs, pxsz, mask, conn)
 %   In the 8-connected condition, immediately adjacent neighbors are
 %   favored over diagonally adjacent neighbors in the weighting scheme.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
   
 %WRITTEN BY:    Drew Gilliam
 %

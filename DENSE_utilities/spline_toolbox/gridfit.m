@@ -287,7 +287,6 @@ function [zgrid,xgrid,ygrid] = gridfit(x,y,z,xnodes,ynodes,varargin)
 % Release: 2.0
 % Release date: 5/23/06
 
-%-----------------------------------------------------------------------------
 % Copyright (c) 2006, John D'Errico
 % All rights reserved.
 % 
@@ -312,7 +311,6 @@ function [zgrid,xgrid,ygrid] = gridfit(x,y,z,xnodes,ynodes,varargin)
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.  
-%-----------------------------------------------------------------------------
   
 % set defaults
 params.smoothness = 1;

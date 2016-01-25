@@ -6,13 +6,11 @@ function motionapi = figureMotionSetup(hfig,varargin)
 % "hittest" set to 'on' for the functions to be executed).
 % Additionally, use SETAPPDATA to define a "ToolTip" string for any object.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
   
     % motion api check
     apptag = 'figure_motionapi';

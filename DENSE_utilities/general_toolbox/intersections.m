@@ -41,7 +41,6 @@ function [x0,y0,iout,jout] = intersections(x1,y1,x2,y2,robust)
 % Email:   dmschwarz=ieee*org, dmschwarz=urgrad*rochester*edu
 % Real_email = regexprep(Email,{'=','*'},{'@','.'})
 
-%-----------------------------------------------------------------------------
 % Copyright (c) 2008, Douglas M. Schwarz
 % All rights reserved.
 % 
@@ -66,7 +65,6 @@ function [x0,y0,iout,jout] = intersections(x1,y1,x2,y2,robust)
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
-%-----------------------------------------------------------------------------  
 
 % Theory of operation:
 %

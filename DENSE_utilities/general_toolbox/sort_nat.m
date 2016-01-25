@@ -28,7 +28,6 @@ function [cs,index] = sort_nat(c)
 % Email:   dmschwarz=ieee*org, dmschwarz=urgrad*rochester*edu
 % Real_email = regexprep(Email,{'=','*'},{'@','.'})
 
-%-----------------------------------------------------------------------------
 % Copyright (c) 2008, Douglas M. Schwarz
 % All rights reserved.
 % 
@@ -53,7 +52,6 @@ function [cs,index] = sort_nat(c)
 % CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 % ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 % POSSIBILITY OF SUCH DAMAGE.
-%-----------------------------------------------------------------------------
   
 % check number of inputs
 error(nargchk(1,1,nargin));

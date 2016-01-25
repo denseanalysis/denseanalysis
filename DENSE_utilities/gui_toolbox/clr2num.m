@@ -18,13 +18,11 @@ function num = clr2num(clr)
 %   Note if CLR is aleady a 3-element color vector, NUM==CLR.
 %
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
   
 %WRITTEN BY:    Drew Gilliam
 %

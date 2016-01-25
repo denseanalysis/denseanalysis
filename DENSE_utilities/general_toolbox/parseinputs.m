@@ -27,13 +27,11 @@ function [valid_args, other_args] = parseinputs...
 %   We would return a structure VALID_ARGS with the field 'DisplayRange'
 %   and the value [0 255]. OTHER_ARGS returns the remaining fields.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
   
 %WRITTEN BY:    Drew Gilliam
 %

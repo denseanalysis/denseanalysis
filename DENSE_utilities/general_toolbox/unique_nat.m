@@ -4,13 +4,11 @@ function [b,m,n] = unique_nat(a,varargin)
 %   This function has the same inputs and outputs as UNIQUE, however
 %   the output B is naturally ordered.
 
-%-----------------------------------------------------------------------------
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-%-----------------------------------------------------------------------------
   
 %WRITTEN BY:    Drew Gilliam
 %
