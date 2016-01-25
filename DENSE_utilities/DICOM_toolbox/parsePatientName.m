@@ -46,8 +46,7 @@ function str = parsePatientName(pn)
 
         % trim
         if strcmp(str(1),'_'),   str = str(2:end); end
-        if strcmp(str(end),'_'), str = str(1:end-1); end
-
+        if ~isempty(str) && strcmp(str(end),'_'), str = str(1:end-1); end
     end
 
 end
