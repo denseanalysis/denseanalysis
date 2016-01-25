@@ -164,6 +164,12 @@ function [uipath,uifile] = loadFcn(obj,type,startpath)
     if nargin < 2 || isempty(type),      type = 'dicom';  end
     if nargin < 3 || isempty(startpath), startpath = pwd; end
 
+    % If the startpath was a full filepath, load that without prompt
+    if exist(startpath, 'file') == 2
+        filename = startpath;
+        startpath = pwd;
+    end
+
     % test type input
     if ~ischar(type) || ~any(strcmpi(type,{'dicom','mat'}))
         error(sprintf('%s:invalidInput',mfilename),...
@@ -261,21 +267,23 @@ function [uipath,uifile] = loadFcn(obj,type,startpath)
         % empty roi
         roi = repmat(struct,[0 1]);
 
-
-
     % MAT FILE LOAD--------------------------------------------------------
     else
+        % If no filename was provided explicitly, then prompt the user
+        if ~exist('filename', 'var')
+            % locate a file to load
+            [uifile,uipath] = uigetfile(...
+                {'*.dns','DENSE workspace (*.dns)'},...
+                'Select DNS file',startpath);
+            if isequal(uipath,0)
+                uipath = [];
+                return;
+            end
 
-        % locate a file to load
-        [uifile,uipath] = uigetfile(...
-            {'*.dns','DENSE workspace (*.dns)'},...
-            'Select DNS file',startpath);
-        if isequal(uipath,0)
-            uipath = [];
-            return;
+            filename = fullfile(uipath, uifile);
+        else
+            [uipath,uifile] = fileparts(filename);
         end
-        filename = fullfile(uipath,uifile);
-
 
         % create load waitbar
         hwait = waitbartimer;
