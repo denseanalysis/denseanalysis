@@ -1937,8 +1937,8 @@ function file = exportExcelFcn(obj,startpath)
 
     % check for template Excel file
     if flag_excel
-        filetemplate = fullfile('DENSE_utilities',...
-            'DENSE_toolbox','template.xls');
+        basedir = fileparts(mfilename('fullpath'));
+        filetemplate = fullfile(basedir, 'template.xls');
         if ~exist(filetemplate,'file')
             warning(sprintf('%s:noTemplateXLS',mfilename),...
                 'Cannot locate template XLS file.');
