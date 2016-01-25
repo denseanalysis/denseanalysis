@@ -105,7 +105,7 @@ function hfig_DeleteFcn(hobj, evnt, handles)
     end
 
     % save some GUI information to disk
-    filename = [mfilename '.info'];
+    filename = fullfile(userdir(), ['.' mfilename]);
     tags = {'dicompath','matpath','exportpath','roipath'};
     if all(isfield(handles,tags))
         save(filename,'-struct','handles',tags{:});
@@ -223,7 +223,7 @@ function handles = initFcn(hfig,callingfile)
     % contain some default information.
 
     % try to load some guiinformation from file
-    filename = [callingfile '.info'];
+    filename = fullfile(userdir(), ['.' callingfile]);
     tags = {'dicompath','matpath','exportpath','roipath'};
 
     try

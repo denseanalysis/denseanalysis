@@ -545,7 +545,7 @@ end
 function api = loadInfo(api)
 
     % info file
-    filename = [mfilename '.info'];
+    filename = fullfile(userdir(), ['.', mfilename]);
 
     % default software options
     definfo = struct(...
