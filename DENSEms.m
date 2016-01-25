@@ -13,7 +13,9 @@ function varargout = DENSEms(varargin)
     figcmap = gray(256);
 
     % utility directories
-    addutilities('DENSE_utilities');
+    basepath = fileparts(mfilename('fullpath'));
+    utildir = fullfile(basepath, 'DENSE_utilities');
+    addutilities(utildir);
 
     % check for Excel availability
     FLAG_excel = false;

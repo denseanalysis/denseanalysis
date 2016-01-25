@@ -77,7 +77,8 @@ function DENSEsetup(varargin)
     %% UPDATE MATLAB SEARCH PATH
 
     % utility directory
-    utildir = 'DENSE_utilities';
+    basedir = fileparts(mfilename('fullpath'));
+    utildir = fullfile(basedir, 'DENSE_utilities');
 
     % absolute folder path
     [stat,info] = fileattrib(utildir);
