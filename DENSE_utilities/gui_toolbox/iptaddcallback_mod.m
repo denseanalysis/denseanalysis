@@ -18,13 +18,13 @@ function id_out = iptaddcallback_mod(h, callback, func_handle)
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
 
-iptchecknargin(3, 3, nargin, mfilename);
+narginchk(3, 3);
 if (numel(h) ~= 1) || ~ishandle(h)
     error('Images:iptaddcallback:invalidHandle', ...
         'H must be a scalar handle.');
 end
 
-iptcheckinput(callback, {'char'}, {'row'}, mfilename, ...
+validateattributes(callback, {'char'}, {'row'}, mfilename, ...
     'CALLBACK', 2);
 
 % Note that the variable func_handle can also be a char or cell array. This is
@@ -34,7 +34,7 @@ iptcheckinput(callback, {'char'}, {'row'}, mfilename, ...
 % function handles. The main way a char or cell array callback would come into
 % the callback processor is as a preexisting callback that a user set via the
 % SET command prior to some subsequent call to IPTADDCALLBACK.
-iptcheckinput(func_handle, {'function_handle','char','cell'},...
+validateattributes(func_handle, {'function_handle','char','cell'},...
     {'vector'}, mfilename, 'FUNC_HANDLE', 3);
 
 % check if the figure has an active mode from a UIModeManager.  This would
@@ -50,7 +50,7 @@ try
                 'figure with an active mode.');
         end
     end
-catch ERR
+catch
 end
 
 % State for callbackProcessor nested function.  There will be one of
