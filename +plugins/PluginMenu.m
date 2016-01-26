@@ -392,10 +392,6 @@ classdef PluginMenu < hgsetget
                                             'ObjectBeingDestroyed', ...
                                             @(s,e)delete(self));
 
-            % Do a refresh which actually creates all of the sub-menus for
-            % each of the loaded plugins
-            self.refresh();
-
             % Ensure that there is always a reload menu on the bottom
             if isempty(self.reloadmenu) || ~ishghandle(self.reloadmenu)
                 self.reloadmenu = uimenu('Parent',      self.Menu,  ...
@@ -404,14 +400,18 @@ classdef PluginMenu < hgsetget
                                         'Label',       'Reload Plugins');
 
                 setToolTipText(self.reloadmenu, 'Reload all active plugins')
-            else
-                % Re-order the menu to ensure that the reload option is
-                % always the last menu item
-                kids = get(self.Menu, 'children');
-                isreload = kids == self.reloadmenu;
-                newkids = cat(1, self.reloadmenu, kids(~isreload));
-                set(self.Menu, 'children', newkids);
             end
+            
+            % Do a refresh which actually creates all of the sub-menus for
+            % each of the loaded plugins
+            self.refresh();
+   
+            % Re-order the menu to ensure that the reload option is
+            % always the last menu item
+            kids = get(self.Menu, 'children');
+            isreload = kids == self.reloadmenu;
+            newkids = cat(1, self.reloadmenu, kids(~isreload));
+            set(self.Menu, 'children', newkids);
 
             % Enable the menu now that we have created everything
             self.Loading = false;
