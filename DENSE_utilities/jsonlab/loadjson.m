@@ -7,189 +7,114 @@ function data = loadjson(fname,varargin)
 % parse a JSON (JavaScript Object Notation) file or string
 %
 % authors:Qianqian Fang (fangq<at> nmr.mgh.harvard.edu)
-%            date: 2011/09/09
+% created on 2011/09/09, including previous works from 
+%
 %         Nedialko Krouchev: http://www.mathworks.com/matlabcentral/fileexchange/25713
-%            date: 2009/11/02
+%            created on 2009/11/02
 %         François Glineur: http://www.mathworks.com/matlabcentral/fileexchange/23393
-%            date: 2009/03/22
+%            created on  2009/03/22
 %         Joel Feenstra:
 %         http://www.mathworks.com/matlabcentral/fileexchange/20565
-%            date: 2008/07/03
+%            created on 2008/07/03
 %
-% $Id: loadjson.m 415 2013-10-07 16:38:31Z fangq $
+% $Id$
 %
 % input:
 %      fname: input file name, if fname contains "{}" or "[]", fname
 %             will be interpreted as a JSON string
-%      opt: a struct to store parsing options, opt can be replaced by
-%           a list of ('param',value) pairs. The param string is equivallent
-%           to a field in opt.
+%      opt: a struct to store parsing options, opt can be replaced by 
+%           a list of ('param',value) pairs - the param string is equivallent
+%           to a field in opt. opt can have the following 
+%           fields (first in [.|.] is the default)
+%
+%           opt.SimplifyCell [0|1]: if set to 1, loadjson will call cell2mat
+%                         for each element of the JSON data, and group 
+%                         arrays based on the cell2mat rules.
+%           opt.FastArrayParser [1|0 or integer]: if set to 1, use a
+%                         speed-optimized array parser when loading an 
+%                         array object. The fast array parser may 
+%                         collapse block arrays into a single large
+%                         array similar to rules defined in cell2mat; 0 to 
+%                         use a legacy parser; if set to a larger-than-1
+%                         value, this option will specify the minimum
+%                         dimension to enable the fast array parser. For
+%                         example, if the input is a 3D array, setting
+%                         FastArrayParser to 1 will return a 3D array;
+%                         setting to 2 will return a cell array of 2D
+%                         arrays; setting to 3 will return to a 2D cell
+%                         array of 1D vectors; setting to 4 will return a
+%                         3D cell array.
+%           opt.ShowProgress [0|1]: if set to 1, loadjson displays a progress bar.
 %
 % output:
 %      dat: a cell array, where {...} blocks are converted into cell arrays,
 %           and [...] are converted to arrays
 %
+% examples:
+%      dat=loadjson('{"obj":{"string":"value","array":[1,2,3]}}')
+%      dat=loadjson(['examples' filesep 'example1.json'])
+%      dat=loadjson(['examples' filesep 'example1.json'],'SimplifyCell',1)
+%
 % license:
-%     BSD license, see LICENSE_BSD.txt files for details
+%     BSD or GPL version 3, see LICENSE_{BSD,GPLv3}.txt files for details 
 %
-% -- this function is part of jsonlab toolbox (http://iso2mesh.sf.net/cgi-bin/index.cgi?jsonlab)
+% -- this function is part of JSONLab toolbox (http://iso2mesh.sf.net/cgi-bin/index.cgi?jsonlab)
 %
 
-global pos inStr len  esc index_esc len_esc isoct arraytoken escapechar
-escapechar = regexptranslate('escape', '.');
-escapechar = escapechar(1);
+global pos inStr len  esc index_esc len_esc isoct arraytoken
 
-if(regexp(fname,'[\{\}\]\[]','once'))
+if(regexp(fname,'^\s*(?:\[.+\])|(?:\{.+\})\s*$','once'))
    string=fname;
 elseif(exist(fname,'file'))
-   fid = fopen(fname,'rt');
-   string = fscanf(fid,'%c');
-   fclose(fid);
+   try
+       string = fileread(fname);
+   catch
+       try
+           string = urlread(['file://',fname]);
+       catch
+           string = urlread(['file://',fullfile(pwd,fname)]);
+       end
+   end
 else
    error('input file does not exist');
 end
 
-pos = 1; len = numel(string); inStr = string;
-isoct = exist('OCTAVE_VERSION', 'var');
+pos = 1; len = length(string); inStr = string;
+isoct=exist('OCTAVE_VERSION','builtin');
 arraytoken=find(inStr=='[' | inStr==']' | inStr=='"');
 jstr=regexprep(inStr,'\\\\','  ');
 escquote=regexp(jstr,'\\"');
 arraytoken=sort([arraytoken escquote]);
 
 % String delimiters and escape chars identified to improve speed:
-esc = find(inStr=='"' | inStr==escapechar ); % comparable to: regexp(inStr, '["\\]');
-index_esc = 1; len_esc = numel(esc);
+esc = find(inStr=='"' | inStr=='\' ); % comparable to: regexp(inStr, '["\\]');
+index_esc = 1; len_esc = length(esc);
 
 opt=varargin2struct(varargin{:});
-data = {};
+
+if(jsonopt('ShowProgress',0,opt)==1)
+    opt.progressbar_=waitbar(0,'loading ...');
+end
+jsoncount=1;
 while pos <= len
     switch(next_char)
         case '{'
-            data = cat(1, data, {parse_object(opt)});
+            data{jsoncount} = parse_object(opt);
         case '['
-            data = cat(1, data, {parse_array(opt)});
+            data{jsoncount} = parse_array(opt);
         otherwise
             error_pos('Outer level structure must be an object or an array');
     end
+    jsoncount=jsoncount+1;
 end % while
 
-jsoncount = numel(data);
+jsoncount=length(data);
 if(jsoncount==1 && iscell(data))
     data=data{1};
 end
 
-if(~isempty(data))
-      if(isstruct(data)) % data can be a struct array
-          data=jstruct2array(data);
-      elseif(iscell(data))
-          data=jcell2array(data);
-      end
-end
-
-
-%{
-function newdata=parse_collection(id,data,obj)
-
-if(jsoncount>0 && exist('data','var'))
-    if(~iscell(data))
-       newdata=cell(1);
-       newdata{1}=data;
-       data=newdata;
-    end
-end
-%}
-
-function newdata=jcell2array(data)
-len=numel(data);
-newdata=data;
-for i=1:len
-      if(isstruct(data{i}))
-          newdata{i}=jstruct2array(data{i});
-      elseif(iscell(data{i}))
-          newdata{i}=jcell2array(data{i});
-      end
-end
-
-%%-------------------------------------------------------------------------
-function newdata=jstruct2array(data)
-fn=fieldnames(data);
-newdata=data;
-len=numel(data);
-for i=1:numel(fn) % depth-first
-    for j=1:len
-        val = data(j).(fn{i});
-        if(isstruct(val))
-            newdata(j).(fn{i}) = jstruct2array(val);
-        end
-    end
-end
-
-hasArrayType = regexp(fn, '^x0x5F_ArrayType_', 'once');
-hasArrayType = any(cellfun(@numel, hasArrayType) > 0);
-
-hasArrayData = regexp(fn, '^x0x5F_ArrayData_', 'once');
-hasArrayData = any(cellfun(@numel, hasArrayData) > 0);
-
-hasComplex = regexp(fn, '^x0x5F_ArrayIsComplex_', 'once');
-hasComplex = any(cellfun(@numel, hasComplex) > 0);
-
-hasSparse = regexp(fn, '^x0x5F_ArrayIsSparse_', 'once');
-hasSparse = any(cellfun(@numel, hasSparse) > 0);
-
-hasArraySize = regexp(fn, '^x0x5F_ArraySize_', 'once');
-hasArraySize = any(cellfun(@numel, hasArraySize) > 0);
-
-if hasArrayType && hasArrayData
-  newdata=cell(len,1);
-  for j=1:len
-    ndata=cast(data(j).x0x5F_ArrayData_,data(j).x0x5F_ArrayType_);
-    iscpx=0;
-
-    if hasComplex
-        if(data(j).x0x5F_ArrayIsComplex_)
-           iscpx=1;
-        end
-    end
-
-    if hasSparse
-        if(data(j).x0x5F_ArrayIsSparse_)
-            if isArraySize
-                dim=data(j).x0x5F_ArraySize_;
-                if(iscpx && size(ndata,2)==4-any(dim==1))
-                    ndata(:,end-1)=complex(ndata(:,end-1),ndata(:,end));
-                end
-                if isempty(ndata)
-                    % All-zeros sparse
-                    ndata=sparse(dim(1),prod(dim(2:end)));
-                elseif dim(1)==1
-                    % Sparse row vector
-                    ndata=sparse(1,ndata(:,1),ndata(:,2),dim(1),prod(dim(2:end)));
-                elseif dim(2)==1
-                    % Sparse column vector
-                    ndata=sparse(ndata(:,1),1,ndata(:,2),dim(1),prod(dim(2:end)));
-                else
-                    % Generic sparse array.
-                    ndata=sparse(ndata(:,1),ndata(:,2),ndata(:,3),dim(1),prod(dim(2:end)));
-                end
-            else
-                if(iscpx && size(ndata,2)==4)
-                    ndata(:,3)=complex(ndata(:,3),ndata(:,4));
-                end
-                ndata=sparse(ndata(:,1),ndata(:,2),ndata(:,3));
-            end
-        end
-    elseif hasArraySize
-        if(iscpx && size(ndata,2)==2)
-             ndata=complex(ndata(:,1),ndata(:,2));
-        end
-        ndata=reshape(ndata(:),data(j).x0x5F_ArraySize_);
-    end
-    newdata{j}=ndata;
-  end
-
-  if(len==1)
-      newdata=newdata{1};
-  end
+if(isfield(opt,'progressbar_'))
+    close(opt.progressbar_);
 end
 
 %%-------------------------------------------------------------------------
@@ -204,7 +129,7 @@ function object = parse_object(varargin)
             end
             parse_char(':');
             val = parse_value(varargin{:});
-            object.(valid_field(str)) = val;
+            object.(valid_field(str))=val;
             if next_char == '}'
                 break;
             end
@@ -212,55 +137,73 @@ function object = parse_object(varargin)
         end
     end
     parse_char('}');
+    if(isstruct(object))
+        object=struct2jdata(object);
+    end
 
 %%-------------------------------------------------------------------------
 
 function object = parse_array(varargin) % JSON array is written in row-major order
 global pos inStr isoct
     parse_char('[');
-    object = cell(1, 0);
+    object = cell(0, 1);
     dim2=[];
+    arraydepth=jsonopt('JSONLAB_ArrayDepth_',1,varargin{:});
+    pbar=-1;
+    if(isfield(varargin{1},'progressbar_'))
+        pbar=varargin{1}.progressbar_;
+    end
+
     if next_char ~= ']'
-        [endpos, e1l, e1r] = matching_bracket(inStr,pos);
-        arraystr=['[' inStr(pos:endpos)];
-        arraystr=regexprep(arraystr,'"_NaN_"','NaN');
-        arraystr=regexprep(arraystr,'"([-+]*)_Inf_"','$1Inf');
-
-        arraystr = regexprep(arraystr, '[\n\r]*', '');
-
-        %arraystr=regexprep(arraystr,'\s*,',','); % this is slow,sometimes needed
-        if(~isempty(e1l) && ~isempty(e1r)) % the array is in 2D or higher D
-            astr=inStr((e1l+1):(e1r-1));
-            astr=regexprep(astr,'"_NaN_"','NaN');
-            astr=regexprep(astr,'"([-+]*)_Inf_"','$1Inf');
-
-            astr = regexprep(astr, '[\n\r\s]*', '');
-            if(isempty(find(astr=='[', 1))) % array is 2D
-                dim2=numel(sscanf(astr,'%f,',[1 inf]));
+	if(jsonopt('FastArrayParser',1,varargin{:})>=1 && arraydepth>=jsonopt('FastArrayParser',1,varargin{:}))
+            [endpos, e1l, e1r]=matching_bracket(inStr,pos);
+            arraystr=['[' inStr(pos:endpos)];
+            arraystr=regexprep(arraystr,'"_NaN_"','NaN');
+            arraystr=regexprep(arraystr,'"([-+]*)_Inf_"','$1Inf');
+            arraystr(arraystr==sprintf('\n'))=[];
+            arraystr(arraystr==sprintf('\r'))=[];
+            %arraystr=regexprep(arraystr,'\s*,',','); % this is slow,sometimes needed
+            if(~isempty(e1l) && ~isempty(e1r)) % the array is in 2D or higher D
+        	astr=inStr((e1l+1):(e1r-1));
+        	astr=regexprep(astr,'"_NaN_"','NaN');
+        	astr=regexprep(astr,'"([-+]*)_Inf_"','$1Inf');
+        	astr(astr==sprintf('\n'))=[];
+        	astr(astr==sprintf('\r'))=[];
+        	astr(astr==' ')='';
+        	if(isempty(find(astr=='[', 1))) % array is 2D
+                    dim2=length(sscanf(astr,'%f,',[1 inf]));
+        	end
+            else % array is 1D
+        	astr=arraystr(2:end-1);
+        	astr(astr==' ')='';
+        	[obj, count, errmsg, nextidx]=sscanf(astr,'%f,',[1,inf]);
+        	if(nextidx>=length(astr)-1)
+                    object=obj;
+                    pos=endpos;
+                    parse_char(']');
+                    return;
+        	end
             end
-        else % array is 1D
-            astr=arraystr(2:end-1);
-            astr = regexprep(astr, '[\n\r\s]*', '');
-            [obj, ~, ~, nextidx]=sscanf(astr,'%f,',[1,inf]);
-            if(nextidx>=numel(astr)-1)
-                object=obj;
-                pos=endpos;
-                parse_char(']');
-                return;
+            if(~isempty(dim2))
+        	astr=arraystr;
+        	astr(astr=='[')='';
+        	astr(astr==']')='';
+        	astr(astr==' ')='';
+        	[obj, count, errmsg, nextidx]=sscanf(astr,'%f,',inf);
+        	if(nextidx>=length(astr)-1)
+                    object=reshape(obj,dim2,numel(obj)/dim2)';
+                    pos=endpos;
+                    parse_char(']');
+                    if(pbar>0)
+                        waitbar(pos/length(inStr),pbar,'loading ...');
+                    end
+                    return;
+        	end
             end
-        end
-        if(~isempty(dim2))
-            astr=arraystr;
-            astr = regexprep(astr, '[\[\]\s]*', '');
-            [obj, ~, ~, nextidx]=sscanf(astr,'%f,',inf);
-            if(nextidx>=numel(astr)-1)
-                object=reshape(obj,dim2,numel(obj)/dim2)';
-                pos=endpos;
-                parse_char(']');
-                return;
-            end
-        end
-        arraystr=regexprep(arraystr,'\]\s*,','];');
+            arraystr=regexprep(arraystr,'\]\s*,','];');
+	else
+            arraystr='[';
+	end
         try
            if(isoct && regexp(arraystr,'"','once'))
                 error('Octave eval can produce empty cells for JSON-like input');
@@ -269,8 +212,9 @@ global pos inStr isoct
            pos=endpos;
         catch
          while 1
-            val = parse_value(varargin{:});
-            object = cat(2, object, {val});
+            newopt=varargin2struct(varargin{:},'JSONLAB_ArrayDepth_',arraydepth+1);
+            val = parse_value(newopt);
+            object{end+1} = val;
             if next_char == ']'
                 break;
             end
@@ -291,24 +235,27 @@ global pos inStr isoct
       end
     end
     parse_char(']');
-
+    
+    if(pbar>0)
+        waitbar(pos/length(inStr),pbar,'loading ...');
+    end
 %%-------------------------------------------------------------------------
 
 function parse_char(c)
     global pos inStr len
-    skip_whitespace;
+    pos=skip_whitespace(pos,inStr,len);
     if pos > len || inStr(pos) ~= c
         error_pos(sprintf('Expected %c at position %%d', c));
     else
         pos = pos + 1;
-        skip_whitespace;
+        pos=skip_whitespace(pos,inStr,len);
     end
 
 %%-------------------------------------------------------------------------
 
 function c = next_char
     global pos inStr len
-    skip_whitespace;
+    pos=skip_whitespace(pos,inStr,len);
     if pos > len
         c = [];
     else
@@ -317,16 +264,16 @@ function c = next_char
 
 %%-------------------------------------------------------------------------
 
-function skip_whitespace
-    global pos inStr len
-    while pos <= len && isspace(inStr(pos))
-        pos = pos + 1;
+function newpos=skip_whitespace(pos,inStr,len)
+    newpos=pos;
+    while newpos <= len && isspace(inStr(newpos))
+        newpos = newpos + 1;
     end
 
 %%-------------------------------------------------------------------------
 function str = parseStr(varargin)
     global pos inStr len  esc index_esc len_esc
- % len, ns = numel(inStr), keyboard
+ % len, ns = length(inStr), keyboard
     if inStr(pos) ~= '"'
         error_pos('String starting with " expected at position %d');
     else
@@ -338,14 +285,14 @@ function str = parseStr(varargin)
             index_esc = index_esc + 1;
         end
         if index_esc > len_esc
-            str = cat(2, str, inStr(pos:len));
+            str = [str inStr(pos:len)];
             pos = len + 1;
             break;
         else
-            str = cat(2, str, inStr(pos:esc(index_esc)-1));
+            str = [str inStr(pos:esc(index_esc)-1)];
             pos = esc(index_esc);
         end
-        nstr = numel(str);
+        nstr = length(str);
         switch inStr(pos)
             case '"'
                 pos = pos + 1;
@@ -359,17 +306,17 @@ function str = parseStr(varargin)
                     end
                 end
                 return;
-            case escapechar
+            case '\'
                 if pos+1 > len
                     error_pos('End of file reached right after escape character');
                 end
                 pos = pos + 1;
                 switch inStr(pos)
-                    case {'"' escapechar '/'}
+                    case {'"' '\' '/'}
                         str(nstr+1) = inStr(pos);
                         pos = pos + 1;
                     case {'b' 'f' 'n' 'r' 't'}
-                        str(nstr+1) = sprintf([escapechar inStr(pos)]);
+                        str(nstr+1) = sprintf(['\' inStr(pos)]);
                         pos = pos + 1;
                     case 'u'
                         if pos+4 > len
@@ -380,8 +327,7 @@ function str = parseStr(varargin)
                 end
             otherwise % should never happen
                 str(nstr+1) = inStr(pos);
-                disp(str)
-                keyboard
+                keyboard;
                 pos = pos + 1;
         end
     end
@@ -391,13 +337,13 @@ function str = parseStr(varargin)
 
 function num = parse_number(varargin)
     global pos inStr isoct
-    currstr=inStr(pos:end);
+    currstr=inStr(pos:min(pos+30,end));
     if(isoct~=0)
         numstr=regexp(currstr,'^\s*-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+\-]?\d+)?','end');
-        num = sscanf(currstr, '%f', 1);
+        [num] = sscanf(currstr, '%f', 1);
         delta=numstr+1;
     else
-        [num, ~, err, delta] = sscanf(currstr, '%f', 1);
+        [num, one, err, delta] = sscanf(currstr, '%f', 1);
         if ~isempty(err)
             error_pos('Error reading number at position %d');
         end
@@ -408,8 +354,11 @@ function num = parse_number(varargin)
 
 function val = parse_value(varargin)
     global pos inStr len
-    true = 1; false = 0;
-
+    
+    if(isfield(varargin{1},'progressbar_'))
+        waitbar(pos/len,varargin{1}.progressbar_,'loading ...');
+    end
+    
     switch(inStr(pos))
         case '"'
             val = parseStr(varargin{:});
@@ -419,17 +368,6 @@ function val = parse_value(varargin)
             return;
         case '{'
             val = parse_object(varargin{:});
-            if isstruct(val)
-
-                hasArrayType = regexp(fieldnames(val), '^x0x5F_ArrayType_\s*$', 'once');
-                hasArrayType = any(cellfun(@numel, hasArrayType) > 0);
-
-                if hasArrayType
-                    val=jstruct2array(val);
-                end
-            elseif isempty(val)
-                val = struct;
-            end
             return;
         case {'-','0','1','2','3','4','5','6','7','8','9'}
             val = parse_number(varargin{:});
@@ -485,26 +423,20 @@ global isoct
     if(isempty(regexp(str,'[^0-9A-Za-z_]', 'once' )))
         return;
     end
-
     if(~isoct)
         str=regexprep(str,'([^0-9A-Za-z_])','_0x${sprintf(''%X'',unicode2native($1))}_');
     else
         pos=regexp(str,'[^0-9A-Za-z_]');
-
         if(isempty(pos))
             return;
         end
-
         str0=str;
-        pos0=[0 pos(:)' numel(str)];
+        pos0=[0 pos(:)' length(str)];
         str='';
-        for i=1:numel(pos)
-            str=cat(2, str, ...
-                       str0(pos0(i)+1:pos(i)-1), ...
-                       sprintf('_0x%X_',str0(pos(i))));
+        for i=1:length(pos)
+            str=[str str0(pos0(i)+1:pos(i)-1) sprintf('_0x%X_',str0(pos(i)))];
         end
-
-        if(pos(end)~=numel(str))
+        if(pos(end)~=length(str))
             str=[str str0(pos0(end-1)+1:pos0(end))];
         end
     end
@@ -512,13 +444,13 @@ global isoct
 
 %%-------------------------------------------------------------------------
 function endpos = matching_quote(str,pos)
-len=numel(str);
+len=length(str);
 while(pos<len)
     if(str(pos)=='"')
-        if(~(pos>1 && str(pos-1)==escapechar))
+        if(~(pos>1 && str(pos-1)=='\'))
             endpos=pos;
             return;
-        end
+        end        
     end
     pos=pos+1;
 end
@@ -531,7 +463,7 @@ maxlevel=level;
 endpos=0;
 bpos=arraytoken(arraytoken>=pos);
 tokens=str(bpos);
-len=numel(tokens);
+len=length(tokens);
 pos=1;
 e1l=[];
 e1r=[];
@@ -539,14 +471,18 @@ while(pos<=len)
     c=tokens(pos);
     if(c==']')
         level=level-1;
-        if(isempty(e1r)); e1r=bpos(pos); end
+        if(isempty(e1r))
+            e1r=bpos(pos);
+        end
         if(level==0)
             endpos=bpos(pos);
             return
         end
     end
     if(c=='[')
-        if(isempty(e1l)); e1l=bpos(pos); end
+        if(isempty(e1l))
+            e1l=bpos(pos);
+        end
         level=level+1;
         maxlevel=max(maxlevel,level);
     end
@@ -555,7 +491,6 @@ while(pos<=len)
     end
     pos=pos+1;
 end
-if(endpos==0)
+if(endpos==0) 
     error('unmatched "]"');
 end
-
