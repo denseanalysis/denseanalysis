@@ -1,8 +1,3 @@
----
-layout: default
-title: Home
----
-
 ## DENSEanalysis: Cine DENSE Processing Software ##
 
 This software was developed in MATLAB to provide a user-friendly way of
