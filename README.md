@@ -35,8 +35,14 @@ If you have previously installed *DENSEanalysis*, make sure to remove any
 existing entries in your path that point to that installation of
 *DENSEanalysis* and restart MATLAB
 
-To do this, you will want to select **Set Path** from the **File** menu. This
-will bring up the path dialog in which you can select the folders to remove.
+To do this you can either type the following command into MATLAB
+
+    pathtool
+
+Or if you wish, you can select **Set Path** from the **File** menu.
+
+Either of these will bring up the path dialog in which you can select the
+folders to remove.
 
 #### Download Software
 
@@ -56,7 +62,8 @@ Launch MATLAB and change folders to where you extracted the *DENSEanalysis*
 software and run the `DENSEsetup` script to finish the installation of the
 software.
 
-    cd('path/to/DENSEanalysis') DENSEsetup
+    cd('path/to/DENSEanalysis')
+    DENSEsetup
 
 #### Running *DENSEanalysis* Programs
 
