@@ -304,29 +304,18 @@ function obj = contrasttoolFcn(obj,hfig)
 
     % deletion listener: is the parent figure is deleted, we need to
     % delete the contrast object
-    obj.hlisten_delete = handle.listener(...
+    obj.hlisten_delete = addlistener(...
         hfig,'ObjectBeingDestroyed',@(varargin)delete(obj));
 
     % mode listener: if the mode manager changes the figure mode, we
     % need start/stop the contrast tool appropriately
     hmanager = uigetmodemanager(hfig);
     prop = findprop(hmanager,'CurrentMode');
-    obj.hlisten_mode = handle.listener(hmanager,...
-        prop,'PropertyPostSet',@(varargin)modeFcn(obj));
+    obj.hlisten_mode = addproplistener(hmanager, prop, 'PostSet', ...
+        @(varargin)modeFcn(obj));
 
     % create a UI mode object
     createMode(obj);
-%     obj.hmode = getuimode(hfig,obj.modename);
-%     if isempty(obj.hmode)
-%         obj.hmode = uimode(hfig,obj.modename);
-%         set(obj.hmode,'WindowButtonDownFcn',@(varargin)buttonDownFcn(obj));
-%         set(obj.hmode,'WindowButtonUpFcn',@(varargin)buttonUpFcn(obj));
-%         set(obj.hmode,'WindowButtonMotionFcn',@(src,evnt)motionFcn(obj,evnt));
-%         set(obj.hmode,'UIContextMenu',[]);
-%         set(obj.hmode,'UseContextMenu','on');
-%     end
-
-
 end
 
 
