@@ -29,7 +29,7 @@ function [b,m,n] = unique_nat(a,varargin)
     [b,order] = sort_nat(b);
 
     % update m/n
-    [tmp,idx] = sort(order);
+    [~,idx] = sort(order);
     m(:) = m(order);
     n(:) = idx(n);
 end
