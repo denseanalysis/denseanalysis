@@ -321,7 +321,11 @@ function handles = initFcn(hfig,callingfile)
 
 
     % default renderers
-    handles.renderer = repmat({'painters'},[3 1]);
+    if feature('hgusingmatlabclasses')
+        handles.renderer = repmat({'opengl'},[3 1]);
+    else
+        handles.renderer = repmat({'painters'},[3 1]);
+    end
     handles.LastTab = 1;
 
 
