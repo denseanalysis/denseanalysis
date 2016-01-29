@@ -17,7 +17,7 @@ function [b,m,n] = unique_nat(a,varargin)
 %     --creation
 
     % check for valid cell vector of strings
-    if ~iscellstr(a) || ~ismatrix(a) || ~any(size(a) == 1)
+    if ~iscellstr(a) || ~isvector(a)
         error(sprintf('%s:invalidInput',mfilename),...
             'UNIQUE_MAT accepts only an [Nx1] cell vector of strings');
     end
