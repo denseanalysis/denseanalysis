@@ -130,7 +130,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
 
     % listen for mode change
     prop = findprop(figModeManager,'CurrentMode');
-    hlisten_mode = addproplistener(figModeManager,...
+    hlisten_mode = addlistener_mod(figModeManager,...
         prop,'PostSet',@(varargin)updatefcn(true));
 
     % listen for figure deletion (to delete tooltip timer)

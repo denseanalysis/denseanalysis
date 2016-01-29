@@ -1,5 +1,5 @@
-function listener = addproplistener(obj, prop, event, cback)
-    % ADDPROPLISTENER - addlistener wrapper for property change events
+function listener = addlistener_mod(obj, prop, event, cback)
+    % ADDLISTENER_MOD - addlistener wrapper for property change events
     %
     %   addlistener works flawlessly on old (hg1) and new (hg2) versions of
     %   MATLAB; however, in hg1, addlistener calls on UDD objects that are
@@ -19,7 +19,7 @@ function listener = addproplistener(obj, prop, event, cback)
     %   UDD object), then it makes the explicit call to handle.listener()
     %
     % USAGE:
-    %   L = addproplistener(obj, prop, event, cback)
+    %   L = addlistener_mod(obj, prop, event, cback)
     %
     % INPUTS:
     %   obj:    Handle, Object to listen to for property changes.
@@ -47,18 +47,18 @@ function listener = addproplistener(obj, prop, event, cback)
 
     if numel(obj) > 1
         if numel(prop) > 1
-            func = @(o,p)addproplistener(o, p, event, cback);
+            func = @(o,p)addlistener_mod(o, p, event, cback);
             listener = arrayfun(func, obj, prop, 'uniform', 0);
             listener = cat(1, listener{:});
         else
-            func = @(o)addproplistener(o, prop, event, cback);
+            func = @(o)addlistener_mod(o, prop, event, cback);
             listener = arrayfun(func, obj, 'uniform', 0);
             listener = cat(1, listener{:});
         end
 
         return
     elseif numel(prop) > 1
-        func = @(p)addproplistener(obj, p, event, cback);
+        func = @(p)addlistener_mod(obj, p, event, cback);
         listener = arrayfun(func, prop, 'uniform', 0);
         listener = cat(1, listener{:});
         return

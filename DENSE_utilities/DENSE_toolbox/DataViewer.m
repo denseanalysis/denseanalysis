@@ -521,7 +521,7 @@ function setParentFcn(obj,hdisp,hctrl)
         prop{k} = findprop(handle(hand(k)),tags{k});
     end
 
-    obj.hlisten_redraw = addproplistener(handle(hand(:)),cat(1,prop{:}),...
+    obj.hlisten_redraw = addlistener_mod(handle(hand(:)),cat(1,prop{:}),...
         'PostSet',@(src,evnt)redrawListenerCallback(obj,src,evnt));
 
     % Hierachy listener: if the user attempts to change the figure
@@ -531,7 +531,7 @@ function setParentFcn(obj,hdisp,hctrl)
     if ~isempty(hhier)
         prop = cellfun(@(h)findprop(h,'Parent'),...
             num2cell(handle(hhier)),'uniformoutput',0);
-        obj.hlisten_parent = addproplistener(handle(hhier),cell2mat(prop),...
+        obj.hlisten_parent = addlistener_mod(handle(hhier),cell2mat(prop),...
             'PostSet',@(src,evnt)parentListenerCallback(obj));
     end
 end

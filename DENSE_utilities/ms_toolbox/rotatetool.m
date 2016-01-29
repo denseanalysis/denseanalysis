@@ -278,7 +278,7 @@ function obj = mainFcn(obj,hfig)
     % need start/stop the contrast tool appropriately
     hmanager = uigetmodemanager(hfig);
     prop = findprop(hmanager,'CurrentMode');
-    obj.hlisten_mode = addproplistener(hmanager, prop, 'PostSet', ...
+    obj.hlisten_mode = addlistener_mod(hmanager, prop, 'PostSet', ...
         @(varargin)modeFcn(obj));
 
     % create a UI mode object
