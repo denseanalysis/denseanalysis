@@ -526,7 +526,8 @@ end
 
 
 function redrawListenerCallback(obj,src,evnt)
-    if strcmpi(src.Name,'Position')
+    if (isield(src, 'Name') && strcmpi(src.Name, 'Position')) || ...
+            isa(evnt, 'matlab.ui.eventdata.SizeChangedData')
         cpos = getpixelposition(obj.hcontrol);
         dpos = getpixelposition(obj.hdisplay);
 
@@ -537,17 +538,6 @@ function redrawListenerCallback(obj,src,evnt)
     elseif any(strcmpi(src.Name,{'BackgroundColor','Color'}))
         resize(obj)
     end
-
-%     cpos = getpixelposition(obj.hcontrol);
-%     dpos = getpixelposition(obj.hdisplay);
-%
-%     if all(cpos(3:4) == obj.ctrlsz_cache) && ...
-%        all(dpos(3:4) == obj.dispsz_cache)
-%         return
-%     else
-%         resize(obj)
-%     end
-
 end
 
 function parentListenerCallback(obj)
