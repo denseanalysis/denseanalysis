@@ -416,14 +416,13 @@ end
 
 function obj = deleteFcn(obj)
 
-	% handles to listeners
-    h = [obj.hlisten_parent, obj.hlisten_delete];
+    % handles to listeners
+    h = cat(1, obj.hlisten_parent(:), obj.hlisten_delete(:));
     delete(h(ishandle(h)));
 
     % delete drawing objects
     h = obj.hsidepanel;
     delete(h(ishandle(h)));
-
 end
 
 
@@ -475,9 +474,13 @@ function obj = setParentFcn(obj,hparent)
 
     % Parent listener: when the parent is Resized, the color changes,
     % or the renderer changes, we need to update the SIDETABS object
-    prp = [findprop(handle(obj.Parent),'Position');...
-           findprop(handle(obj.Parent),'Color');...
+
+    cback = @(src, evnt)obj.redrawPrimer(src);
+    iptaddcallback_mod(obj.Parent, 'ResizeFcn', cback);
+
+    prp = [findprop(handle(obj.Parent),'Color');...
            findprop(handle(obj.Parent),'Renderer');];
+
     obj.hlisten_parent = addproplistener(obj.Parent,...
         prp,'PostSet',@(src,evnt)obj.redrawPrimer(src));
 end
