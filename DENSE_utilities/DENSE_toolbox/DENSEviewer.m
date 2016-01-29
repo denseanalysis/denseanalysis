@@ -220,9 +220,7 @@ end
 function obj = DENSEviewerFcn(obj)
 
     hlclr   = [78 101 148]/255;
-    edgeclr = 'w';
     axesclr = [.5 .5 .5];
-    txtclr  = [1 0.5 0];
 
     titles = {'X-MAGNITUDE','X-PHASE',...
               'Y-MAGNITUDE','Y-PHASE',...
@@ -890,7 +888,6 @@ function resizeFcn(obj)
     minwh = [400 300];  % minimum allowable panel size
     vert  = [10 10 50]; % internal axes vertical spacing (top/mid/bot)
     horz  = [30 30 10]; % internal horizontal spacing    (lft/mid/rgt)
-    ploff = 5;          % playbar lower offset
     margin = 5;
 
     % get the current panel margin
