@@ -428,17 +428,20 @@ function setParentFcn(obj,hdisp,hctrl)
     % Resize listener: initialize a listener to ensure the object is
     % redrawn whenever either parent object (or their figure ancestors)
     % are resized.
-    figs = unique([hfig_disp, hfig_ctrl]);
     cback = @(src,evnt)redrawListenerCallback(obj,src,evnt);
 
     obj.hlisten_redraw = [...
-        position_listener(figs, cback);
-        position_listener(hdisp, cback);
-        position_listener(hctrl, cback);
         addlistener_mod(hdisp, 'BackgroundColor', 'PostSet', cback);
         addlistener_mod(hctrl, 'BackgroundColor', 'PostSet', cback);
         addlistener_mod(hdisp, 'Color', 'PostSet', cback);
         addlistener_mod(hctrl, 'Color', 'PostSet', cback)];
+
+    objs = unique([hfig_disp, hfig_ctrl, hctrl, hdisp]);
+
+    for k = 1:numel(objs)
+        obj.hlisten_redraw = cat(1, obj.hlisten_redraw, ...
+                                    position_listener(objs(k), cback));
+    end
 
     % Hierachy listener: if the user attempts to change the figure
     % ancestors of the object (like moving the hparent_display panel
