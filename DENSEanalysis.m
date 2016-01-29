@@ -273,6 +273,20 @@ function handles = initFcn(hfig,callingfile)
     hslice = SliceViewer(hdata,handles.popup_slice);
     harial = ArialViewer(hdata,handles.popup_arial);
 
+    % Turn off all listeners
+    items = {hdense, hdicom, hanalyais, hslice, harial};
+    for k = 1:numel(items)
+        item = items{k};
+
+        if isa(item.hlisten_redraw, 'handle.listener')
+            set(item.hlisten_redraw, 'Enabled', 'off')
+        else
+            for m = 1:numel(item.hlisten_redraw)
+                item.hlisten_redraw(m).Enabled = false;
+            end
+        end
+    end
+
 
     % CREATE TAB OBJECTS---------------------------------------------------
 
@@ -367,7 +381,19 @@ function handles = initFcn(hfig,callingfile)
     % save all data to the figure
     guidata(handles.hfig,handles);
 
+    set(handles.hfig, 'ResizeFcn', @(s,e)resizeFcn(s));
+end
 
+function resizeFcn(hfig)
+    h = guidata(hfig);
+
+    h.hsidebar.redraw();
+    h.hpopup.redraw();
+
+    % Redraw only the visible tab because the others will automatically
+    % redraw when the tab is changed
+    objs = {h.hdicom, h.hdense, h.hanalysis};
+    objs{h.hsidebar.ActiveTab}.redraw();
 end
 
 
