@@ -979,7 +979,7 @@ function playbackFcn(obj)
 
     % issue warning for strange shifts
     for k = 1:3
-        if ~isequalwithequalnans(shft{1,k},shft{2,k})
+        if ~isequaln(shft{1,k},shft{2,k})
             warning(sprintf('%s:translationsWarning',mfilename),...
                 'Magnitude/Phase translations do not match...');
             break
