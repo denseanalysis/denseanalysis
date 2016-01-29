@@ -476,13 +476,10 @@ function obj = setParentFcn(obj,hparent)
     % or the renderer changes, we need to update the SIDETABS object
 
     cback = @(src, evnt)obj.redrawPrimer(src);
-    iptaddcallback_mod(obj.Parent, 'ResizeFcn', cback);
-
-    prp = [findprop(handle(obj.Parent),'Color');...
-           findprop(handle(obj.Parent),'Renderer');];
-
-    obj.hlisten_parent = addlistener_mod(obj.Parent,...
-        prp,'PostSet',@(src,evnt)obj.redrawPrimer(src));
+    obj.hlisten_parent = [...
+        position_listener(obj.Parent, cback);
+        addlistener_mod(obj.Parent, 'Color', 'PostSet', cback);
+        addlistener_mod(obj.Parent, 'Renderer', 'PostSet', cback)];
 end
 
 
