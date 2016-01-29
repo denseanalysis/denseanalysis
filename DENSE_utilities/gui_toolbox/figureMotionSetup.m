@@ -205,9 +205,11 @@ function motionapi = figureMotionSetup(hfig,varargin)
         pt = tmp(1:2);
 
         % new object in current figure
-        if active && isequal(get(0,'currentfigure'),hfig)% && isempty(figModeManager.CurrentMode)
-            hnew = hittest(hfig,pt);
-            if isempty(hnew) || ~ishandle(hnew), hnew = -1; end
+        if active && isequal(get(0, 'currentfigure'), hfig)
+            hnew = overobj2('type', 'axes');
+            if isempty(hnew) || ~ishandle(hnew)
+                hnew = -1;
+            end
         else
             hnew = -1;
         end
