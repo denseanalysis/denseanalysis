@@ -579,9 +579,9 @@ end
 function api = phaseDisplay(obj)
 
     % persistant objects
-    hax    = NaN(6,1);
-    him    = NaN(6,1);
-    htitle = NaN(6,1);
+    hax    = [];
+    him    = [];
+    htitle = [];
 
     % application data
     api.initFcn     = @initFcn;
@@ -613,9 +613,9 @@ function api = phaseDisplay(obj)
 
         % create object hierarchy
         for n = 1:6
-            hax(n) = axes('parent',obj.hdisplay);
-            him(n) = imshow(rand(Isz),'parent',hax(n));
-            htitle(n) = textfig(obj.hdisplay);
+            hax = cat(1, hax, axes('parent',obj.hdisplay));
+            him = cat(1, him, imshow(rand(Isz),'parent',hax(n)));
+            htitle = cat(1, htitle, textfig(obj.hdisplay));
         end
 
         % set properties
