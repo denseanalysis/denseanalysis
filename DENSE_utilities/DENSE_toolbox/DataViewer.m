@@ -247,7 +247,7 @@ function obj = DataViewerFcn(obj,options,hdata,varargin)
 
 
     % test data
-    if ~isobject(hdata) || ~strcmpi(class(hdata),'DENSEdata')
+    if ~isa(hdata, 'DENSEdata')
         error(sprintf('%s:invalidDENSEdata',mfilename),...
             'First input must be DENSEdata object.');
     end

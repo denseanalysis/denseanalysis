@@ -460,7 +460,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
     elseif isobject(varargin{1})
 
         % error check
-        if numel(varargin)~=1 || ~strcmpi(class(varargin{1}),mfilename)
+        if numel(varargin)~=1 || ~isa(varargin{1}, mfilename)
             error(sprintf('%s:invalidInput',mfilename),...
                 'Copy constructor does not accept additional inputs.');
         end

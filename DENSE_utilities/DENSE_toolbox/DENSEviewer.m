@@ -1060,7 +1060,7 @@ end
 function setSliceViewerFcn(obj,val)
 
     if ~isempty(val)
-        if ~isobject(val) || ~strcmpi(class(val),'SliceViewer')
+        if ~isa(val, 'SliceViewer')
             error(sprintf('%s:invalidSliceViewer',mfilename),...
                 'Invalid Slice Viewer Specification.');
         end
@@ -1095,7 +1095,7 @@ end
 function setArialViewerFcn(obj,val)
 
     if ~isempty(val)
-        if ~isobject(val) || ~strcmpi(class(val),'ArialViewer')
+        if ~isa(val, 'ArialViewer')
             error(sprintf('%s:invalidArialViewer',mfilename),...
                 'Invalid Arial Viewer Specification.');
         end

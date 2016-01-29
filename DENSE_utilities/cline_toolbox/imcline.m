@@ -407,7 +407,7 @@ function obj = imclineFcn(obj,hcline,h)
     if nargin < 3, h = gca; end
 
     % check cLINE input
-    if ~isobject(hcline) || ~strcmpi(class(hcline),'cline')
+    if ~isa(hcline, 'cline')
         error(sprintf('%s:invalidObject',mfilename),...
             'Invalid cLINE object.');
     end

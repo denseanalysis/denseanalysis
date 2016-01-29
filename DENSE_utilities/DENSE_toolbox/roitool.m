@@ -174,9 +174,7 @@ end
 function obj = roitoolFcn(obj,hdata,hax)
 
     % test hdata input
-    if ~isobject(hdata) || numel(hdata)>1 || ...
-       ~strcmpi(class(hdata),'DENSEdata')
-
+    if ~isa(hdata, 'DENSEdata') || numel(hdata) > 1
         error(sprintf('%s:invalidInput',mfilename),...
             'Function requires valid DENSEdata input');
     end
