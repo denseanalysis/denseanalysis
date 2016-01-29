@@ -310,7 +310,7 @@ end
 function deleteFcn(obj)
 
 	% handles to listeners
-    h = [obj.hlisten_parent, obj.hlisten_delete];
+    h = [obj.hlisten_parent(:); obj.hlisten_delete(:)];
     delete(h(ishandle(h)));
 
     % move reference panels back to parent
@@ -377,18 +377,19 @@ function setParentFcn(obj,hparent)
     % Property listener: when the parent is Resized, the parent color
     % changes, or the ancestor figure is resized, we need to update
     % the SIDETABS object
-    if strcmpi(get(obj.hparent,'type'),'figure')
-        h = [obj.hparent,obj.hparent];
-        tags = {'Position','Color'};
-    else
-        h = [obj.hparent,obj.hparent,ancestor(obj.hparent,'figure')];
-        tags = {'Position','BackgroundColor','Position'};
-    end
+    cback = @(varargin)redrawFcn(obj);
 
-    prp = cellfun(@(h,tag)findprop(h,tag),...
-        num2cell(handle(h)),tags,'uniformoutput',0);
-    obj.hlisten_parent = addlistener_mod(handle(h),cell2mat(prp),...
-        'PostSet',@(varargin)redrawFcn(obj));
+    if ishghandle(obj.hparent, 'figure')
+        obj.hlisten_parent = [ ...
+            addlistener_mod(obj.hparent, 'Color', 'PostSet', cback);
+            position_listener(obj.hparent, cback)];
+    else
+        fig = ancestor(obj.hparent, 'figure');
+        obj.hlisten_parent = [...
+            position_listener(obj.hparent, cback);
+            addlistener_mod(obj.hparent, 'BackgroundColor', 'PostSet', cback);
+            position_listener(fig, cback)];
+    end
 end
 
 
