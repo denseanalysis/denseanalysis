@@ -503,9 +503,11 @@ function motionFcn(obj,evnt)
     % figure handle
     hfig = obj.FigureHandle;
 
+    currentPoint = get(evnt.Source, 'CurrentPoint');
+
     % manually update the current figure point
-    curr_units = hgconvertunits(hfig,[0 0 evnt.CurrentPoint],...
-        'pixels',get(hfig,'Units'),hfig);
+    curr_units = hgconvertunits(hfig, [0 0 currentPoint], ...
+        'pixels', get(hfig, 'Units'), hfig);
     pt = curr_units(3:4);
     set(hfig,'CurrentPoint',pt);
 
