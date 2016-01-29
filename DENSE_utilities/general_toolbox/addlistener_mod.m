@@ -1,22 +1,20 @@
-function listener = addlistener_mod(obj, prop, event, cback)
-    % ADDLISTENER_MOD - addlistener wrapper for property change events
+function listener = addlistener_mod(varargin)
+    %   ADDLISTENER_MOD - Wrapper for addlistener to account for HG2 and HG1
     %
-    %   addlistener works flawlessly on old (hg1) and new (hg2) versions of
-    %   MATLAB; however, in hg1, addlistener calls on UDD objects that are
-    %   non-hg objects (i.e. uitools.uimodemanager) it fails because
-    %   addlistener is expecting an hg object as the first input. The
-    %   traditional way to create a listener for a property event was thus
-    %   to call handle.listener() directly on the UDD object with the same
-    %   inputs as addlistener. Furthermore, when calling handle.listener,
-    %   the property event names are preceded by "Property" (e.g.
-    %   'PropertyPostSet' vs. 'PostSet').
+    %   In HG1, addlistener calls on UDD objects that are non-hg objects
+    %   (i.e. uitools.uimodemanager) fail because it is expecting an hg
+    %   object as the first input. The traditional way to create a listener
+    %   for a property event was thus to call handle.listener() directly on
+    %   the UDD object with the same inputs as addlistener. Furthermore,
+    %   when calling handle.listener(), the property names are preceded by
+    %   "Property" (e.g. 'PropertyPostSet' vs. PostSet').
     %
-    %   In hg2, addlistener now supports non-hg objects and handle.listener
+    %   In HG2, addlistener now supports non-hg objects and handle.listener
     %   is no longer available.
     %
-    %   This function simply attempts to call addlistener (the new way) and
-    %   if the call fails because the first input isn't an hghandle (is a
-    %   UDD object), then it makes the explicit call to handle.listener()
+    %   This function simply translates the addlistener_mod call into the
+    %   correct functions depending on whether we are using an HG2 release
+    %   or not.
     %
     % USAGE:
     %   L = addlistener_mod(obj, prop, event, cback)
@@ -45,39 +43,54 @@ function listener = addlistener_mod(obj, prop, event, cback)
     %
     % Copyright (c) 2016 DENSEanalysis Contributors
 
-    if numel(obj) > 1
-        if numel(prop) > 1
-            func = @(o,p)addlistener_mod(o, p, event, cback);
-            listener = arrayfun(func, obj, prop, 'uniform', 0);
-            listener = cat(1, listener{:});
-        else
-            func = @(o)addlistener_mod(o, prop, event, cback);
-            listener = arrayfun(func, obj, 'uniform', 0);
-            listener = cat(1, listener{:});
-        end
+    if feature('hgusingmatlabclasses')  % HG2
 
-        return
-    elseif numel(prop) > 1
-        func = @(p)addlistener_mod(obj, p, event, cback);
-        listener = arrayfun(func, prop, 'uniform', 0);
-        listener = cat(1, listener{:});
-        return
-    end
+        % event.listener(obj, 'EventName', @callback
+        % event.proplistener(obj, Properties, 'PropEvent', @callback)
 
-    try
-        % addlistener needs a string
-        if isa(prop, 'schema.prop')
-            strprop = prop.name;
+        if nargin == 3
+            listener = event.listener(varargin{:});
+        elseif nargin == 4
+            if isa(varargin{2}, 'meta.property')
+                prop = varargin{2};
+            else
+                prop = findprop(varargin{1:2});
+            end
+
+            listener = event.proplistener(varargin{1}, prop, varargin{3:end});
         else
-            strprop = prop;
+            error(sprintf('%s:InvalidInput', mfilename), ...
+                'Wrong number of input arguments to %s', mfilename);
         end
-        listener = addlistener(obj, strprop, event, cback);
-    catch ME
-        if ~all(ishghandle(obj)) && exist('handle.listener', 'class')
-            event = strcat('Property', event);
-            listener = handle.listener(obj, prop, event, cback);
+    else % HG1
+        % handle.listener(h, 'ObjectBeingDestroyed', @callback)
+        % handle.listener(h, findprop('propname'), 'PropertyPostSet',
+        %   @callback)
+
+        h = handle(varargin{1});
+
+        if nargin == 3
+            listener = handle.listener(h, varargin{2:end});
+        elseif nargin == 4
+            type = varargin{3};
+
+            options = {'PostSet', 'PostGet', 'PreSet', 'PreGet'};
+
+            if ~any(strcmpi(type, options))
+                error(sprintf('%s:InvalidInput', mfilename), ...
+                    'Invalid event type %s', type);
+            end
+
+            if isa(varargin{2}, 'schema.prop')
+                prop = varargin{2};
+            else
+                prop = findprop(h(1), varargin{2});
+            end
+            type = sprintf('Property%s', type);
+            listener = handle.listener(h, prop, type, varargin{4});
         else
-            rethrow(ME);
+            error(sprintf('%s:InvalidInput', mfilename), ...
+                'Wrong number of input arguments to %s', mfilename);
         end
     end
 end
