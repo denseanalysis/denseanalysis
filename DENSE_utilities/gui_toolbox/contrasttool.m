@@ -138,9 +138,8 @@ classdef contrasttool < handle
         function obj = contrasttool(hfig)
 
             % check figure
-            if ~isnumeric(hfig) || ~isscalar(hfig) || ...
-               ~ishandle(hfig) || ~strcmpi(get(hfig,'type'),'figure')
-                error(sprintf('%s:invalidFigure',mfilename),...
+            if ~isscalar(hfig) || ~ishghandle(hfig, 'figure')
+                error(sprintf('%s:invalidFigure', mfilename),...
                     'Invalid figure handle.');
             end
 
@@ -354,7 +353,7 @@ function deleteFcn(obj)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
         end
     end
 
@@ -366,8 +365,7 @@ end
 function addToggleFcn(obj,htoolbar)
 
     % check toolbar
-    if ~isnumeric(htoolbar) || ~isscalar(htoolbar) || ...
-       ~ishandle(htoolbar) || ~strcmpi(get(htoolbar,'type'),'uitoolbar')
+    if ~isscalar(htoolbar) || ~ishghandle(htoolbar, 'uitoolbar')
         error(sprintf('%s:invalidToolbar',mfilename),...
             'Invalid toolbar handle.');
     end
@@ -678,7 +676,7 @@ function callPreCallback(obj,hax)
         try
             data = struct('Axes',hax);
             obj.ActionPreCallback(obj.FigureHandle,data);
-        catch ERR
+        catch
             warning(sprintf('%s:failedActionPreCallback',mfilename),...
                 '%s','ActionPreCallback failure.  Callback ',...
                 'is being removed.');
@@ -693,7 +691,7 @@ function callPostCallback(obj,hax)
         try
             data = struct('Axes',hax);
             obj.ActionPostCallback(obj.FigureHandle,data);
-        catch ERR
+        catch
             warning(sprintf('%s:failedActionPostCallback',mfilename),...
                 '%s','ActionPostCallback failure.  Callback ',...
                 'is being removed.');
@@ -782,9 +780,8 @@ function testaxes(obj,hax)
     errid = sprintf('%s:invalidAxes',mfilename);
 
     % check for valid axes handles
-    if ~isnumeric(hax) || ~all(ishandle(hax)) || ...
-       ~all(strcmpi(get(hax,'type'),'axes'))
-        error(errid,'Input must be axes handles.');
+    if ~all(ishghandle(hax, 'axes'))
+        error(errid, 'Input must be axes handles.');
     end
 
     % ensure axes are within object

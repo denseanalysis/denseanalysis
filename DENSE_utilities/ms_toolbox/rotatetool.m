@@ -117,9 +117,8 @@ classdef rotatetool < handle
         function obj = rotatetool(hfig)
 
             % check figure
-            if ~isnumeric(hfig) || ~isscalar(hfig) || ...
-               ~ishandle(hfig) || ~strcmpi(get(hfig,'type'),'figure')
-                error(sprintf('%s:invalidFigure',mfilename),...
+            if ~isscalar(hfig) || ~ishghandle(hfig, 'figure')
+                error(sprintf('%s:invalidFigure', mfilename),...
                     'Invalid figure handle.');
             end
 
@@ -250,7 +249,7 @@ function obj = mainFcn(obj,hfig)
             im(:,:,k) = tmp;
         end
         obj.icon = im;
-    catch ERR
+    catch
         obj.icon = zeros([16 16 3]);
     end
 
@@ -321,7 +320,7 @@ function deleteFcn(obj)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
         end
     end
 
@@ -333,8 +332,7 @@ end
 function addToggleFcn(obj,htoolbar)
 
     % check toolbar
-    if ~isnumeric(htoolbar) || ~isscalar(htoolbar) || ...
-       ~ishandle(htoolbar) || ~strcmpi(get(htoolbar,'type'),'uitoolbar')
+    if ~isscalar(htoolbar) || ~ishghandle(htoolbar, 'uitoolbar')
         error(sprintf('%s:invalidToolbar',mfilename),...
             'Invalid toolbar handle.');
     end
@@ -766,10 +764,10 @@ function createMode(obj)
         obj.hmode = uimode(hfig,obj.modename);
         set(obj.hmode,...
             'WindowButtonDownFcn',  @(varargin)buttonDownFcn(obj),...
-        	'WindowButtonUpFcn',    @(varargin)buttonUpFcn(obj),...
-        	'WindowButtonMotionFcn',@(src,evnt)motionFcn(obj,evnt),...
-        	'UIContextMenu',        [],...
-        	'UseContextMenu',       'on');
+            'WindowButtonUpFcn',    @(varargin)buttonUpFcn(obj),...
+            'WindowButtonMotionFcn',@(src,evnt)motionFcn(obj,evnt),...
+            'UIContextMenu',        [],...
+            'UseContextMenu',       'on');
     end
 
     % create a context menu
@@ -832,9 +830,8 @@ function testaxes(obj,hax)
     errid = sprintf('%s:invalidAxes',mfilename);
 
     % check for valid axes handles
-    if ~isnumeric(hax) || ~all(ishandle(hax)) || ...
-       ~all(strcmpi(get(hax,'type'),'axes'))
-        error(errid,'Input must be axes handles.');
+    if ~all(ishghandle(hax, 'axes'))
+        error(errid, 'Input must be axes handles.');
     end
 
     % ensure axes are within object

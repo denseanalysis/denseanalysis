@@ -182,9 +182,7 @@ function obj = roitoolFcn(obj,hdata,hax)
     end
 
     % test for valid axes handles
-    if any(~isnumeric(hax)) || any(~ishandle(hax)) || ...
-       any(~isprop(hax,'type')) || any(~strcmpi(get(hax,'type'),'axes'))
-
+    if ~all(ishghandle(hax, 'axes'))
         error(sprintf('%s:invalidInput',mfilename),...
             'Function requires one or more Axes handles.');
     end
@@ -268,7 +266,7 @@ function deleteFcn(obj)
                 end
                 delete(h(tf));
             end
-        catch ERR
+        catch
             fprintf('could not delete %s.%s\n',...
                 mfilename,tags{ti});
         end
@@ -851,14 +849,7 @@ function contextMenuFcn(obj)
 
         % update display
         playbackFcn(obj)
-
     end
-
-
-    function MGS(method)
-        obj.hdata.MGS(obj.DENSEIndex,roiidx,frame,method);
-    end
-
 end
 
 
@@ -873,8 +864,7 @@ function ignoreAxesFcn(obj,hax)
     end
 
     % ensure all inputs are axes
-    if ~isnumeric(hax) || ~all(ishandle(hax)) || ...
-       ~all(strcmpi(get(hax,'type'),'Axes'))
+    if ~all(ishghandle(hax, 'axes'))
         errstr = 'Function requires Axes handles.';
     elseif ~isempty(setdiff(hax,obj.hax))
         errstr = 'One or more axes is not recognized.';
