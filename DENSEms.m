@@ -43,7 +43,6 @@ function varargout = DENSEms(varargin)
     % load program info from file
     api = loadInfo(api);
 
-
     % initialize empty structure with expected fields
     idtags = {'Name','File'};
     seqtags = {'StudyInstanceUID';'SeriesInstanceUID';
@@ -62,8 +61,6 @@ function varargout = DENSEms(varargin)
 
     % all multimedia formats
     api.formats = multimediaformats();
-
-
 
     % LOAD FIGURE----------------------------------------------------------
     try
@@ -116,15 +113,10 @@ function varargout = DENSEms(varargin)
         close(hfig(ishandle(hfig)),'force');
         drawnow
     end
-
 end
-
-
 
 %% MAIN FUNCTION
 function output = mainFcn(api)
-
-
     % DISPLAY OPTIONS------------------------------------------------------
 
     % colors
@@ -134,7 +126,7 @@ function output = mainFcn(api)
 
     set(api.hmain,'backgroundcolor',api.backgroundcolor);
     set([api.hpanel3d,api.hpaneltime,api.hpanelbullseye],...
-        'backgroundcolor','none');
+        'backgroundcolor',api.backgroundcolor);
 
     % ranges
     set(api.htwistmin,'string',api.twistrng(1));
@@ -146,7 +138,6 @@ function output = mainFcn(api)
     % colormaps
     set(api.hlistcmap,'string',{api.colormaps.Name},...
         'Value',api.colormapidx);
-
 
     % AXES SETUP-----------------------------------------------------------
 
@@ -185,7 +176,6 @@ function output = mainFcn(api)
     set([api.hcb,api.haxA],'ylim',api.twistrng);
     set(api.haxB,'ylim',api.torsionrng);
 
-
     % colormap patchs
     Ncb = numel(api.hcb);
     api.hcmap = preAllocateGraphicsObjects(1,Ncb);
@@ -197,7 +187,6 @@ function output = mainFcn(api)
 
     % 3D colorbar invisible
     set([api.hcb(1),api.hcmap(1)],'visible','off');
-
 
     % ROTATION TOOL--------------------------------------------------------
 
@@ -241,7 +230,6 @@ function output = mainFcn(api)
         'cameraupvector',       views(1).CameraUpVector,...
         'cameraviewanglemode',  'auto');
 
-
     % ORIENTATION AXES-----------------------------------------------------
 
     % orientation labels
@@ -252,10 +240,11 @@ function output = mainFcn(api)
         'Parent',               api.haxori,...
         'Horizontalalignment',  'center',...
         'BackgroundColor',      get(api.haxori,'color'),...
-        'FontSize',             8,...
+        'FontSize',             8);
+
+    set(api.htxori, ...
         {'color'},              clr(:),...
         {'edgecolor'},          clr(:));
-
 
     % link orientation axes to main axes
     linkfcn = @(hsub,hmain)set(hsub,...
@@ -265,7 +254,7 @@ function output = mainFcn(api)
     proptags = {'CameraPosition','CameraTarget','CameraUpVector'};
     h = handle(api.hax3d);
     props = cellfun(@(t)findprop(h,t),proptags,'uniformoutput',0);
-    api.hcameralistener = addlistener_mod(h,cell2mat(props),...
+    api.hcameralistener = addlistener_mod(h, [props{:}],...
         'PostSet',@(src,evnt)linkfcn(api.haxori,api.hax3d));
 
     linkfcn(api.haxori,api.hax3d);
@@ -273,7 +262,6 @@ function output = mainFcn(api)
     % update/fix cameraviewangle
     set(api.haxori,'cameraviewanglemode','auto');
     set(api.haxori,'cameraviewangle',get(api.haxori,'cameraviewangle'));
-
 
     % CARDIAC SEGMENT DISPLAY----------------------------------------------
 
@@ -298,15 +286,14 @@ function output = mainFcn(api)
 
     api.hseg = dense_bullseye(api.haxseg,data);
 
-
     % ADDITIONAL SETUP-----------------------------------------------------
 
     % popup tab initialization
     pos = getpixelposition(api.hplotpanel);
-    api.hpopup = popuptabsmod(api.hfig,'TabWidth',pos(3));
+    api.hpopup = popuptabsmod(api.hfig);
+    api.hpopup.TabWidth = pos(3);
     api.hpopup.addTab('Plot Selection',api.hplotpanel);
     api.hpopup.addTab('Display Options',api.hoptpanel);
-
 
     % slice selection list
     set(api.hslice,...
@@ -344,7 +331,6 @@ function output = mainFcn(api)
     api.hplaybarlistener = addlistener(...
         api.hplaybar,'NewValue',@(h,evnt)playbarCallback(api.hfig));
 
-
     % file menu options
     set(api.hload,          'Callback',@(varargin)loadFile(api.hfig));
     set(api.hclear,         'Callback',@(varargin)clearFile(api.hfig));
@@ -374,6 +360,10 @@ function output = mainFcn(api)
     setappdata(api.hfig,'figureSetupComplete',true);
 
     displayChange(api.hfig);
+
+    % Manually trigger resize event
+    figResize(api.hfig);
+
     set(api.hfig,'visible','on');
     drawnow
 
@@ -387,11 +377,7 @@ function output = mainFcn(api)
         waitfor(api.hfig,'userdata')
         output = 'closed';
     end
-
 end
-
-
-
 
 %% FIGURE RESIZE FUNCTION
 function figResize(hfig)
@@ -427,13 +413,11 @@ function figResize(hfig)
     setpixelposition(api.hpaneltime,[1 1 ppnl(3:4)]);
     setpixelposition(api.hpanelbullseye,[1 1 ppnl(3:4)]);
 
-
     % playbar position
     pply = getpixelposition(api.hplaybar);
     pply(3) = min(ppnl(3) - 2*axmg,plmx);
     pply(1:2) = 1 + [(ppnl(3)-pply(3))/2, axmg];
     setpixelposition(api.hplaybar,pply);
-
 
     % A/B axes position
     h = (ppnl(4)-4*axmg)/2;
@@ -458,7 +442,6 @@ function figResize(hfig)
     set(api.haxbullseye,'position',paxs(1,:));
     set(api.haxcbbullseye,'position',paxs(2,:));
 
-
     % 3D axes position
     if strcmpi(get(api.haxcb3d,'visible'),'on')
         xmg = (2*axmg+wcb(2))*[1 1];
@@ -475,11 +458,7 @@ function figResize(hfig)
         pax = [1+xmg(1),1+ymg(1),ppnl(3)-sum(xmg),ppnl(4)-sum(ymg)];
         set(api.hax3d,'position',pax);
     end
-
-
 end
-
-
 
 %% FIGURE CLOSE REQUEST & DELETE
 
@@ -505,7 +484,6 @@ function figCloseRequest(hfig)
     else
         close(hfig,'force');
     end
-
 end
 
 % figure delete
@@ -532,10 +510,7 @@ function figDelete(hfig)
             fprintf('"%s" was not found\n',tags{ti})
         end
     end
-
 end
-
-
 
 %% LOAD/SAVE PROGRAM INFORMATION
 
@@ -614,7 +589,6 @@ function api = loadInfo(api)
             info.(tag) = val;
         end
 
-
         % check colormaps
         if api.ResetOptions
             info.colormaps   = definfo.colormaps;
@@ -640,7 +614,6 @@ function api = loadInfo(api)
         if any(~valid)
             info.colormapidx = 1;
         end
-
     end
 
     % copy to application data
@@ -649,9 +622,7 @@ function api = loadInfo(api)
     for ti = 1:numel(tags)
         api.(tags{ti}) = info.(tags{ti});
     end
-
 end
-
 
 % save program information
 function saveInfo(api)
@@ -669,9 +640,7 @@ function saveInfo(api)
     if ~isempty(fieldnames(svdata))
         save(api.infofile,'-struct','svdata');
     end
-
 end
-
 
 function cmapstruct = defaultcolormaps()
 
@@ -689,10 +658,7 @@ function cmapstruct = defaultcolormaps()
 
     % cmaps
     cmapstruct = cell2struct([allnames(:),allcmaps(:)],{'Name','Value'},2);
-
 end
-
-
 
 %% LOAD ANALYSES
 
@@ -708,7 +674,6 @@ function loadFile(hfig)
     duplicate      = {};
     uniqueparallel = {};
 
-
     % get file(s)
     startpath = api.matpath;
     [uifile,uipath] = uigetfile(...
@@ -721,7 +686,6 @@ function loadFile(hfig)
     % save new path
     api.matpath = uipath;
     guidata(api.hfig,api);
-
 
     % files to load
     if ~iscell(uifile), uifile = {uifile}; end
@@ -736,7 +700,6 @@ function loadFile(hfig)
 
     % record file validity
     valid = false(Nfile,1);
-
 
     % load files
     for fi = 1:Nfile
@@ -796,14 +759,11 @@ function loadFile(hfig)
         catch ERR %#ok<*NASGU>
 %             ERR.getReport()
         end
-
     end
-
 
     % record & remove unrecognized files
     unrecognized = files(~valid);
     if any(~valid), removeData(); end
-
 
     % check for duplicates
     if numel(files)>0
@@ -823,7 +783,6 @@ function loadFile(hfig)
         end
     end
 
-
     % confirm consistent study
     if numel(files)>0
         uid = {api.data.StudyInstanceUID};
@@ -838,7 +797,6 @@ function loadFile(hfig)
             removeData();
         end
     end
-
 
     % check for unique parallel slices
     if numel(files)>0
@@ -862,9 +820,6 @@ function loadFile(hfig)
             removeData();
         end
     end
-
-
-
 
     % report to user
     str = {'----------------------------------------';
@@ -910,7 +865,6 @@ function loadFile(hfig)
     api = redrawDisplay(api);
     guidata(hfig,api);
 
-
     % enable clear menu option
     if numel(api.data)>0
         ena = 'on';
@@ -919,19 +873,13 @@ function loadFile(hfig)
     end
     set([api.hclear,api.hexportmedia,api.hexportexcel],'enable',ena);
 
-
-
     function removeData()
         api.data(idx(~valid)) = [];
         files(~valid) = [];
         valid(~valid) = [];
         idx = Ndata + (1:numel(valid));
     end
-
-
 end
-
-
 
 function clearFile(hfig)
     api = guidata(hfig);
@@ -957,10 +905,7 @@ function clearFile(hfig)
     api.data(sel) = [];
     api = redrawDisplay(api);
     guidata(hfig,api);
-
 end
-
-
 
 %% REDRAW ALL DISPLAYS DISPLAY
 
@@ -980,7 +925,6 @@ function api = redrawDisplay(api)
     % number of data elements
     Ndata = numel(api.data);
 
-
     % reset software if no loaded data
     if Ndata==0
         strs = get(api.hslice,'string');
@@ -993,7 +937,6 @@ function api = redrawDisplay(api)
         set([api.hclear,api.hexportmedia,api.hexportexcel],'enable','off');
         return
     end
-
 
     % order data along ImageOrientationPatient
     ipp = [api.data.ImagePositionPatient]';
@@ -1013,7 +956,6 @@ function api = redrawDisplay(api)
     api.data = api.data(order);
     api.data = api.data(end:-1:1);
 
-
     % assign default slice colors
     clrs = sixcolors(Ndata);
     for k = 1:Ndata
@@ -1022,15 +964,12 @@ function api = redrawDisplay(api)
         end
     end
 
-
-
     % all available frames (assuming 1-to-1 correspondance between slices)
     frmax = max([api.data.NumberInSequence]);
     allframes = 0:frmax;
     Nfr = numel(allframes);
 
     api.Frames = allframes;
-
 
     % parse displacement information
     ptmin = zeros(Ndata,3);
@@ -1050,7 +989,6 @@ function api = redrawDisplay(api)
         rng = api.data(k).AnalysisInfo.FramesForAnalysis;
         idx = rng(1):rng(2);
 
-
         % material point origins
         X0 = pxsp(2)*(api.data(k).DisplacementInfo.X-1) + offset(1);
         Y0 = pxsp(1)*(api.data(k).DisplacementInfo.Y-1) + offset(2);
@@ -1066,7 +1004,6 @@ function api = redrawDisplay(api)
         Y = [Y0,bsxfun(@plus,Y0,dY)];
         Z = [Z0,bsxfun(@plus,Z0,dZ)];
 
-
         % epicardial centroid for frame [0,idx]
         crv = cat(1,api.data(k).ROIInfo.RestingContour,...
             api.data(k).ROIInfo.Contour(idx,:));
@@ -1078,7 +1015,6 @@ function api = redrawDisplay(api)
             centroid(:,:,fr) = [pxsp([2 1]).*(prop.Centroid-1),0] + offset;
         end
 
-
         % twist around current centroid
         xori = squeeze(centroid(:,1,:))';
         yori = squeeze(centroid(:,2,:))';
@@ -1086,15 +1022,6 @@ function api = redrawDisplay(api)
         theta = unwrap(theta,[],2);
 
         dtheta = bsxfun(@minus,theta,theta(:,1));
-
-%         if api.data(k).AnalysisInfo.Clockwise
-%             dtheta = -dtheta;
-%         end
-
-
-
-
-
 
         % index into "pts" for 3D display for "allframes" members
         frames = [0,idx];
@@ -1104,7 +1031,6 @@ function api = redrawDisplay(api)
             dspidx(j) = find(d>=0,1,'last');
         end
 
-
         % record 3D plot information
         api.data(k).pts = zeros([Npts,3,Nfr]);
         api.data(k).pts(:,1,:) = X(:,dspidx);
@@ -1112,7 +1038,6 @@ function api = redrawDisplay(api)
         api.data(k).pts(:,3,:) = Z(:,dspidx);
 
         api.data(k).centroid = centroid(:,:,dspidx);
-
 
         % data extents
         ptmin(k,:) = min(min(api.data(k).pts,[],1),[],3);
@@ -1126,9 +1051,7 @@ function api = redrawDisplay(api)
 
         % record members of "allframes" that this dataset considered
         api.AnalyzedFrames(k,:) = ismember(allframes,frames);
-
     end
-
 
     % average twist per cross section
     api.Twist = NaN([Ndata,Nfr]);
@@ -1152,7 +1075,6 @@ function api = redrawDisplay(api)
             end
         end
     end
-
 
     % update playbar limits & value
     val = api.hplaybar.Value;
@@ -1180,7 +1102,6 @@ function api = redrawDisplay(api)
     % bullseye
     api = initBullseye(api,fridx);
 
-
     % twist & torsion display
     set([api.haxA;api.haxB],'xlim',allframes([1 end]));
 
@@ -1198,10 +1119,19 @@ function api = redrawDisplay(api)
 
     api.htwistlegend = legend(api.haxA,'location','northeast');
     api.htwistlegendtext = findall(api.htwistlegend,'type','text');
-    set(api.htwistlegend,...
-        'color',api.backgroundcolor,...
-        'xcolor',api.edgecolor,'ycolor',api.edgecolor,...
-        'interpreter','none');
+
+    set(api.htwistlegend, ...
+        'Color', api.backgroundcolor, ...
+        'Interpreter', 'none');
+
+    if isprop(api.htwistlegend, 'EdgeColor')
+        set(api.htwistlegend, 'EdgeColor', api.edgecolor)
+    else
+        set(api.htwistlegend, ...
+            'XColor', api.edgecolor, ...
+            'YColor', api.edgecolor)
+    end
+
     set(api.htwistlegendtext,'fontsize',8,'color',api.edgecolor);
 
     tf = isfinite(api.Torsion);
@@ -1212,17 +1142,11 @@ function api = redrawDisplay(api)
         'color',api.edgecolor,...
         'marker','.');
 
-
     % list slices
     strs = get(api.hslice,'string');
     strs = {strs{1},api.data.Name};
     set(api.hslice,'string',strs,'value',1,'enable','on');
-
-%     % save application data
-%     guidata(hfig,api);
-
 end
-
 
 %% PLAYBAR CALLBACK
 function playbarCallback(api)
@@ -1244,14 +1168,9 @@ function playbarCallback(api)
             update3d(api,fridx);
         case api.hradiobullseye
             updateBullseye(api,fridx);
-
     end
     drawnow
-
 end
-
-
-
 
 %%
 function displayChange(hfig,evnt)
@@ -1291,11 +1210,7 @@ function displayChange(hfig,evnt)
     guidata(hfig,api);
 
     playbarCallback(api);
-
-%     figResize(hfig);
-
 end
-
 
 %% DISPLAY OPTIONS
 function selectSlice(h,hfig)
@@ -1310,9 +1225,7 @@ function selectSlice(h,hfig)
         set([api.hpts(idx);api.hcentroid(idx);api.htwist(idx)],'linewidth',4);
         set(api.hbedge(idx,1:2),'linewidth',4);
     end
-
 end
-
 
 function displayOptions(h,hfig)
     api = guidata(hfig);
@@ -1344,7 +1257,11 @@ function displayOptions(h,hfig)
             end
 
             if ~isempty(api.htwistlegend)
-                set(api.htwistlegend,'xcolor',clr,'ycolor',clr);
+                if isprop(api.htwistlegend, 'EdgeColor')
+                    set(api.htwistlegend, 'EdgeColor', clr)
+                else
+                    set(api.htwistlegend,'xcolor',clr,'ycolor',clr);
+                end
                 set(api.htwistlegendtext,'color',clr);
             end
 
@@ -1400,7 +1317,6 @@ function displayOptions(h,hfig)
                 set(api.hpts(k),'facevertexcdata',...
                     slicefvcd(api,k,slicemode));
             end
-
     end
 
     % save new data
@@ -1408,7 +1324,6 @@ function displayOptions(h,hfig)
 
     % update axes locations
     figResize(hfig);
-
 
     % change range
     function setrng(h,tag,flagmax)
@@ -1426,18 +1341,13 @@ function displayOptions(h,hfig)
         end
         set(h,'string',nbr);
     end
-
 end
-
-
 
 function im = colorblock(clr)
     sz = [15 15];
     clr = clr2num(clr);
     im = cat(3,clr(1)*ones(sz),clr(2)*ones(sz),clr(3)*ones(sz));
 end
-
-
 
 function fvcd = slicefvcd(api,idx,mode)
     if nargin<3 || isempty(mode)
@@ -1467,13 +1377,8 @@ function fvcd = slicefvcd(api,idx,mode)
 
             fvcd = val2fvcd(api.data(idx).Twist(:,fridx),cdata.colorval,...
                 cdata.colormap,api.backgroundcolor);
-
     end
-
 end
-
-
-
 
 %% SLICE NAME & COLOR
 function sliceContext(hmenu,hlist)
@@ -1485,7 +1390,6 @@ function sliceContext(hmenu,hlist)
     end
     set(allchild(hmenu),'visible',vis);
 end
-
 
 function sliceName(hfig)
     api = guidata(hfig);
@@ -1511,7 +1415,6 @@ function sliceName(hfig)
     set(api.htwistlegendtext,'color',api.edgecolor);
 end
 
-
 function sliceColor(hfig)
     api = guidata(hfig);
 
@@ -1527,10 +1430,7 @@ function sliceColor(hfig)
     set(api.hpts(idx),'facevertexcdata',slicefvcd(api,idx));
     set(api.hcentroid(idx),'markerfacecolor',clr,'markeredgecolor',clr);
     set(api.htwist(idx),'color',clr);
-
 end
-
-
 
 %% COLORMAP FUNCTIONS
 
@@ -1564,9 +1464,7 @@ function updateColormap(api,flag_runplaybar)
 
     % update additional display objects
     if flag_runplaybar, playbarCallback(api); end
-
 end
-
 
 function addColormap(hfig)
     answer = inputdlg({'Colormap Name','Colormap command'},...
@@ -1599,9 +1497,7 @@ function addColormap(hfig)
 
     % save application data
     guidata(hfig,api);
-
 end
-
 
 function deleteColormap(hfig)
     api = guidata(hfig);
@@ -1627,9 +1523,7 @@ function deleteColormap(hfig)
 
     % save application data
     guidata(hfig,api);
-
 end
-
 
 %% 3D FUNCTIONS
 
@@ -1649,7 +1543,6 @@ function api = init3d(api,fridx)
         val = api.hplaybar.Value;
         fridx = find(val==api.Frames,1,'first');
     end
-
 
     % create graphics
     api.hpts = preAllocateGraphicsObjects(Ndata,1);
@@ -1687,9 +1580,7 @@ function api = init3d(api,fridx)
 
     % update material point colors
     update3d(api,fridx);
-
 end
-
 
 function update3d(api,fridx,opt)
 
@@ -1720,7 +1611,6 @@ function update3d(api,fridx,opt)
                 cdata = get(api.hcmap(1),'userdata');
                 fvcd = val2fvcd(api.data(k).Twist(:,fridx),cdata.colorval,...
                     cdata.colormap,api.backgroundcolor);
-
         end
 
         % update display
@@ -1728,13 +1618,7 @@ function update3d(api,fridx,opt)
             'facevertexcdata',fvcd);
         set(api.hcentroid(k),'vertices',api.data(k).centroid(:,:,fridx));
     end
-
-
 end
-
-
-
-
 
 %% BULLSEYE FUNCTIONS
 
@@ -1753,7 +1637,6 @@ function api = initBullseye(api,fridx)
         val = api.hplaybar.Value;
         fridx = find(val==api.Frames,1,'first');
     end
-
 
     % calculate regional twist
     % based on current user-selected number of segments
@@ -1774,7 +1657,6 @@ function api = initBullseye(api,fridx)
             end
         end
     end
-
 
     % colormap information
     cdata = get(api.hcmap(1),'userdata');
@@ -1799,9 +1681,7 @@ function api = initBullseye(api,fridx)
 
     % update text & colors
     updateBullseye(api,fridx);
-
 end
-
 
 function updateBullseye(api,fridx)
     cdata = get(api.hcmap(1),'userdata');
@@ -1818,7 +1698,6 @@ function updateBullseye(api,fridx)
             'FaceVertexCData',fvcd);
     end
 end
-
 
 function bullseyeContext(hmenu,hfig)
     api = guidata(hfig);
@@ -1871,10 +1750,7 @@ function bullseyeContext(hmenu,hfig)
         api = initBullseye(api);
         guidata(api.hfig,api);
     end
-
 end
-
-
 
 %% EXPORT OPTIONS
 
@@ -1936,7 +1812,6 @@ function exportMultimedia(hfig)
         opts = api.exportopts;
     end
 
-
     % export path
     p = api.exportpath;
     if ~isdir(p), p = pwd; end
@@ -1947,7 +1822,6 @@ function exportMultimedia(hfig)
     idx = regexp(f,'\(\d+\)');
     if ~isempty(idx), f = f(1:idx(1)-1); end
     f = strtrim(f);
-
 
     % export extension
     idx = matchmultimediaformat(e,formats);
@@ -1981,8 +1855,6 @@ function exportMultimedia(hfig)
     api.exportopts = opts;
     api.exportpath = exportpath;
     guidata(hfig,api);
-
-
 
     % EXPORT FIGURE SETUP--------------------------------------------------
 
@@ -2020,7 +1892,6 @@ function exportMultimedia(hfig)
         end
     end
 
-
     % invisible figure for export
     vis = 'off';
     hexfig = figure('units','inches','position',[0 0 rect(3:4)],...
@@ -2041,7 +1912,6 @@ function exportMultimedia(hfig)
         'fontweight','bold','fontname','calibri',...
         'visible',api.hplaybar.Visible);
 
-
     % empty export axes
     hax = [];
 
@@ -2058,13 +1928,10 @@ function exportMultimedia(hfig)
     [hwait,cleanupWait] = waitbarnotex(0,{'Exporting',exportfile});
     drawnow
 
-
-
     % IMAGE EXPORT---------------------------------------------------------
     if isequal(format.Type,'Image')
         copyfigure();
         hgexport(hexfig,exportfile,hgoptions);
-
 
     % VIDEO EXPORT---------------------------------------------------------
     else
@@ -2083,7 +1950,6 @@ function exportMultimedia(hfig)
         % apply hgexport options to figure
         state = hgexport(hexfig,'temp.tmp',hgoptions,'ApplyStyle',1);
 
-
         % *****AVI EXPORT*****
         if isequal(format.Name,'AVI')
 
@@ -2091,26 +1957,25 @@ function exportMultimedia(hfig)
             frames = frames([1*ones(1,fac),2:end-1,end*ones(1,fac)]);
 
             % compression options
-            if any(strcmpi(codec,{'MSVC','RLE'}))
-%                 cmap = colorcube(256);
-                args = {'colormap',cmap};
-                FLAG_index = true;
-            elseif any(strcmpi(codec,{'Indeo3'}))
-%                 cmap = colorcube(236);
-                args = {'colormap',cmap};
-                FLAG_index = true;
-            else
-                args = {};
-                FLAG_index = false;
+            if strcmpi(codec, 'None')
+                codec = 'Uncompressed AVI';
             end
-
 
             % create video
             aviobj = [];
             try
                 % initialize AVI file
-                aviobj = avifile(exportfile,args{:},...
-                    'compression',codec,'fps',fps);
+                aviobj = VideoWriter(exportfile, codec);
+                aviobj.FrameRate = fps;
+
+                if strcmpi(codec, 'Indexed AVI')
+                    aviobj.Colormap = cmap;
+                    FLAG_index = true;
+                else
+                    FLAG_index = false;
+                end
+
+                open(aviobj);
 
                 for k = 1:numel(frames)
 
@@ -2121,22 +1986,22 @@ function exportMultimedia(hfig)
                     % figure snapshot
                     copyfigure();
                     drawnow
-                    im = hardcopy(hexfig,'temp.tmp','-dzbuffer',resstr);
+                    im = print(hexfig, '-RGBImage', resstr);
                     if FLAG_index, im = rgb2ind(im,cmap); end
 
                     % save image
-                    aviobj = addframe(aviobj,im);
+                    writeVideo(aviobj, im);
 
                     % update waitbar
                     waitbar(k/numel(frames),hwait);
                     drawnow
                 end
-                aviobj = close(aviobj);
+                close(aviobj);
 
             % video creation problem
             % (often due to an invalid compression codec)
             catch ERR
-                if ~isempty(aviobj), aviobj = close(aviobj); end
+                if ~isempty(aviobj), close(aviobj); end
                 if isfile(exportfile), delete(exportfile); end
 
                 api.exportopts.AVICodec = 'None';
@@ -2145,7 +2010,6 @@ function exportMultimedia(hfig)
                 api.hplaybar.Value = curframe;
                 rethrow(ERR);
             end
-
 
         % *****GIF EXPORT*****
         else
@@ -2187,7 +2051,6 @@ function exportMultimedia(hfig)
                                    'DisposalMethod','doNotSpecify'};
                     end
 
-
                     % ANIMATED GIF frame
                     % try several times times to write to file, as the
                     % initial write operation may not complete
@@ -2206,7 +2069,6 @@ function exportMultimedia(hfig)
                     % update waitbar
                     waitbar(k/numel(frames),hwait);
                     drawnow
-
                 end
 
             % video creation problem
@@ -2215,15 +2077,12 @@ function exportMultimedia(hfig)
                 api.hplaybar.Value = curframe;
                 rethrow(ERR);
             end
-
         end
 
         % reset playbar
         api.hplaybar.Value = curframe;
         drawnow
-
     end
-
 
     % CLEANUP--------------------------------------------------------------
 
@@ -2232,7 +2091,6 @@ function exportMultimedia(hfig)
         waitbar(1,hwait,{'Export Complete',exportfile});
         pause(1.0);
     end
-
 
     function copyfigure()
 
@@ -2265,13 +2123,8 @@ function exportMultimedia(hfig)
             uistack(hframe,'top');
             set(hframe,'String',sprintf('%d ',api.hplaybar.Value));
         end
-
     end
-
-
-
 end
-
 
 %% EXPORT MEASUREMENTS (EXCEL/CSV)
 
@@ -2284,12 +2137,10 @@ function exportExcel(hfig)
     Nsl   = numel(api.data);
     Nseg  = sum([api.data.Nsegment]);
 
-
     % save file filters
     filter = {'.xls','*.xls','Microsoft Excel (*.xls)';
               '.csv','*.csv','Comma Delimited Text (*.csv)'};
     if ~api.ExcelAvailable, filter(1,:) = []; end
-
 
     % last export options
     if ~isfield(api,'excelfile') || isempty(api.excelfile)
@@ -2322,7 +2173,6 @@ function exportExcel(hfig)
         file = fullfile(p,sprintf('%s (%d)%s',f,cnt,e));
     end
 
-
     % reorder filter
     idx = find(strcmpi(e,filter(:,1)),1,'first');
     if ~isempty(idx)
@@ -2341,12 +2191,9 @@ function exportExcel(hfig)
     if ~strcmpi(e,uiext), uifile = [uifile,uiext]; end
     file = fullfile(uipath,uifile);
 
-
     api.excelpath = uipath;
     api.excelfile = file;
     guidata(hfig,api);
-
-
 
     % AVERAGE TWIST-----------
     Ctwist = cell(Nsl+2,Nfr+1);
@@ -2366,7 +2213,6 @@ function exportExcel(hfig)
     nbr(tf) = {[]};
     Ctwist(3:end,2:end) = nbr;
 
-
     % TORSION-----------------
     Ctorsion = cell(3,Nfr+1);
 
@@ -2385,15 +2231,12 @@ function exportExcel(hfig)
     nbr(tf) = {[]};
     Ctorsion(3,2:end) = nbr;
 
-
-
     % REGIONAL TWIST----------
 
     % 4/6 element labels
     label4 = {'anterior','septal','inferior','lateral'};
     label6 = {'anterior','anteroseptal','inferoseptal',...
         'inferior','inferolateral','anterolateral'};
-
 
     % initialize
     Cregion = cell(Nseg+2+Nsl,Nfr+1);
@@ -2429,7 +2272,6 @@ function exportExcel(hfig)
         row = row+nseg+1;
     end
 
-
     % OUTPUT FILE---------
 
     % delete exiting file
@@ -2449,7 +2291,6 @@ function exportExcel(hfig)
     % excel output
     if strcmpi(uiext,'.xls')
         xlswrite(file,C);
-
 
     % comma-delimited output
     else
@@ -2480,7 +2321,6 @@ function exportExcel(hfig)
             rethrow(ERR);
         end
         fclose(fid);
-
     end
 
     % update waitbar
@@ -2488,8 +2328,6 @@ function exportExcel(hfig)
         waitbar(1,hwait,{'Export Complete',file});
         pause(1);
     end
-
-
 
     % HELPER FUNCTION - NUMBER TO STRING
     function c = makestr(c)
@@ -2506,10 +2344,7 @@ function exportExcel(hfig)
             c = defc;
         end
     end
-
-
 end
-
 
 function [hwait,cleanupWait] = waitbarnotex(val,str)
 
@@ -2534,10 +2369,7 @@ function [hwait,cleanupWait] = waitbarnotex(val,str)
 
     % reset warning
     warning(state.state,warnid);
-
 end
-
-
 
 %% TEST CODE
 function testCode(hfig)
@@ -2546,17 +2378,4 @@ function testCode(hfig)
     get(api.hax3d)
     api.hrotate.RotateMethod = 'upvector';
     api.hrotate
-%     set(api.hax3d,'CameraUpVector',[0 0 1],...
-%         'CameraViewAngleMode','auto',...
-%         'View',[30 45]);
-%     get(api.hax3d)
-%     set(api.hax3d,'cameraviewangle',get(api.hax3d,'cameraviewangle'));
-
-
 end
-
-
-
-
-
-
