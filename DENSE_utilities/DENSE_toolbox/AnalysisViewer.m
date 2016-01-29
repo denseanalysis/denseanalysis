@@ -2115,6 +2115,13 @@ function hcb = colorbarmod(hax,loc,map,rng)
 
     % make the colorbar image invisible
     hchild = findall(hcb,'type','image');
+
+    if isempty(hchild)
+        set(hcb, 'Colormap', map);
+        set(hax, 'CLim', rng);
+        return
+    end
+
     set(hchild,'visible','off');
 
     % change the colorbar limits & add new patch object
