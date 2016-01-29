@@ -399,8 +399,7 @@ function obj = playbarFcn(obj,hparent)
 
     % create graphics
     obj.hpanel = uipanel(...
-        'parent',obj.Parent,...
-        'ResizeFcn',@(varargin)resizeFcn(obj),...
+        'parent',   obj.Parent,...
         'units',    'pixels',...
         'tag',      'Playbar');
 
@@ -438,11 +437,12 @@ function obj = playbarFcn(obj,hparent)
     % in HG hierarchy and can be retrieved.
     setappdata(obj.hpanel,'playbarObjectReference',obj);
 
+    % Only assign the resize callback after all objects are created
+    set(obj.hpanel, 'ResizeFcn', @(varargin)resizeFcn(obj))
+
     % update display
     obj.redrawenable = true;
     redrawFcn(obj);
-
-
 end
 
 
