@@ -1237,6 +1237,8 @@ function displayOptions(h,hfig)
 
             set(h,'cdata',colorblock(clr));
             set(api.hmain,'backgroundcolor',clr);
+            panels = [api.hpanel3d, api.hpaneltime, api.hpanelbullseye];
+            set(panels, 'BackgroundColor', clr)
             set(api.hax3d,'color',clr);
 
             if ~isempty(api.htwistlegend)

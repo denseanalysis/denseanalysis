@@ -84,7 +84,7 @@ classdef popuptabsmod < handle
     properties
 
         TabColor = [100 121 162]/255;
-        BackgroundColor = [0 0 0];
+        BackgroundColor = get(0, 'Defaultuipanelbackgroundcolor')
 
         FontAngle       = 'normal';
         FontName        = 'default';
@@ -192,7 +192,7 @@ classdef popuptabsmod < handle
             redrawFcn(obj);
         end
         function set.BackgroundColor(obj,clr)
-            obj.BackgroundColor = checkColor(clr,{'none'},'BackgroundColor');
+            obj.BackgroundColor = checkColor(clr,{},'BackgroundColor');
             redrawFcn(obj);
         end
 
