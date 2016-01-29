@@ -266,7 +266,7 @@ function obj = popuptabsFcn(obj,hparent)
 % hparent....parent figure/uipanel
 
     % check number of inputs
-    error(nargchk(1,2,nargin));
+    narginchk(1, 2);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)
@@ -319,7 +319,7 @@ function deleteFcn(obj)
        ~strcmpi(get(obj.hparent,'BeingDeleted'),'on')
         try
             set(obj.hrefpanels,'Parent',obj.hparent);
-        catch ERR
+        catch
         end
     end
 
@@ -495,24 +495,6 @@ function addTabFcn(obj,str,href)
 end
 
 
-%% REMOVE TAB
-
-function removeTab(obj,idx)
-
-
-
-
-end
-
-
-
-
-
-
-
-
-
-
 function redrawFcn(obj)
 
     slwidth = 15;
@@ -566,7 +548,7 @@ function redrawFcn(obj)
             obj.Enable{k} = 'off';
         end
     end
-    if ~isequalwithequalnans(href,obj.hrefpanels)
+    if ~isequaln(href,obj.hrefpanels)
         warning(sprintf('%s:invalidPanel',mfilename),'%s',...
             'One or more panels under POPUPTABS control became invalid ',...
             '(either the object handle no longer is valid, or the ',...

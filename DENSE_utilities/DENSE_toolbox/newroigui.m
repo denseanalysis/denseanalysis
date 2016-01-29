@@ -6,9 +6,9 @@ function output = newroigui(hdata,sidx,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     % check number of inputs
-    error(nargchk(2,Inf,nargin));
+    narginchk(2, Inf);
 
     % close figure on output?
     FLAG_close = true;

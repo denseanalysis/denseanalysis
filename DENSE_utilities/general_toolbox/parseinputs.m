@@ -32,7 +32,7 @@ function [valid_args, other_args] = parseinputs...
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -45,7 +45,7 @@ function [valid_args, other_args] = parseinputs...
 %     --modification to accept input structure
 
     % check for proper number of inputs
-    error(nargchk(2,Inf,nargin));
+    narginchk(2, Inf);
 
     % default argument structure
     if isstruct(valid_param)

@@ -298,7 +298,7 @@ function obj = popuptabsFcn(obj,hparent,varargin)
 % hparent....parent figure/uipanel
 
     % check number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)

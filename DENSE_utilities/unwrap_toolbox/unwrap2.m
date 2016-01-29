@@ -107,10 +107,10 @@ function [Iunwrap,seeds] = unwrap2(Iwrap, varargin)
     FLAG_nomex = checknomex();
 
     % check number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % input size
-    if ndims(Iwrap) ~= 2
+    if ~ismatrix(Iwrap)
         error(sprintf('UNWRAP:%s:inputerror',mfilename),...
             'Input must be 2D');
     end

@@ -50,7 +50,7 @@ function Vunwrap = unwrap3mov_timepath(...
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -72,7 +72,7 @@ function Vunwrap = unwrap3mov_timepath(...
     FLAG_nomex = checknomex();
 
     % check number of inputs, default input
-    error(nargchk(8,10,nargin));
+    narginchk(8, 10);
     if nargin < 9  || isempty(searchrad),    searchrad = 2; end
     if nargin < 10 || isempty(FLAG_display), FLAG_display = false;   end
 

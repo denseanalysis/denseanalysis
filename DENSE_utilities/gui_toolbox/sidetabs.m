@@ -376,7 +376,7 @@ function obj = sidetabsFcn(obj,hparent)
 % hfig....Figure parent
 
     % check number of inputs
-    error(nargchk(1,2,nargin));
+    narginchk(1, 2);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)

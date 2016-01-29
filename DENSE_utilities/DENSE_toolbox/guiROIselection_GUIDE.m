@@ -1,20 +1,9 @@
 % ROI = GUIROISELECTION_GUIDE(NAME,COPYROI)
-
-
-
-
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to guiROIselection_GUIDE (see VARARGIN)
-
-
-% function varargout = guiROIselection_GUIDE(varargin)
-%
-%
-%
-% end
 
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,20 +15,22 @@
 
 function varargout = guiROIselection_GUIDE(varargin)
 % GUIROISELECTION_GUIDE M-file for guiROIselection_GUIDE.fig
-%      GUIROISELECTION_GUIDE, by itself, creates a new GUIROISELECTION_GUIDE or raises the existing
-%      singleton*.
+% GUIROISELECTION_GUIDE, by itself, creates a new GUIROISELECTION_GUIDE or
+% raises the existing singleton*.
 %
-%      H = GUIROISELECTION_GUIDE returns the handle to a new GUIROISELECTION_GUIDE or the handle to
-%      the existing singleton*.
+%      H = GUIROISELECTION_GUIDE returns the handle to a new
+%      GUIROISELECTION_GUIDE or the handle to the existing singleton*.
 %
-%      GUIROISELECTION_GUIDE('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in GUIROISELECTION_GUIDE.M with the given input arguments.
+%      GUIROISELECTION_GUIDE('CALLBACK',hObject,eventData,handles,...)
+%      calls the local function named CALLBACK in GUIROISELECTION_GUIDE.M
+%      with the given input arguments.
 %
-%      GUIROISELECTION_GUIDE('Property','Value',...) creates a new GUIROISELECTION_GUIDE or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before guiROIselection_GUIDE_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to guiROIselection_GUIDE_OpeningFcn via varargin.
+%      GUIROISELECTION_GUIDE('Property','Value',...) creates a new
+%      GUIROISELECTION_GUIDE or raises the existing singleton*.  Starting
+%      from the left, property value pairs are applied to the GUI before
+%      guiROIselection_GUIDE_OpeningFcn gets called.  An unrecognized
+%      property name or invalid value makes property application stop.  All
+%      inputs are passed to guiROIselection_GUIDE_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
@@ -104,7 +95,7 @@ function guiROIselection_GUIDE_OpeningFcn(hObject, eventdata, handles, varargin)
 
 
     % check number of inputs
-    error(nargchk(4,6,nargin));
+    narginchk(4, 6);
 
     % first argument should be 'ExternalInitialization'
     if ~ischar(varargin{1}) || ~isequal(varargin{1},'ExternalInitialization')

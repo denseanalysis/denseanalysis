@@ -61,7 +61,7 @@ function qual = phasequality2_mask(phs, pxsz, mask, conn)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -73,7 +73,7 @@ function qual = phasequality2_mask(phs, pxsz, mask, conn)
     %% SETUP
 
     % check number of inputs
-    error(nargchk(1,4,nargin));
+    narginchk(1, 4);
 
     % check input size
     if ndims(phs) ~= 2 || any(size(phs)<3)

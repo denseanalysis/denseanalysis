@@ -106,7 +106,7 @@ function Iunwrap = unwrap2mov_timepath(...
     FLAG_pause = true;
 
     % check number of inputs, default input
-    error(nargchk(7,11,nargin));
+    narginchk(7, 11);
     if nargin < 8 || isempty(searchrad),     searchrad = 2;          end
     if nargin < 9 || isempty(pxsz),          pxsz = [1 1]; end
     if nargin < 10 || isempty(conn),         conn = 4; end

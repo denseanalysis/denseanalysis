@@ -95,7 +95,7 @@ function Vunwrap = unwrap3(Vwrap, varargin)
     FLAG_nomex = checknomex();
 
     % check number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % input size
     if ndims(Vwrap) ~= 3
@@ -167,10 +167,6 @@ function Vunwrap = unwrap3(Vwrap, varargin)
             error(sprintf('UNWRAP:%s:inputerror',mfilename),...
                 'Undocumented ''UnwrappedImage'' input is invalid.');
         end
-
-        % empty seeds output, indicating "seeds" is unused
-        seeds = [];
-
     % seed selection / unwrap initialization
     else
 

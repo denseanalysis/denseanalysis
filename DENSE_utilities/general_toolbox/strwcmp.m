@@ -33,7 +33,7 @@ function tf = strwcmp(str,wild)
     % Copyright (c) 2016 DENSEanalysis Contributors
 
     % correct number of arguments
-    error(nargchk(2,2,nargin));
+    narginchk(2, 2);
 
     % check for empties
     if iscell(str)

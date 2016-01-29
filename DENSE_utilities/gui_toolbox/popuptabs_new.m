@@ -79,7 +79,7 @@
 
 
 %% CLASS DEFINITION
-classdef popuptabs < handle
+classdef popuptabs_new < handle
 
     % set/get properties
     properties
@@ -156,7 +156,7 @@ classdef popuptabs < handle
     methods
 
         % constructor
-        function obj = popuptabs(varargin)
+        function obj = popuptabs_new(varargin)
             obj = popuptabsFcn(obj,varargin{:});
         end
 
@@ -298,7 +298,7 @@ function obj = popuptabsFcn(obj,hparent,varargin)
 % hparent....parent figure/uipanel
 
     % check number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)

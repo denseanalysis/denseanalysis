@@ -214,8 +214,6 @@
 %   2009.03     Drew Gilliam
 %     --modification to mutli-contour methods
 
-
-
 %% CLASS DEFINITION
 classdef imcline < handle
 
@@ -290,15 +288,12 @@ classdef imcline < handle
         % creating some objects right away helps reduce
         % initialization time
         Ninitial = 12;
-
     end
 
     % hidden event
     events (Hidden=true)
         DragEvent
     end
-
-
 
     % public methods
     methods
@@ -311,12 +306,10 @@ classdef imcline < handle
             deleteFcn(obj);
         end
 
-
         % ACTION FUNCTIONS
         function redraw(obj)
             redrawFcn(obj);
         end
-
 
         % GET functions
         function val = get.Parent(obj)
@@ -325,7 +318,6 @@ classdef imcline < handle
         function val = get.cLine(obj)
             val = obj.hcline;
         end
-
 
         % SET functions
         function set.Appearance(obj,val)
@@ -383,9 +375,7 @@ classdef imcline < handle
             obj.IndependentDrag = setIndependentDrag(val);
             redraw(obj);
         end
-
     end
-
 
     % private methods
     methods (Access='private')
@@ -399,12 +389,8 @@ classdef imcline < handle
         function exit(obj)
             exitFcn(obj);
         end
-
     end
-
 end
-
-
 
 %% CONSTRUCTOR
 % The IMCLINE constructor creates the necessary drawing objects to display
@@ -417,7 +403,7 @@ end
 function obj = imclineFcn(obj,hcline,h)
 
     % input check, default input
-    error(nargchk(2,3,nargin));
+    narginchk(2, 3);
     if nargin < 3, h = gca; end
 
     % check cLINE input
@@ -497,10 +483,7 @@ function obj = imclineFcn(obj,hcline,h)
     % display
     obj.Appearance = obj.defappearance;
     obj.Highlight  = obj.defhighlight;
-
 end
-
-
 
 %% DESTRUCTOR
 % Ensure all listeners, HGGROUP (and children), and context menu
@@ -522,13 +505,11 @@ function deleteFcn(obj)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
             % fprintf('could not delete imcline.%s\n',tags{ti});
         end
     end
-
 end
-
 
 %% START & STOP
 % These functions, accessed through the 'Visible' property, allow the
@@ -545,7 +526,6 @@ function startFcn(obj)
     % enable redraw/listener & redraw
     obj.redrawenable = true;
     redraw(obj)
-
 end
 
 function stopFcn(obj)
@@ -555,10 +535,7 @@ function stopFcn(obj)
 
     % make all graphics invisible
     set([obj.hpt(:);obj.hln(:);obj.hline(:)],'visible','off');
-
 end
-
-
 
 %% REDRAW
 % This function controls all display aspects of the IMCLINE object. It is
@@ -575,7 +552,7 @@ end
 % constant deletion/creation of new graphics, a time consuming process.
 
 function redrawFcn(obj)
-tobj = tic;
+    %tobj = tic;
 
     % check for enabled redraw
     if ~obj.redrawenable, return; end
@@ -592,7 +569,6 @@ tobj = tic;
         npos = size(pos,1);
     end
 
-
     % total number of control points
     N = size(pos,1);
 
@@ -606,7 +582,6 @@ tobj = tic;
         set([hpt(:);hln(:);obj.hline(:)],'visible','off');
         return
     end
-
 
     % ensure we have (at least) the proper number of points
     % make all extra points invisible
@@ -641,7 +616,6 @@ tobj = tic;
         obj.hline = obj.hline(1:nline);
     end
 
-
     % update "disabled" line
     if strcmpi(obj.Enable,'off')
         set([hpt(:);hln(:)],'visible','off');
@@ -657,7 +631,6 @@ tobj = tic;
     else
         set(obj.hline,'visible','off');
     end
-
 
     % gather line segments
     xseg = cell(nline,1);
@@ -761,11 +734,8 @@ tobj = tic;
     set(hpt( tfptv),'visible','on');
     set(hpt(~tfptv),'visible','off');
 
-
 % fprintf('imcline toc final: %0.4f\n',toc(tobj))
 end
-
-
 
 %% CREATE DRAWING OBJECTS
 % These two functions create default points and lines with the necessary
@@ -792,10 +762,8 @@ function h = createPoints(obj,N)
 
     % context menu, button down behavior
     set(h,'UIContextMenu',obj.hptmenu,...
-    	'ButtonDownFcn',@(varargin)drag(obj));
-
+        'ButtonDownFcn',@(varargin)drag(obj));
 end
-
 
 function h = createLines(obj,N)
 % CREATE LINES initialize N line objects for line segment display
@@ -818,11 +786,7 @@ function h = createLines(obj,N)
     % context menu, button down behavior
     set(h,'UIContextMenu',obj.hlnmenu,...
         'ButtonDownFcn',@(varargin)drag(obj));
-
-
 end
-
-
 
 %% POINTER MANAGER BEHAVIOR: ENTER/EXIT DRAWING OBJECTS
 % When the Pointer Manager for the IMCLINE figure is enabled, the IMCLINE
@@ -830,7 +794,6 @@ end
 % change appearance as the user highlights different portions of the
 % IMCLINE object.  These functions control the pointer behavior as the
 % user ENTERS and EXITS the IMCLINE display.
-
 
 function enterFcn(obj,hobj)
 % ENTER IMCLINE OBJECT - record selection & update appearance
@@ -871,9 +834,7 @@ function enterFcn(obj,hobj)
 
     % update display
     redraw(obj);
-
 end
-
 
 function exitFcn(obj)
 % EXIT IMCLINE OBJECT - clear & update
@@ -884,9 +845,7 @@ function exitFcn(obj)
 
     % update display
     redraw(obj);
-
 end
-
 
 function tf = ischild(hparent,hchild)
 % HELPER FUNCTION: is HCHILD under HPARENT hierarchy
@@ -897,21 +856,17 @@ function tf = ischild(hparent,hchild)
         ~isempty(hchildren) && any(hchildren == hchild);
 end
 
-
-
 %% IMCLINE DRAG
 % After a user initiates a single left-click on a portion of the IMCLINE
 % display, they may then drag the cLINE object around the axes. Control
 % points can be moved independently, while line segments shift the entire
 % object.
 
-
 function dragFcn(obj)
     cleanupObj = onCleanup(@()dragCleanup(obj));
     dragSubFcn(obj);
     delete(cleanupObj);
 end
-
 
 function dragSubFcn(obj)
 
@@ -955,7 +910,6 @@ function dragSubFcn(obj)
             data = {'point',lidx,pidx};
     end
 
-
     % initialize buttonmotion/buttonup functions
     obj.dragiptids(1) = iptaddcallback(obj.hfig, ...
         'WindowButtonMotionFcn',@(varargin)buttonMotion());
@@ -963,7 +917,6 @@ function dragSubFcn(obj)
         'WindowButtonUpFcn',@(varargin)buttonUp());
 
     % clear error/user data
-    ERR = [];
     set(obj.hgroup,'UserData',[]);
 
     % create motion cancellation id
@@ -982,9 +935,8 @@ function dragSubFcn(obj)
     % wait for completion
     try
         waitfor(obj.hgroup,'UserData','DragComplete');
-    catch ERR
+    catch
     end
-
 
     % ----------SUBFUNCTION: BUTTON MOTION----------
     function buttonMotion()
@@ -1021,7 +973,6 @@ function dragSubFcn(obj)
                 end
                 obj.hcline.Position = newpos;
         end
-
     end
 
     %----------SUBFUNCTION: BUTTON RELEASE----------
@@ -1035,11 +986,8 @@ function dragSubFcn(obj)
 
         % notify waitfor command
         set(obj.hgroup,'UserData','DragComplete');
-
     end
-
 end
-
 
 function dragCleanup(obj)
 
@@ -1077,10 +1025,7 @@ function dragCleanup(obj)
     % to complete the redraw, we still need to make sure the state of the
     % object is back to normal.
     redraw(obj);
-
 end
-
-
 
 %% LINE CONTEXT MENU
 % If the user right-clicks on a line segment, they are offered
@@ -1090,7 +1035,6 @@ end
 %   CURVE SEGMENT.......curve the current line segment
 %   CLOSED cLINE........close the cLINE object
 %   OPEN cLINE..........open the cLINE object
-
 
 function lnContextOpen(obj)
 
@@ -1154,7 +1098,6 @@ function lnContextOpen(obj)
         end
     end
 
-
     % ----------SUBFUNCTION: STRAIGHTEN SEGMENT-------
     function straightSegment()
         hcline.IsCurved{lidx}(pidx) = 0;
@@ -1176,7 +1119,7 @@ function lnContextOpen(obj)
         % if curved, find two closest points to user selection
         if hcline.IsCurved{lidx}(pidx)
             d = (x-pt(1)).^2 + (y-pt(2)).^2;
-            [val,ind] = sort(d(:),'ascend');
+            [~,ind] = sort(d(:),'ascend');
             x = x(ind(1:2));
             y = y(ind(1:2));
         end
@@ -1201,16 +1144,12 @@ function lnContextOpen(obj)
     end
 end
 
-
-
-
 %% POINT CONTEXT MENU
 % If the user right-clicks a control point, they are offered
 % three choices from a context menu:
 %   DELETE POINT........delete the selected control point
 %   SMOOTH POINT........smooth control point
 %   CORNER POINT........corner control point
-
 
 function ptContextOpen(obj)
 
@@ -1257,7 +1196,6 @@ function ptContextOpen(obj)
         end
     end
 
-
     %----------SUBFUNCTION: SMOOTH POINT----------
     function smoothPoint()
         hcline.IsCorner{lidx}(pidx) = 0;
@@ -1272,10 +1210,7 @@ function ptContextOpen(obj)
     function deletePoint()
         hcline.deletePoint(lidx,pidx);
     end
-
 end
-
-
 
 %% SET PROPERTIES
 % These functions control the more complex property SET behaviors,
@@ -1324,9 +1259,7 @@ function s = setAppearanceFcn(obj,s)
                 'IMCLINE Appearance will not be updated.');
         end
     end
-
 end
-
 
 function s = setHighlightFcn(obj,s)
 % SET HIGHLIGHTED APPEARANCE
@@ -1354,9 +1287,7 @@ function s = setHighlightFcn(obj,s)
             'The ''', errstr, ''' field of the new Highlight ',...
             'structure is invalid. The IMCLINE will not be updated.');
     end
-
 end
-
 
 function val = setIndependentDrag(val)
 
@@ -1376,12 +1307,7 @@ function val = setIndependentDrag(val)
             'IndependentDrag must be a cell array of strings ',...
             'containing the strings [on|off].');
     end
-
 end
-
-
-
-
 
 %% HELPER FUNCTIONS: CHECK PROPERTIES
 % The following validation functions check various user inputs for
@@ -1391,7 +1317,6 @@ end
 % CHECKAPPEARANCE merely validates the input structure, outputting a
 % TRUE/FALSE value and error string.
 
-
 function val = checkResolution(val)
 % CHECK CURVED LINE SEGMENT RESOLUTION
     if ~isnumeric(val) || numel(val) ~= 1
@@ -1399,7 +1324,6 @@ function val = checkResolution(val)
             'Invalid ''Resolution'' value, must be scalar number.');
     end
 end
-
 
 function val = checkStrings(val,name,vals)
 % CHECK STRING INPUT
@@ -1415,7 +1339,6 @@ function val = checkStrings(val,name,vals)
     end
 end
 
-
 function [tf,errstr] = checkAppearance(s)
 % check appearance structure s, where s has the following fields:
 %   Color, LineStyle, LineWidth, Marker, MarkerEdgeColor,
@@ -1423,7 +1346,6 @@ function [tf,errstr] = checkAppearance(s)
 %
 % tf.......true/false validation output
 % errstr...error string, indicating invalid structure field
-
 
     % allowable values
     linestyle = set(0,'DefaultLineLineStyle');
@@ -1473,7 +1395,6 @@ function [tf,errstr] = checkAppearance(s)
        s.MarkerSize <= 0
 
         errstr = 'MarkerSize';
-
     end
 
     % return in error
@@ -1481,9 +1402,4 @@ function [tf,errstr] = checkAppearance(s)
        tf = false;
        return
     end
-
 end
-
-
-
-%% END OF FILE=============================================================

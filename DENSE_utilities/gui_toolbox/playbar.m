@@ -379,7 +379,7 @@ function obj = playbarFcn(obj,hparent)
 % hparent....figure/uipanel parent
 
     % check number of inputs
-    error(nargchk(1,2,nargin));
+    narginchk(1, 2);
 
     % attempt to load better icons
     file = 'playbar.mat';
@@ -388,7 +388,7 @@ function obj = playbarFcn(obj,hparent)
             s = load(file);
             obj.playicon = s.playicon;
             obj.stopicon = s.stopicon;
-        catch ERR
+        catch
         end
     end
 
