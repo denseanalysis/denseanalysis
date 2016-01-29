@@ -164,6 +164,32 @@ classdef DataViewer < handle
             resizeFcn(obj);
         end
     end
+
+    methods (Hidden)
+        function disable(obj, type)
+            disableFcn(obj, type);
+        end
+    end
+end
+
+function disableFcn(obj, type)
+    switch lower(type)
+        case 'redraw'
+            disableListener(obj.hlisten_redraw)
+        otherwise
+            error(sprintf('%s:UnsupportedType', mfilename), ...
+                'Type %s is not currently supported', type);
+    end
+end
+
+function disableListener(listener)
+    if isa(listener, 'handle.listener')
+        set(listener, 'Enabled', 'off')
+    else
+        for k = 1:numel(listener)
+            listener(k).Enabled = false;
+        end
+    end
 end
 
 %% CONSTRUCTOR

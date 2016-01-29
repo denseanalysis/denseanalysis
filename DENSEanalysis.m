@@ -275,18 +275,7 @@ function handles = initFcn(hfig,callingfile)
 
     % Turn off all listeners
     items = {hdense, hdicom, hanalyais, hslice, harial};
-    for k = 1:numel(items)
-        item = items{k};
-
-        if isa(item.hlisten_redraw, 'handle.listener')
-            set(item.hlisten_redraw, 'Enabled', 'off')
-        else
-            for m = 1:numel(item.hlisten_redraw)
-                item.hlisten_redraw(m).Enabled = false;
-            end
-        end
-    end
-
+    cellfun(@(x)x.disable('redraw'), items);
 
     % CREATE TAB OBJECTS---------------------------------------------------
 
