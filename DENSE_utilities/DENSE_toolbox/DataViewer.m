@@ -503,37 +503,25 @@ function setParentFcn(obj,hdisp,hctrl)
     % Resize listener: initialize a listener to ensure the object is
     % redrawn whenever either parent object (or their figure ancestors)
     % are resized.
-    hand = [hdisp,hdisp,hdisp,...
-         hctrl,hctrl,hctrl,...
-         hfig_disp,hfig_ctrl];
-    tags = {'Position','BackgroundColor','Color',...
-         'Position','BackgroundColor','Color',...
-         'Position','Position'};
-    tf = false(size(hand));
-    for k = 1:numel(hand)
-        idx = setdiff(1:numel(hand),k);
-        tf(k) = isprop(hand(k),tags{k}) && ...
-            ~any(hand(k)==hand(idx) & strcmpi(tags{k},tags(idx)));
-    end
-
-    prop = cell(size(hand));
-    for k = 1:numel(hand)
-        prop{k} = findprop(handle(hand(k)),tags{k});
-    end
-
-    obj.hlisten_redraw = addlistener_mod(handle(hand(:)),cat(1,prop{:}),...
-        'PostSet',@(src,evnt)redrawListenerCallback(obj,src,evnt));
+    cback = @(src,evnt)redrawListenerCallback(obj,src,evnt);
+    obj.hlisten_redraw = [...
+        position_listener(hdisp, cback);
+        position_listener(hctrl, cback);
+        position_listener(hfig_disp, cback);
+        position_listener(hfig_ctrl, cback);
+        addlistener_mod(hdisp, 'BackgroundColor', 'PostSet', cback);
+        addlistener_mod(hctrl, 'BackgroundColor', 'PostSet', cback);
+        addlistener_mod(hdisp, 'Color', 'PostSet', cback);
+        addlistener_mod(hctrl, 'Color', 'PostSet', cback)];
 
     % Hierachy listener: if the user attempts to change the figure
     % ancestors of the object (like moving the hparent_display panel
     % to a new figure), that could really mess stuff up.
     % Lets reject that action.
-    if ~isempty(hhier)
-        prop = cellfun(@(h)findprop(h,'Parent'),...
-            num2cell(handle(hhier)),'uniformoutput',0);
-        obj.hlisten_parent = addlistener_mod(handle(hhier),cell2mat(prop),...
-            'PostSet',@(src,evnt)parentListenerCallback(obj));
-    end
+    cback = @(src,evnt)parentListenerCallback(obj);
+    func = @(x)addlistener_mod(handle(x), 'Parent', 'PostSet', cback);
+    listeners = arrayfun(func, hhier, 'UniformOutput', false);
+    obj.hlisten_parent = cat(1, listeners{:});
 end
 
 
