@@ -371,8 +371,8 @@ function setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hparent,'ObjectBeingDestroyed',@(varargin)obj.delete());
+    obj.hlisten_delete = addlistener(obj.hparent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 
     % Property listener: when the parent is Resized, the parent color
     % changes, or the ancestor figure is resized, we need to update
@@ -387,9 +387,8 @@ function setParentFcn(obj,hparent)
 
     prp = cellfun(@(h,tag)findprop(h,tag),...
         num2cell(handle(h)),tags,'uniformoutput',0);
-    obj.hlisten_parent = handle.listener(handle(h),cell2mat(prp),...
-        'PropertyPostSet',@(varargin)redrawFcn(obj));
-
+    obj.hlisten_parent = addproplistener(handle(h),cell2mat(prp),...
+        'PostSet',@(varargin)redrawFcn(obj));
 end
 
 

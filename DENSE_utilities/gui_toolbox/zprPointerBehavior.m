@@ -160,9 +160,9 @@ function zprPointerBehavior(haxes,behavior)
     % is enabled. This code is taken from iptPointerManager.
     if FLAG_iptoverride
         figModeManager = uigetmodemanager(hfig);
-        hlisten_override = handle.listener(figModeManager, ...
+        hlisten_override = addproplistener(figModeManager, ...
             figModeManager.findprop('CurrentMode'), ...
-            'PropertyPostSet', @(varargin)listenerFcn);
+            'PostSet', @(varargin)listenerFcn);
     end
 
 

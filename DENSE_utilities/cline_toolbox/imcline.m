@@ -467,7 +467,7 @@ function obj = imclineFcn(obj,hcline,h)
 
     % When the hggroup that is part of the HG tree is destroyed,
     % the object is no longer valid and must be deleted.
-    obj.hlisten_delete1 = handle.listener(obj.hgroup,...
+    obj.hlisten_delete1 = addlistener(obj.hgroup,...
         'ObjectBeingDestroyed',@(varargin)obj.delete());
 
     % Additionally, when the cLINE object is destroyed, the object

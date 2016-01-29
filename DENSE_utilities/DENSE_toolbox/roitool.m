@@ -234,8 +234,8 @@ function obj = roitoolFcn(obj,hdata,hax)
 
     % Deletion listener: when the axes are destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hax,'ObjectBeingDestroyed',@(varargin)delete(obj));
+    obj.hlisten_delete = addlistener(obj.hax, ...
+        'ObjectBeingDestroyed',@(varargin)delete(obj));
 
     % cLINE listener
     obj.hlisten_cline = addlistener(obj.hcline,...

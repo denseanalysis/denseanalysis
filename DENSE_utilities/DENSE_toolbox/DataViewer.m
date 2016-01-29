@@ -314,83 +314,6 @@ function obj = DataViewerFcn(obj,options,hdata,varargin)
     % we need to respond accordingly.
     obj.hlisten_data = addlistener(obj.hdata,...
         'NewState',    @(src,evnt)dataevent(obj,evnt));
-
-%
-%
-%
-%
-%
-%
-%
-%     bgclr = [236 233 216]/255;
-%     hlclr  = [78 101 148]/255;
-%     edgeclr = 'w';
-%     axesclr = [.5 .5 .5];
-%
-%
-%     obj.hparent = hparent;
-%     obj.hdata   = hdata;
-%
-%     hfig = ancestor(hparent,'figure');
-%
-%     % create object hierarchy
-%     obj.hpanel    = uipanel('parent',hparent);
-%     obj.hplaybar  = playbar(obj.hpanel);
-%
-%
-%     % set object properties
-%     set(obj.hpanel,...
-%         'units',            'normalized',....
-%         'position',         [0 0 1 1],...
-%         'BorderType',       'none',...
-%         'BackgroundColor',  'none',...
-%         'ResizeFcn',        @(varargin)resizeFcn(obj));
-%
-%     % disabled playbar listener
-%     obj.hlisten_playbar = addlistener(obj.hplaybar,...
-%         'NewValue',@(varargin)playback(obj));
-%     obj.hlisten_playbar.Enabled = false;
-%
-%     % Deletion listener: when the Parent is destroyed,
-%     % the object is no longer valid and must be destroyed
-%     obj.hlisten_delete = handle.listener(...
-%         obj.hparent,'ObjectBeingDestroyed',@(varargin)delete(obj));
-%
-%     % resize listener: although the object panel has 'normalized' units,
-%     % sometimes the object fails to redraw (like when a parent figure is
-%     % maximized then un-maximized).  So we initialize a listener to ensure
-%     % the object is successfully redrawn
-%     obj.hlisten_redraw = handle.listener(obj.hparent,...
-%         findprop(handle(obj.hparent),'Position'),...
-%         'PropertyPostSet',@(src,evnt)resizeFcn(obj));
-%
-%
-%     % DENSEdata listener - if new data is loaded, we need to reset the
-%     % DICOM viewer to its initial state
-%     obj.hlisten_data = addlistener(obj.hdata,...
-%         'NewData',@(varargin)newData(obj));
-%
-%
-%
-%
-%     % gather zoom/pan/rotate behavior
-%     % permanently disable rotation
-%     hfig = ancestor(obj.hparent,'figure');
-%     obj.hzoom = zoom(hfig);
-%     obj.hpan  = pan(hfig);
-%     obj.hrot  = rotate3d(hfig);
-%
-%     setAllowAxesRotate(obj.hrot,obj.hax,false);
-%
-%     % add callback to zoom/pan behavior
-%     obj.iptids(1) = iptaddcallback_mod(obj.hzoom,...
-%         'ActionPostCallback', @(h,evnt)zoompan(obj,evnt.Axes));
-%     obj.iptids(2) = iptaddcallback_mod(obj.hpan,...
-%         'ActionPostCallback', @(h,evnt)zoompan(obj,evnt.Axes));
-%
-%     % ready the object
-%     newDataFcn(obj);
-
 end
 
 
@@ -573,8 +496,8 @@ function setParentFcn(obj,hdisp,hctrl)
 
     % Deletion listener: when either Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        [hdisp,hctrl],'ObjectBeingDestroyed',@(varargin)obj.delete());
+    obj.hlisten_delete = addlistener([hdisp,hctrl], ...
+        'ObjectBeingDestroyed', @(varargin)obj.delete());
 
     % Resize listener: initialize a listener to ensure the object is
     % redrawn whenever either parent object (or their figure ancestors)
@@ -597,15 +520,8 @@ function setParentFcn(obj,hdisp,hctrl)
         prop{k} = findprop(handle(hand(k)),tags{k});
     end
 
-    obj.hlisten_redraw = handle.listener(handle(hand(:)),cat(1,prop{:}),...
-        'PropertyPostSet',@(src,evnt)redrawListenerCallback(obj,src,evnt));
-
-
-%     h = unique([hdisp,hctrl,hfig_disp,hfig_ctrl]);
-%     prop = cellfun(@(h)findprop(h,'Position'),...
-%         num2cell(handle(h)),'uniformoutput',0);
-%     obj.hlisten_redraw = handle.listener(handle(h),cell2mat(prop),...
-%         'PropertyPostSet',@(varargin)redrawListenerCallback(obj));
+    obj.hlisten_redraw = addproplistener(handle(hand(:)),cat(1,prop{:}),...
+        'PostSet',@(src,evnt)redrawListenerCallback(obj,src,evnt));
 
     % Hierachy listener: if the user attempts to change the figure
     % ancestors of the object (like moving the hparent_display panel
@@ -614,10 +530,9 @@ function setParentFcn(obj,hdisp,hctrl)
     if ~isempty(hhier)
         prop = cellfun(@(h)findprop(h,'Parent'),...
             num2cell(handle(hhier)),'uniformoutput',0);
-        obj.hlisten_parent = handle.listener(handle(hhier),cell2mat(prop),...
-            'PropertyPostSet',@(src,evnt)parentListenerCallback(obj));
+        obj.hlisten_parent = addproplistener(handle(hhier),cell2mat(prop),...
+            'PostSet',@(src,evnt)parentListenerCallback(obj));
     end
-
 end
 
 

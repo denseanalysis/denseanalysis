@@ -507,9 +507,8 @@ function obj = setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hparent,'ObjectBeingDestroyed',@(varargin)obj.delete());
-
+    obj.hlisten_delete = addlistener(obj.hparent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 end
 
 

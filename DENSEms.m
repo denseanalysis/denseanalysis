@@ -265,8 +265,8 @@ function output = mainFcn(api)
     proptags = {'CameraPosition','CameraTarget','CameraUpVector'};
     h = handle(api.hax3d);
     props = cellfun(@(t)findprop(h,t),proptags,'uniformoutput',0);
-    api.hcameralistener = handle.listener(h,cell2mat(props),...
-        'PropertyPostSet',@(src,evnt)linkfcn(api.haxori,api.hax3d));
+    api.hcameralistener = addproplistener(h,cell2mat(props),...
+        'PostSet',@(src,evnt)linkfcn(api.haxori,api.hax3d));
 
     linkfcn(api.haxori,api.hax3d);
 

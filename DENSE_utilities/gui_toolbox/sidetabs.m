@@ -470,17 +470,16 @@ function obj = setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.Parent,'ObjectBeingDestroyed',@(varargin)obj.delete());
+    obj.hlisten_delete = addlistener(obj.Parent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 
     % Parent listener: when the parent is Resized, the color changes,
     % or the renderer changes, we need to update the SIDETABS object
     prp = [findprop(handle(obj.Parent),'Position');...
            findprop(handle(obj.Parent),'Color');...
            findprop(handle(obj.Parent),'Renderer');];
-    obj.hlisten_parent = handle.listener(obj.Parent,...
-        prp,'PropertyPostSet',@(src,evnt)obj.redrawPrimer(src));
-
+    obj.hlisten_parent = addproplistener(obj.Parent,...
+        prp,'PostSet',@(src,evnt)obj.redrawPrimer(src));
 end
 
 

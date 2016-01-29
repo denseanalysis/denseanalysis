@@ -11,7 +11,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     % motion api check
     apptag = 'figure_motionapi';
     if isappdata(hfig,apptag) && ~isempty(getappdata(hfig,apptag))
@@ -130,13 +130,12 @@ function motionapi = figureMotionSetup(hfig,varargin)
 
     % listen for mode change
     prop = findprop(figModeManager,'CurrentMode');
-    hlisten_mode = handle.listener(figModeManager,...
-        prop,'PropertyPostSet',@(varargin)updatefcn(true));
-
+    hlisten_mode = addproplistener(figModeManager,...
+        prop,'PostSet',@(varargin)updatefcn(true));
 
     % listen for figure deletion (to delete tooltip timer)
-    hlisten_delete = handle.listener(...
-        hfig,'ObjectBeingDestroyed',@(varargin)cleanupfcn());
+    hlisten_delete = addlistener(hfig, ...
+        'ObjectBeingDestroyed',@(varargin)cleanupfcn());
 
     % initialize figure motion fcn
     set(hfig,'WindowButtonMotionFcn',@(h,evnt)updatefcn(false));
