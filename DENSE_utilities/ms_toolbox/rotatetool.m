@@ -453,7 +453,11 @@ function motionFcn(obj,evnt)
     % figure handle
     hfig = obj.FigureHandle;
 
-    currentPoint = get(evnt.Source, 'CurrentPoint');
+    try % HG2
+        currentPoint = evnt.Point;
+    catch % HG1 fallback
+        currentPoint = evnt.CurrentPoint;
+    end
 
     % manually update the current figure point
     curr_units = hgconvertunits(hfig, [0 0 currentPoint],...
