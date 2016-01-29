@@ -57,7 +57,7 @@ function args = parseSLAinputs(args_default,varargin)
     % handle input
     if nargin <= 1
         h = gca;
-    elseif isnumeric(varargin{1})
+    elseif ishghandle(varargin{1})
         h = varargin{1};
         varargin = varargin(2:end);
     else
