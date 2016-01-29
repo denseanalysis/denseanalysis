@@ -341,7 +341,7 @@ function obj = DENSEviewerFcn(obj)
 
     % link axes limits
     hlink = linkprop(obj.hax,{'XLim','YLim','DataAspectRatio'});
-    setappdata(obj.hax(1),'graphics_linkaxes',hlink);
+    setappdata(obj.hax(1), 'custom_graphics_linkaxes', hlink);
 
     % ROI suspend/restore listeners
     obj.hlisten_suspend = addlistener(obj.hroi,...
