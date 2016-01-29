@@ -6,7 +6,7 @@ function opts = guiExportOptions(type,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     if numel(varargin)==1 && isempty(varargin{1})
         varargin = {};
     end
@@ -31,7 +31,7 @@ function opts = guiExportOptions(type,varargin)
         'LineWidth',        NaN,...
         'MarkerSize',       NaN,...
         'FPS',              15,...
-        'AVICompression',   'None');
+        'AVIProfile',       'None');
 
     % parse options (ignoring additional fields)
     [opts,other_args] = parseinputs(fieldnames(defopts),...
@@ -254,7 +254,7 @@ function opts = guiImageExportSub(type,formats,opts,hfig)
     function compressionCallback()
         str = get(obj.hcompression,'String');
         val = get(obj.hcompression,'value');
-        opts.AVICompression = str{val};
+        opts.AVIProfile = str{val};
     end
 
     % NEW CODEC
@@ -273,7 +273,7 @@ function opts = guiImageExportSub(type,formats,opts,hfig)
         str = get(obj.hcompression,'string');
         str = [str(:); codec];
         set(obj.hcompression,'string',str,'value',numel(str));
-        opts.AVICompression = codec;
+        opts.AVIProfile = codec;
     end
 
 
@@ -447,10 +447,15 @@ function obj = figureSetup(hfig,opts)
     set(hctrl([1:3,5]),...
         {'String'},{opts.Resolution; opts.LineWidth; opts.MarkerSize; opts.FPS});
 
-    compress = {'Indeo3','Indeo5','Cinepak','MSVC','RLE','None'};
-    tf = strcmpi(compress,opts.AVICompression);
+    compress = {'Motion JPEG AVI', ...
+                'MPEG-4', ...
+                'Uncompressed AVI', ...
+                'Indexed AVI', ...
+                'Grayscale AVI'};
+    tf = strcmpi(compress, opts.AVIProfile);
+
     if ~any(tf)
-        compress = [compress(:); opts.AVICompression];
+        compress = [compress(:); opts.AVIProfile];
         val = numel(compress);
     else
         val = find(tf,1,'first');

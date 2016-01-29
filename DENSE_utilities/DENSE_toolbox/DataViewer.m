@@ -884,21 +884,15 @@ function filename = exportFcn(obj,type,startpath)
 
             % create AVI object
             if FLAG_aviobj
-                if any(strcmpi(opts.AVICompression,{'MSVC','RLE'}))
-                    map = colorcube(256);
-                    args = {'colormap',map};
-                    FLAG_index = true;
-                elseif any(strcmpi(opts.AVICompression,{'Indeo3'}))
-                    map = colorcube(236);
-                    args = {'colormap',map};
+                aviobj = VideoWriter(filename);
+                aviobj.FrameRate = opts.FPS;
+                open(aviobj);
+                if any(strcmpi(opts.AVIProfile,{'Indexed AVI'}))
+                    aviobj.Colormap = colorcube(236);
                     FLAG_index = true;
                 else
-                    args = {};
                     FLAG_index = false;
                 end
-                aviobj = avifile(filename,args{:},...
-                    'compression',  opts.AVICompression,...
-                    'fps',          opts.FPS);
             end
 
             try
@@ -922,8 +916,7 @@ function filename = exportFcn(obj,type,startpath)
 
                     % get a hardcopy of the figure
                     res = ['-r' num2str(opts.Resolution)];
-                    I = hardcopy(hfig,'temp.tif','-dzbuffer',res,'-loose');
-
+                    I = hardcopy(hfig, '-dzbuffer', res, '-loose');
 
                     % delete panel / reset figure
                     delete(hpanel);
@@ -938,10 +931,10 @@ function filename = exportFcn(obj,type,startpath)
                         if FLAG_index
                             I = rgb2ind(I,map);
                         end
-                        aviobj = addframe(aviobj,I);
+                        writeVideo(aviobj, I);
                         if any(k == [1 numel(rng)])
                             for n = 2:pausefac
-                                aviobj = addframe(aviobj,I);
+                                writeVideo(aviobj, I);
                             end
                         end
 
@@ -991,8 +984,8 @@ function filename = exportFcn(obj,type,startpath)
             % ERROR: close avi, delete invalid video, rethrow error
             catch ERR
                 if FLAG_aviobj
-                    aviobj = close(aviobj);
-                    obj.exvideoopts.AVICompression = 'None';
+                    close(aviobj);
+                    obj.exvideoopts.AVIProfile = 'Motion JPEG AVI';
                 end
                 if exist(filename,'file'), delete(filename); end
                 delete(hwait(ishandle(hwait)));
@@ -1000,18 +993,14 @@ function filename = exportFcn(obj,type,startpath)
             end
 
             if FLAG_aviobj
-                aviobj = close(aviobj);
+                close(aviobj);
             end
             if FLAG_quit && exist(filename,'file')
                 delete(filename)
             end
 
             if ishandle(hwait), close(hwait); end
-
     end
-
-
-
 end
 
 function cleanupExport(obj,hwait,fr)
@@ -1050,7 +1039,6 @@ function hpanel = grabPanel(obj,opts,rect,hfig)
     % hide all children panels
     h = findobj(hchild,'flat','type','uipanel');
     h = setdiff(h,hpanel);
-    set(h,'backgroundcolor','none');
 
     % move the display panel to the appropriate location
     pos = getpixelposition(hpanel,true);
