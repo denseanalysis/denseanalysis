@@ -336,10 +336,9 @@ function obj = analysisViewerFcn(obj)
         'string',           str,...
         'BackgroundColor',  clr);
 
-    hopt = cellfun(fcn,{opt.Name},{opt.Label});
+    hopt = cellfun(fcn,{opt.Name},{opt.Label}, 'UniformOutput', false);
 
     % save options to control structure
-    hopt = num2cell(hopt);
     [opt.Handle] = deal(hopt{:});
 
     % save options to object
