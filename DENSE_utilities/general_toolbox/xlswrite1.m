@@ -50,7 +50,7 @@ try
     end
 
     % Check for N-D array input data
-    if ndims(data)>2
+    if ~ismatrix(data)
         error('MATLAB:xlswrite:InputDimension',...
             'Dimension of input array cannot be higher than two.');
     end

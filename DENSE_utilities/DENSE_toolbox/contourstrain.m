@@ -10,7 +10,7 @@ function strain = contourstrain(varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 errid = sprintf('%s:invalidInput',mfilename);
 
     % parse input data
@@ -28,9 +28,9 @@ errid = sprintf('%s:invalidInput',mfilename);
     % check vertices/faces
     vert = api.vertices;
     face = api.faces;
-    if ~isnumeric(vert) || ndims(vert)~=2 || size(vert,2)~=2
+    if ~isnumeric(vert) || ~ismatrix(vert) || size(vert,2)~=2
         error(errid,'Invalid vertices.');
-    elseif ~isnumeric(face) || ndims(face)~=2 || any(mod(face(:),1) ~= 0) || ...
+    elseif ~isnumeric(face) || ~ismatrix(face) || any(mod(face(:),1) ~= 0) || ...
        any(face(:) < 0) || any(size(vert,1) < face(:))
         error(errid,'Invalid faces.');
     end
@@ -40,14 +40,13 @@ errid = sprintf('%s:invalidInput',mfilename);
 
     % check times
     time = api.times;
-    if ~isnumeric(time) || ndims(time)~=2
+    if ~isnumeric(time) || ~ismatrix(time)
         error(errid,'Invalid times.');
     end
 
     % additional parameters
     Ntime = numel(time);
     Nface = size(face,1);
-    dim   = size(face,2);
 
     % vertex trajectories
     % note this effectively checks the spline data as well

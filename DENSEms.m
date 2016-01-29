@@ -23,7 +23,7 @@ function varargout = DENSEms(varargin)
             Excel.Quit;
             Excel.delete;
             FLAG_excel = true;
-        catch %#ok
+        catch
         end
     end
 
@@ -630,8 +630,8 @@ function api = loadInfo(api)
             catch ERR
                 continue;
             end
-            if isnumeric(cmap) && ndims(cmap)==2 && ...
-              size(cmap,1)<=128 && size(cmap,2)==3 ...
+            if isnumeric(cmap) && ismatrix(cmap) && ...
+              size(cmap,1) <= 128 && size(cmap,2) == 3 ...
               && ~(min(cmap(:))<0 || max(cmap(:))>1)
                 valid(k) = true;
             end
@@ -1577,8 +1577,8 @@ function addColormap(hfig)
         name = answer{1};
         cmap = eval(answer{2});
 
-        if ~isnumeric(cmap) || ndims(cmap)~=2 || ...
-            size(cmap,1)>128 || size(cmap,2)~=3
+        if ~isnumeric(cmap) || ~ismatrix(cmap) || ...
+            size(cmap,1) > 128 || size(cmap,2) ~= 3
             error('temp:temp','invalid');
         end
 
@@ -2108,7 +2108,6 @@ function exportMultimedia(hfig)
             % create video
             aviobj = [];
             try
-
                 % initialize AVI file
                 aviobj = avifile(exportfile,args{:},...
                     'compression',codec,'fps',fps);

@@ -33,7 +33,7 @@ function [b,ndx,pos] = unique_struct(a,tags,occurance)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -44,7 +44,7 @@ function [b,ndx,pos] = unique_struct(a,tags,occurance)
     %% SETUP
 
     % check for vector of structures
-    if ~isstruct(a) || ndims(a) ~= 2 || ~any(size(a)==1)
+    if ~isstruct(a) || ~ismatrix(a) || ~any(size(a)==1)
         error(sprintf('%s:inputerror',mfilename),...
             'First input must be a vector of structures.');
     end

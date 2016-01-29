@@ -1,5 +1,5 @@
-function [hgroup,hface,hedge,htext] = bullseye(h,data,varargin)
-% [hgroup,hface,hedge,htext] = bullseye(h,data,varargin)
+function [hgroup,hface,hedge,htext] = dense_bullseye(h,data,varargin)
+% [hgroup,hface,hedge,htext] = dense_bullseye(h,data,varargin)
 
 % This Source Code Form is subject to the terms of the Mozilla Public
 % License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -152,7 +152,7 @@ function [hgroup,hface,hedge,htext] = bullseye(h,data,varargin)
             data(k).FaceColor = 'flat';
             data(k).FaceVertexCData = tmp;
 
-        elseif isnumeric(val) && ndims(val)==2 && all(size(val)==[nface,3])
+        elseif isnumeric(val) && ismatrix(val) && all(size(val)==[nface,3])
             data(k).FaceColor = 'flat';
             data(k).FaceVertexCData = val;
 

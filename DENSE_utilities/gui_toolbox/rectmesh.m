@@ -20,7 +20,7 @@ function [V,F] = rectmesh(X,Y)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -34,7 +34,7 @@ function [V,F] = rectmesh(X,Y)
     Xsz = size(X);
     Ysz = size(Y);
     if ~isnumeric(X) || ~isnumeric(Y) || ...
-       ndims(X)~=2 || ndims(Y)~=2 || any(Xsz ~= Ysz) || ...
+       ~ismatrix(X) || ~ismatrix(Y) || any(Xsz ~= Ysz) || ...
        any(Xsz==1)
 
         error(sprintf('%s:invalidInputs',mfilename),...

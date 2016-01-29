@@ -34,8 +34,7 @@ function options = splinemodel(varargin)
         'Mag',                  [],...
         'UnwrapRect',           []);
 
-    [api,other_args] = parseinputs(defargs,[],varargin{:});
-
+    api = parseinputs(defargs,[],varargin{:});
 
     % VALIDATION-----------------------------------------------------------
     % Xpha, Ypha, Zpha, Mask
@@ -181,7 +180,7 @@ function options = splinemodel(varargin)
 
     % validate seed locations
     idxfcn = @(x)x(:,1) + Isz(1)*(x(:,2)-1) + Isz(2)*Isz(1)*(seedframe-1);
-    checkfcn = @(x)isnumeric(x) && ndims(x)==2 &&  size(x,2)==2 && ...
+    checkfcn = @(x)isnumeric(x) && ismatrix(x) &&  size(x,2)==2 && ...
         all(mod(x(:),1)==0) && all(1<=x(:)) && all(x(:,1)<=Isz(1)) && ...
         all(x(:,2)<=Isz(2)) && all(api.Mask(idxfcn(x)));
 
@@ -661,7 +660,7 @@ function spaceEditCallback(hfig,hobj)
     tag = tags{h==hobj};
 
     str = get(hobj,'string');
-    val = str2num(str);
+    val = str2double(str);
     if isempty(val) || val < 0 || 1 < val
         set(hobj,'string',api.(tag));
     else

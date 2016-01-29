@@ -34,7 +34,7 @@ function strain = pixelstrain(varargin)
 
     % check times
     time = api.times;
-    if ~isnumeric(time) || ndims(time)~=2
+    if ~isnumeric(time) || ~ismatrix(time)
         error(errid,'Invalid times.');
     end
 
@@ -252,7 +252,7 @@ function strain = pixelstrain(varargin)
     strain.maskimage = tf;
 
     fv.faces = fv.faces(tf,:);
-    [idx,m,map] = unique(fv.faces(:));
+    [idx,~,map] = unique(fv.faces(:));
 
     fv.vertices = fv.vertices(idx,:);
     fv.faces    = reshape(map,size(fv.faces));

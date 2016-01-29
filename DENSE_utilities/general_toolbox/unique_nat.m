@@ -9,7 +9,7 @@ function [b,m,n] = unique_nat(a,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -17,7 +17,7 @@ function [b,m,n] = unique_nat(a,varargin)
 %     --creation
 
     % check for valid cell vector of strings
-    if ~iscellstr(a) || ndims(a)~=2 || ~any(size(a) == 1)
+    if ~iscellstr(a) || ~ismatrix(a) || ~any(size(a) == 1)
         error(sprintf('%s:invalidInput',mfilename),...
             'UNIQUE_MAT accepts only an [Nx1] cell vector of strings');
     end
@@ -32,5 +32,4 @@ function [b,m,n] = unique_nat(a,varargin)
     [tmp,idx] = sort(order);
     m(:) = m(order);
     n(:) = idx(n);
-
 end

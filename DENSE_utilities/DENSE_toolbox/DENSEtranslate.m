@@ -6,7 +6,7 @@ function shft = DENSEtranslate(varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     % default error id
     errid = sprintf('%s:invalidInput',mfilename);
 
@@ -17,8 +17,7 @@ function shft = DENSEtranslate(varargin)
         'zmag', [],...
         'shift', NaN(2,3));
 
-    [api,other_args] = parseinputs(defapi,[],varargin{:});
-
+    api = parseinputs(defapi,[],varargin{:});
 
     % check for at least two non-empty images
     tags = {'xmag','ymag','zmag'};
@@ -52,7 +51,7 @@ function shft = DENSEtranslate(varargin)
     end
 
     % check shift
-    checkfcn = @(s)~isempty(s) && isnumeric(s) && ndims(s)==2 && ...
+    checkfcn = @(s)~isempty(s) && isnumeric(s) && ismatrix(s) && ...
         all(size(s)==[2 3]);
 
     if ~checkfcn(api.shift)

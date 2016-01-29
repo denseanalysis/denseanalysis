@@ -76,7 +76,7 @@ function qual = phasequality2_mask(phs, pxsz, mask, conn)
     narginchk(1, 4);
 
     % check input size
-    if ndims(phs) ~= 2 || any(size(phs)<3)
+    if ~ismatrix(phs) || any(size(phs)<3)
         error(sprintf('UNWRAP:%s:inputerror',mfilename),...
             'Phase imagery must be a 2D matrix, 3x3 or larger.');
     end
@@ -92,7 +92,7 @@ function qual = phasequality2_mask(phs, pxsz, mask, conn)
     if nargin < 3 || isempty(mask)
         mask = [];
     else
-        if ndims(mask) ~= 2 || any(size(phs) ~= size(mask))
+        if ~ismatrix(mask) || any(size(phs) ~= size(mask))
             error(sprintf('UNWRAP:%s:inputerror',mfilename),...
                 'Phase & mask must be of same size');
         end

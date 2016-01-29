@@ -25,8 +25,7 @@ function options = segmentmodel(varargin)
         'MaxSegments',          132,...
         'PositionIndices',      []);
 
-    [api,other_args] = parseinputs(defargs,[],varargin{:});
-
+    api = parseinputs(defargs,[],varargin{:});
 
     % check type
     types = {'SA','LA','open','closed'};
@@ -63,7 +62,7 @@ function options = segmentmodel(varargin)
 
     % check resting contour
     C0 = api.RestingContour;
-    checkfcn = @(c)ndims(c)==2 && size(c,1) > 3 && size(c,2)==2;
+    checkfcn = @(c)ismatrix(c) && size(c,1) > 3 && size(c,2) == 2;
     if ~iscell(C0) || ~all(cellfun(checkfcn,C0))
         error(errid,'Invalid RestingContour.');
     elseif any(strcmpi(api.Type,{'SA','LA'})) && numel(C0)~=2
@@ -192,7 +191,7 @@ function options = segmentmodel(varargin)
         else
             idx = api.PositionIndices;
 
-            checkfcn = @(i,n)isnumeric(i) && ndims(i)==2 && ...
+            checkfcn = @(i,n)isnumeric(i) && ismatrix(i) && ...
                 any(size(i)==1) && all(isfinite(i)) && ...
                 all(mod(i,1)==0) && all(1<=i & i<=n);
             if ~iscell(idx) || numel(idx)~=numel(C0) || ...
