@@ -188,7 +188,7 @@ function output = mainFcn(api)
 
     % colormap patchs
     Ncb = numel(api.hcb);
-    api.hcmap = NaN(1,Ncb);
+    api.hcmap = preAllocateGraphicsObjects(1,Ncb);
     for k = 1:Ncb
         api.hcmap(k) = patch('parent',api.hcb(k),...
             'facecolor','flat','edgecolor','none');
@@ -1184,7 +1184,7 @@ function api = redrawDisplay(api)
     % twist & torsion display
     set([api.haxA;api.haxB],'xlim',allframes([1 end]));
 
-    api.htwist = NaN(Ndata,1);
+    api.htwist = preAllocateGraphicsObjects(Ndata,1);
     for k = Ndata:-1:1
         tf = isfinite(api.Twist(k,:));
         api.htwist(k) = line(...
@@ -1652,8 +1652,8 @@ function api = init3d(api,fridx)
 
 
     % create graphics
-    api.hpts = NaN(Ndata,1);
-    api.hcentroid = NaN(Ndata,1);
+    api.hpts = preAllocateGraphicsObjects(Ndata,1);
+    api.hcentroid = preAllocateGraphicsObjects(Ndata,1);
     for k = 1:Ndata
         vert = api.data(k).pts(:,:,1);
         npts = size(vert,1);

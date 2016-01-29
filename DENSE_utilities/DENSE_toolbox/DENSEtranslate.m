@@ -134,8 +134,8 @@ function shft = mainFcn(api)
 
     % draw images
     api.hax    = [api.hxmag;api.hymag;api.hzmag];
-    api.him    = NaN(3,1);
-    api.htitle = NaN(3,1);
+    api.him    = preAllocateGraphicsObjects(3,1);
+    api.htitle = preAllocateGraphicsObjects(3,1);
     labels = {'x','y','z'};
     for k = 1:numel(api.him)
         imtag = [labels{k} 'mag'];
@@ -157,7 +157,7 @@ function shft = mainFcn(api)
     vals = linspace(0,1,Nline+2);
     vals = vals(2:end-1);
 
-    api.hgrid = NaN(1,3);
+    api.hgrid = preAllocateGraphicsObjects(1,3);
     for k = 1:numel(api.hax)
         api.hgrid(k) = axes('parent',api.haxespanel,...
             'units','pixels','position',getpixelposition(api.hax(k)));

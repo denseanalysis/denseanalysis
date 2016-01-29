@@ -320,8 +320,8 @@ function Vunwrap = unwrap3(Vwrap, varargin)
 
     function hfig = initdisplay()
 
-        hax = NaN(2,1);
-        him = NaN(2,1);
+        hax = preAllocateGraphicsObjects(2,1);
+        him = preAllocateGraphicsObjects(2,1);
 
         [zeroimage,msz] = montage_image(zeros([Vsz(1:2) 1 Vsz(3)]));
 

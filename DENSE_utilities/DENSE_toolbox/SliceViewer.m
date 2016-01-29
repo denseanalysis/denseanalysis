@@ -277,7 +277,7 @@ function loadseqFcn(obj)
 
     % draw unique slice patches
     [tmp,ndx,idx] = unique(sl);
-    h = NaN(numel(ndx),1);
+    h = preAllocateGraphicsObjects(numel(ndx),1);
     for k = 1:numel(ndx)
         if isnan(ndx(k)), continue; end
 

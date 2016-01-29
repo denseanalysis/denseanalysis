@@ -1021,9 +1021,9 @@ function api = timeDisplay(obj,names)
     end
 
     % persistant variables
-    haxseg = NaN;
-    hcbseg = NaN;
-    hax = NaN(size(names));
+    haxseg = preAllocateGraphicsObjects(1);
+    hcbseg = preAllocateGraphicsObjects(1);
+    hax = preAllocateGraphicsObjects(size(names));
 
     % we require the "zbuffer" or "opengl" renderer, so temporarily
     % update the display figure
@@ -1269,10 +1269,11 @@ function api = fvDisplay(obj,tag,flag_nobulk)
     set(obj.hfigure_display,'Renderer','zbuffer');
 
     % persistant variables
-    hax = NaN(size(tag));
+    hax = preAllocateGraphicsObjects(size(tag));
     hcb = hax;
     hfv = hax;
     hor = hax;
+    htitle = hax;
 
     % face centroids
     pface = [];
@@ -1374,7 +1375,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
         end
 
         % create objects
-        htitle = NaN(size(tag));
         for k = 1:numel(tag)
             hax(k) = axes('parent',obj.hdisplay);
             hcb(k) = colorbarmod(hax(k),'southoutside',cmap,crng{k});

@@ -96,7 +96,7 @@ function [outervert,innervert] = getSA(varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -112,9 +112,9 @@ function [outervert,innervert] = getSA(varargin)
     %% MAIN CODE
 
     % initialize construction containers
-    hpt        = NaN(3,1);
-    hconstruct = NaN(2,1);
-    hcontour   = NaN(2,1);
+    hpt        = preAllocateGraphicsObjects(3,1);
+    hconstruct = preAllocateGraphicsObjects(2,1);
+    hcontour   = preAllocateGraphicsObjects(2,1);
     M          = 1001;
 
     % parse inputs

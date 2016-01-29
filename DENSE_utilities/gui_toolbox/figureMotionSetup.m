@@ -69,7 +69,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
         'handlevisibility','off',...
         'enable','inactive');
 
-    htooltip = NaN(1,2);
+    htooltip = preAllocateGraphicsObjects(1,2);
 
     htooltip(1) = uicontrol(...
         'parent',hfig,...
@@ -328,7 +328,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
                     for k = 1:2
                         set(htooltip(k),'string',str{k});
                     end
-                catch ERR
+                catch
                     warning('figureMotionFcn:ToolTip',...
                         ['Unknown error executing ''ToolTip'' ',...
                          'string function.'])
@@ -397,34 +397,6 @@ function motionapi = figureMotionSetup(hfig,varargin)
                         'visible','on');
                 end
             end
-
-            return
-
-
-
-%             if pt(1) > (sfig(1)-pt(1))
-%                 pt(1) = pt(1)-stip(1)+1 - offset(1);
-%             else
-%                 pt(1) = pt(1) + offset(1);
-%             end
-%             if pt(2) > (sfig(2)-pt(2))
-%                 pt(2) = pt(2)-stip(2)+1 - offset(2);
-%             else
-%                 pt(2) = pt(2) + offset(2);
-%             end
-
-%             if (sfig(1)-pt(1)-stip(1)) < (pt(1)-stip(1))
-%                 pt(1) = pt(1)-stip(1);
-%             end
-%             if (sfig(2)-pt(2)-stip(2)) > (pt(2)-stip(2))
-%                 pt(2) = pt(2)+stip(2);
-%             end
-
-            % update tooltip position
-            set(htooltip,'position',[pt+2,stip-4]);
-            set(hframe,'position',[pt,stip]);
-            set([htooltip,hframe],'visible','on');%,'position',[pt,stip]);
-%             drawnow, pause(0.1)
         end
     end
 
@@ -544,7 +516,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
             fcn = input;
             try
                 input = fcn();
-            catch ERR
+            catch
                 str = [];
                 fcn = [];
                 warning('figureMotionFcn:ToolTip',...

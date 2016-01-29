@@ -479,7 +479,7 @@ function obj = figureSetup(hfig,opts)
     p = [235 115 75 30];
     p = cat(1,p,p+[0 -35 0 0]);
     strs = {'OK','CANCEL'};
-    hctrl = NaN(2,1);
+    hctrl = preAllocateGraphicsObjects(2,1);
     for k = 1:2
         hctrl(k) = uicontrol(...
             'parent',       hfig,...

@@ -299,8 +299,8 @@ function options = mainFcn(api)
     end
 
     Ncontour = numel(api.RestingContour);
-    api.hcontour = NaN(Ncontour,1);
-    api.hcontourmag = NaN(Ncontour,1);
+    api.hcontour = preAllocateGraphicsObjects(Ncontour,1);
+    api.hcontourmag = preAllocateGraphicsObjects(Ncontour,1);
     for k = 1:numel(api.RestingContour)
         api.hcontour(k) = line(...
             'parent',api.hrest,...
@@ -332,7 +332,7 @@ function options = mainFcn(api)
         Npt = sum(nbr) - 2*Ncontour;
     end
 
-    api.hpoint = NaN(Npt,1);
+    api.hpoint = preAllocateGraphicsObjects(Npt,1);
     api.constrainFcn = cell(Npt,1);
 
     api.hpoint = pointCreate(api.hrest,api.clrP,Npt);
@@ -826,7 +826,7 @@ end
 function hpt = pointCreate(haxs,clr,N)
     hfig = ancestor(haxs,'figure');
 
-    hpt = NaN(N,1);
+    hpt = preAllocateGraphicsObjects(N,1);
     for k = 1:N
         hpt(k) = line(...
             'parent',       haxs,...

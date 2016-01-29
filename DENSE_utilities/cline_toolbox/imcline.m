@@ -746,7 +746,7 @@ function h = createPoints(obj,N)
 % CREATE POINTS initialize N line objects for control point display
 
     % create object array
-    h = NaN(N,1);
+    h = preAllocateGraphicsObjects(N,1);
     for k = N:-1:1
         h(k) = line('parent',obj.hptgroup,'tag','point',...
             'linestyle','none');
@@ -769,7 +769,7 @@ function h = createLines(obj,N)
 % CREATE LINES initialize N line objects for line segment display
 
     % create lines
-    h = NaN(N,1);
+    h = preAllocateGraphicsObjects(N,1);
     for k = N:-1:1
         h(k) = line('parent',obj.hlngroup,'tag','segment',...
             'marker','none');

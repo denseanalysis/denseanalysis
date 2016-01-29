@@ -292,7 +292,7 @@ function options = mainFcn(api)
     % interactive points
     Npt = 2;
 
-    api.hpoint = NaN(Npt,1);
+    api.hpoint = preAllocateGraphicsObjects(Npt,1);
     api.constrainFcn = cell(Npt,1);
     for k = 1:Npt
         api.hpoint(k) = line(...

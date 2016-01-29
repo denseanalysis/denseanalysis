@@ -435,7 +435,7 @@ function options = mainFcn(api)
 
     % xseed point creation
     Npt = size(api.Xseed,1);
-    api.hxseed = NaN(Npt,1);
+    api.hxseed = preAllocateGraphicsObjects(Npt,1);
 
     hmenu = [];
     if Npt > 1, hmenu = api.hdelcontext; end
@@ -447,7 +447,7 @@ function options = mainFcn(api)
 
     % yseed point creation
     Npt = size(api.Yseed,1);
-    api.hyseed = NaN(Npt,1);
+    api.hyseed = preAllocateGraphicsObjects(Npt,1);
 
     hmenu = [];
     if Npt > 1, hmenu = api.hdelcontext; end
@@ -459,7 +459,7 @@ function options = mainFcn(api)
 
     % zseed point creation
     Npt = size(api.Zseed,1);
-    api.hzseed = NaN(Npt,1);
+    api.hzseed = preAllocateGraphicsObjects(Npt,1);
 
     hmenu = [];
     if Npt > 1, hmenu = api.hdelcontext; end
@@ -473,36 +473,6 @@ function options = mainFcn(api)
     pointName(api.hxseed,'X.');
     pointName(api.hyseed,'Y.');
     pointName(api.hzseed,'Z.');
-%
-%     % point creation
-%     api.hpoint = NaN(Npt,1);
-%     for k = 1:Npt
-%
-%         % create graphics object
-%         api.hpoint(k) = line(...
-%             'parent',       hax(k),...
-%             'color',        api.clrP,...
-%             'marker',       'o',...
-%             'markersize',   15,...
-%             'linewidth',    3);
-%
-%         % Mouse Pointer Behavior
-%         pb = struct(...
-%             'enterFcn',     @(varargin)pointEnter(api.hpoint(k),api.hfig),...
-%             'traverseFcn',  [],...
-%             'exitFcn',      @(varargin)pointExit(api.hpoint(k),api.hfig));
-%         iptSetPointerBehavior(api.hpoint(k),pb);
-%
-%         % button down behavior
-%         set(api.hpoint(k),'ButtonDownFcn',...
-%             @(varargin)pointDrag(api.hpoint(k),api.hfig));
-%     end
-
-
-%     % set initial point locations
-%     x = {api.Xseed(:,2),api.Yseed(:,2),api.Zseed(:,2)};
-%     y = {api.Xseed(:,1),api.Yseed(:,1),api.Zseed(:,1)};
-%     set(api.hpoint(:),{'xdata'},x(:),{'ydata'},y(:));
 
     % ADDITIONAL SETUP-----------------------------------------------------
 

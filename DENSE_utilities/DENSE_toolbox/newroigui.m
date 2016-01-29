@@ -182,7 +182,7 @@ function newroi = mainFcn(api)
 
     % gather togglehandle/texthandle
     api.types = {'curve','line','SA','LA','closed','open'};
-    api.htb = NaN(size(api.types));
+    api.htb = preAllocateGraphicsObjects(size(api.types));
     api.htx = api.htb;
     for k = 1:numel(api.types)
         api.htb(k) = eval(['api.h' api.types{k}]);

@@ -247,10 +247,10 @@ function [hgroup,hface,hedge,htext] = dense_bullseye(h,data,varargin)
     hgroup = hggroup('parent',hax);
 
     % display
-    hface  = NaN(Ndata,1);
-    houteredge = NaN(Ndata,1);
-    hinneredge = NaN(Ndata,1);
-    hspoke = NaN(Ndata,1);
+    hface  = preAllocateGraphicsObjects(Ndata,1);
+    houteredge = preAllocateGraphicsObjects(Ndata,1);
+    hinneredge = preAllocateGraphicsObjects(Ndata,1);
+    hspoke = preAllocateGraphicsObjects(Ndata,1);
     htext = cell(Ndata,1);
     for k = 1:Ndata
         str = sprintf('bullseye%d-',k);
