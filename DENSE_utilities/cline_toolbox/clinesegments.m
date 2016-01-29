@@ -59,7 +59,7 @@ function varargout = clinesegments(pos,iscls,iscrv,iscrn,res)
 
     % check number of inputs/outputs
     narginchk(4, 5);
-    narginchk(1, 2);
+    nargoutchk(1, 2);
 
     % default resolution
     if nargin < 5 || isempty(res), res = 0.5; end

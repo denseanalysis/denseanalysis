@@ -274,7 +274,7 @@ function handles = initFcn(hfig,callingfile)
     harial = ArialViewer(hdata,handles.popup_arial);
 
     % Turn off all listeners
-    items = {hdense, hdicom, hanalyais, hslice, harial};
+    items = {hdense, hdicom, hanalysis, hslice, harial};
     cellfun(@(x)x.disable('redraw'), items);
 
     % CREATE TAB OBJECTS---------------------------------------------------

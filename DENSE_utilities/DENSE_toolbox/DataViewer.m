@@ -480,7 +480,7 @@ function setParentFcn(obj,hdisp,hctrl)
 end
 
 function redrawListenerCallback(obj,src,evnt)
-    if (isield(src, 'Name') && strcmpi(src.Name, 'Position')) || ...
+    if (isfield(src, 'Name') && strcmpi(src.Name, 'Position')) || ...
             isa(evnt, 'matlab.ui.eventdata.SizeChangedData')
         cpos = getpixelposition(obj.hcontrol);
         dpos = getpixelposition(obj.hdisplay);
