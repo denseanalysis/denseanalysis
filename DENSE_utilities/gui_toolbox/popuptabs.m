@@ -438,7 +438,7 @@ function addTabFcn(obj,str,href)
     % check handle input
     if nargin < 3 || isempty(href)
         href = NaN;
-    elseif ~ishghandle(href, 'uipanel')
+    elseif ~ishghandle(href, 'uicontainer')
         error(sprintf('%s:invalidHandle',mfilename),'%s',...
             '''addTab'' accepts only UIPANEL objects with the same ',...
             'Parent as the POPUPTABS object.');
