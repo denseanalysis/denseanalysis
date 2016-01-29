@@ -38,7 +38,7 @@ function files = getfiles(startpath,filefilter,absolutepath)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -81,7 +81,7 @@ for k = 1:numel(startpath)
 end
 
 % unique pathnames
-if strncmp(computer,'PC',2)
+if ispc
     abspath = lower(abspath);
 end
 [abspath,unq] = unique(abspath,'first');
@@ -135,7 +135,7 @@ function files = getallfiles(path,filefilter)
     else
         d = dir(path);
     end
-    d = d(3:end); % eliminate '.' and '..'
+    d(ismember({d.name}, {'.', '..'})) = [];
     isdir = cell2mat({d.isdir});
 
     % folders
