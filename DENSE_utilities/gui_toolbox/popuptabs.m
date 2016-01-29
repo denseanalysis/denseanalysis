@@ -478,7 +478,7 @@ function addTabFcn(obj,str,href)
 
     % default reference panel height
     % move reference panels to POPUPTABS panel
-    if isnan(href)
+    if ~ishghandle(href)
         obj.PanelHeights(idx) = 0;
         obj.Enable{idx} = 'off';
     else
