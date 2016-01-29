@@ -21,16 +21,11 @@ function tf = checklimits(hax,pt)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
-%
-%MODIFICATION HISTORY:
-%   2009.02     Drew Gilliam
-%     --creation
 
     % check for valid inputs
-    if ~ishandle(hax) || ~strcmpi(get(hax,'type'),'axes') || ...
-       ~isnumeric(pt) || numel(pt) ~= 2
+    if ~ishghandle(hax, 'axes') || ~isnumeric(pt) || numel(pt) ~= 2
         tf = false;
         return;
     end
