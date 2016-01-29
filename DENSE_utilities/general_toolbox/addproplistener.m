@@ -45,10 +45,23 @@ function listener = addproplistener(obj, prop, event, cback)
     %
     % Copyright (c) 2016 DENSEanalysis Contributors
 
+    if numel(obj) > 1
+        func = @(o,p)addproplistener(o, p, event, cback);
+        listener = arrayfun(func, obj, prop, 'uniform', 0);
+        listener = cat(1, listener{:});
+        return
+    end
+
     try
-        listener = addlistener(obj, prop, event, cback);
+        % addlistener needs a string
+        if isa(prop, 'schema.prop')
+            strprop = prop.name;
+        else
+            strprop = prop;
+        end
+        listener = addlistener(obj, strprop, event, cback);
     catch ME
-        if ~ishghandle(obj) && exist('handle.listener', 'class')
+        if ~all(ishghandle(obj)) && exist('handle.listener', 'class')
             event = strcat('Property', event);
             listener = handle.listener(obj, prop, event, cback);
         else
