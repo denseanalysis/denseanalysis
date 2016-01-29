@@ -736,8 +736,7 @@ end
 function hax = findAxes(obj)
 
     % locate axes
-    hitaxes = hittest(obj.FigureHandle,'axes');
-    hitaxes = findobj(hitaxes,'flat','Type','Axes','HandleVisibility','on');
+    hitaxes = get(obj.FigureHandle, 'CurrentAxes');
 
     % inventory
     objaxes = [obj.inventory.AxesHandle];
@@ -764,10 +763,7 @@ function hax = findAxes(obj)
        fcn(cp,3,get(hax,'ZLim'))
         hax = [];
     end
-
 end
-
-
 
 %% AXES VALIDATION HELPER FUNCTION
 function testaxes(obj,hax)
