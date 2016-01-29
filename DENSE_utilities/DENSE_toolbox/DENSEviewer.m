@@ -229,13 +229,13 @@ function obj = DENSEviewerFcn(obj)
 
 
     % create object hierarchy
-    obj.hax    = NaN(6,1);
-    obj.him    = NaN(6,1);
-    obj.htitle = NaN(6,1);
+    obj.hax    = [];
+    obj.him    = [];
+    obj.htitle = [];
     for k = 1:6
-        obj.hax(k) = axes('parent',obj.hdisplay);
-        obj.him(k) = imshow(rand(10),'parent',obj.hax(k));
-        obj.htitle(k) = textfig(obj.hdisplay);
+        obj.hax = cat(1, obj.hax, axes('parent',obj.hdisplay));
+        obj.him = cat(1, obj.him, imshow(rand(10),'parent',obj.hax(k)));
+        obj.htitle = cat(1, obj.htitle, textfig(obj.hdisplay));
     end
 
     obj.hroi = roitool(obj.hdata,obj.hax);
