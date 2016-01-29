@@ -19,7 +19,7 @@ function id_out = iptaddcallback_mod(h, callback, func_handle)
 % Copyright (c) 2016 DENSEanalysis Contributors
 
 narginchk(3, 3);
-if (numel(h) ~= 1) || ~ishandle(h)
+if (numel(h) ~= 1) || (~ishandle(h) && (~isobject(h) && ~isa(h, 'handle')))
     error('Images:iptaddcallback:invalidHandle', ...
         'H must be a scalar handle.');
 end
