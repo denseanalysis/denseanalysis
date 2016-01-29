@@ -65,7 +65,7 @@ function objs = preAllocateGraphicsObjects(varargin)
     %
     % Copyright (c) 2016 DENSEanalysis Contributors
 
-    if feature('usehg2')
+    if ishg2()
         objs = gobjects(varargin{:});
     else
         objs = NaN(varargin{:});

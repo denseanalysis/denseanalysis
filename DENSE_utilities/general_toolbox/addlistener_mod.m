@@ -43,7 +43,7 @@ function listener = addlistener_mod(varargin)
     %
     % Copyright (c) 2016 DENSEanalysis Contributors
 
-    if feature('hgusingmatlabclasses')  % HG2
+    if ishg2()
 
         % event.listener(obj, 'EventName', @callback
         % event.proplistener(obj, Properties, 'PropEvent', @callback)
