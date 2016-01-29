@@ -44,7 +44,7 @@ function htext = textfig(varargin)
     end
 
     % check for valid parent
-    if ~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel')
+    if ~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uicontainer')
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent must be a figure or uipanel.');
     end
