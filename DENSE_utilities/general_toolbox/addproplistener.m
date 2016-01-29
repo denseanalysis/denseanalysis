@@ -46,8 +46,20 @@ function listener = addproplistener(obj, prop, event, cback)
     % Copyright (c) 2016 DENSEanalysis Contributors
 
     if numel(obj) > 1
-        func = @(o,p)addproplistener(o, p, event, cback);
-        listener = arrayfun(func, obj, prop, 'uniform', 0);
+        if numel(prop) > 1
+            func = @(o,p)addproplistener(o, p, event, cback);
+            listener = arrayfun(func, obj, prop, 'uniform', 0);
+            listener = cat(1, listener{:});
+        else
+            func = @(o)addproplistener(o, prop, event, cback);
+            listener = arrayfun(func, obj, 'uniform', 0);
+            listener = cat(1, listener{:});
+        end
+
+        return
+    elseif numel(prop) > 1
+        func = @(p)addproplistener(obj, p, event, cback);
+        listener = arrayfun(func, prop, 'uniform', 0);
         listener = cat(1, listener{:});
         return
     end
