@@ -30,7 +30,7 @@ function args = parseSLAinputs(args_default,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -65,7 +65,7 @@ function args = parseSLAinputs(args_default,varargin)
     end
 
     % check for valid handle
-    if ~ishandle(h) || ~any(strcmpi(get(h,'type'),{'Figure','Axes'}))
+    if ~ishghandle(h, 'figure') && ~ishghandle(h, 'axes')
         error(sprintf('%s:expectedFigureOrAxesHandle',mfilename), ...
             'First argument should be a figure or axes handle');
     end

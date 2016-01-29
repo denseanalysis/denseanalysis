@@ -381,8 +381,8 @@ function obj = setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~isscalar(hparent) || ~ishghandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~isscalar(hparent) || ...
+        (~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel'))
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of PLAYBAR must be a figure or uipanel.');
     end
@@ -418,7 +418,7 @@ function obj = setParentFcn(obj,hparent)
     % Property listener: when the parent is Resized, the parent color
     % changes, or the ancestor figure is resized, we need to update
     % the object
-    if strcmpi(get(obj.hparent,'type'),'figure')
+    if ishghandle(obj.hparent, 'figure')
         h = [obj.hparent];
         tags = {'Position'};
     else
@@ -477,9 +477,7 @@ function obj = addTabFcn(obj,str,href)
     % check handle input
     if nargin < 3 || isempty(href)
         href = NaN;
-    elseif ~ishandle(href) || ...
-       ~strcmpi(get(href,'type'),'uipanel')
-
+    elseif ~ishghandle(href, 'uipanel')
         error(sprintf('%s:invalidHandle',mfilename),'%s',...
             '''addTab'' accepts only UIPANEL objects with the same ',...
             'Parent as the POPUPTABS object.');

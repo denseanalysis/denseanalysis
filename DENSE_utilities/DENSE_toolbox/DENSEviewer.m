@@ -936,9 +936,9 @@ function resizeFcn(obj)
     for k = 1:numel(h)
         p(2) = p(2)-yshft(k);
         p(4) = height(k);
-        if strcmpi(get(h(k),'type'),'text')
+        if ishghandle(h(k), 'text')
             set(h(k),'units','pixels','Position',p(1:2));
-        elseif strcmpi(get(h(k),'type'),'uicontrol') && ...
+        elseif ishghandle(h(k), 'uicontrol') && ...
            strcmpi(get(h(k),'style'),'pushbutton')
             ppb = [xpb p(2) wpb p(4)];
             setpixelposition(h(k),ppb);
@@ -946,8 +946,6 @@ function resizeFcn(obj)
             setpixelposition(h(k),p);
         end
     end
-
-
 end
 
 

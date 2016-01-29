@@ -341,8 +341,8 @@ function setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~isscalar(hparent) || ishghandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~isscalar(hparent) || ...
+        (~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel'))
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of PLAYBAR must be a figure or uipanel.');
     end
@@ -438,9 +438,7 @@ function addTabFcn(obj,str,href)
     % check handle input
     if nargin < 3 || isempty(href)
         href = NaN;
-    elseif ~ishandle(href) || ...
-       ~strcmpi(get(href,'type'),'uipanel')
-
+    elseif ~ishghandle(href, 'uipanel')
         error(sprintf('%s:invalidHandle',mfilename),'%s',...
             '''addTab'' accepts only UIPANEL objects with the same ',...
             'Parent as the POPUPTABS object.');
@@ -516,7 +514,7 @@ function redrawFcn(obj)
     setpixelposition(obj.hmainpanel,ppnl);
 
     % update background colors
-    if strcmpi(get(obj.hparent,'type'),'figure')
+    if ishghandle(obj.hparent, 'figure')
         clr = get(obj.hparent,'color');
     else
         clr = get(obj.hparent,'backgroundcolor');

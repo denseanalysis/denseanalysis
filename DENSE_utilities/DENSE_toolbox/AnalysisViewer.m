@@ -304,7 +304,7 @@ function obj = analysisViewerFcn(obj)
     clr = [1 1 1];
     try
         for k = 1:numel(hhier)
-            if strcmpi(get(hhier(k),'type'),'figure')
+            if ishghandle(hhier(k), 'figure')
                 tag = 'Color';
             else
                 tag = 'BackgroundColor';

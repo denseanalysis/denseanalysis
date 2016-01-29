@@ -482,8 +482,7 @@ function obj = setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~ishandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel')
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of PLAYBAR must be a figure or uipanel.');
     end

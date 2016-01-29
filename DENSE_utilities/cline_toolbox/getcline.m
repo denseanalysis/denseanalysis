@@ -121,7 +121,7 @@ function obj = getcline(h,varargin)
     if nargin <= 0 || isempty(h), h = gca; end
 
     % check for valid handle
-    if ~ishandle(h) || ~any(strcmpi(get(h,'type'),{'Figure','Axes'}))
+    if ~ishghandle(h, 'figure') && ~ishghandle(h, 'axes')
         error(sprintf('%s:expectedFigureOrAxesHandle',mfilename), ...
             'First argument should be a figure or axes handle');
     end

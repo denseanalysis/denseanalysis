@@ -44,8 +44,7 @@ function htext = textfig(varargin)
     end
 
     % check for valid parent
-    if ~ishandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel')
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent must be a figure or uipanel.');
     end
@@ -54,7 +53,7 @@ function htext = textfig(varargin)
     hax = [];
     if isappdata(hparent,'HiddenTextAxes')
         hax = getappdata(hparent,'HiddenTextAxes');
-        if ~ishandle(hax) || ~strcmpi(get(hax,'type'),'axes')
+        if ~ishghandle(hax, 'axes')
             warning(sprintf('%s:invalidHiddenAxes',mfilename),'%s',...
                 'You have run TEXTFIG before, but a necessary ',...
                 'graphic handle (hidden text axes) is no longer valid.');

@@ -413,7 +413,7 @@ function obj = imclineFcn(obj,hcline,h)
     end
 
     % check handle input
-    if ~ishandle(h) || ~strcmpi(get(h,'type'),'axes')
+    if ~ishghandle(h, 'axes')
         error(sprintf('%s:invalidAxesHandle',mfilename),...
             'Invalid axes handle.');
     end

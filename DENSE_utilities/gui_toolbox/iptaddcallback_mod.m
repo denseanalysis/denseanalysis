@@ -42,7 +42,7 @@ validateattributes(func_handle, {'function_handle','char','cell'},...
 % window.  We cannot set figure callbacks if there is an active
 % UIModeManager mode, so we error nicely instead of recursing infinitely.
 try
-    if strcmpi(get(h,'type'),'figure')
+    if ishghandle(h, 'figure')
         hMan = uigetmodemanager(h);
         if ~isempty(hMan.CurrentMode)
             eid = 'Images:iptaddcallback:activeMode';

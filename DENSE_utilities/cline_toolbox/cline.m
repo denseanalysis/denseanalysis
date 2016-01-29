@@ -982,7 +982,7 @@ function hgroup = plotFcn(obj,varargin)
 
     if isempty(args.Parent)
         haxes = gca;
-    elseif ishandle(args.Parent) && strcmpi(get(args.Parent,'type'),'axes')
+    elseif ishghandle(args.Parent', 'axes')
         haxes = args.Parent;
     else
         error(sprintf('%s:badParent',mfilename),...
