@@ -26,7 +26,7 @@ function tf = iscellstr_recursive(s)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -39,9 +39,10 @@ function tf = iscellstr_recursive(s)
 
     % recursive check for cells filled with characters
     else
+        tf = true;
         for k = 1:numel(s)
             if ischar(s{k})
-                tf = true;
+                continue
             elseif iscell(s{k})
                 tf = iscellstr_recursive(s{k});
             else
