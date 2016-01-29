@@ -496,8 +496,9 @@ function setParentFcn(obj,hdisp,hctrl)
 
     % Deletion listener: when either Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = addlistener([hdisp,hctrl], ...
-        'ObjectBeingDestroyed', @(varargin)obj.delete());
+    cb = @(varargin)obj.delete();
+    obj.hlisten_delete = [addlistener(hdisp, 'ObjectBeingDestroyed', cb);
+                          addlistener(hctrl, 'ObjectBeingDestroyed', cb)];
 
     % Resize listener: initialize a listener to ensure the object is
     % redrawn whenever either parent object (or their figure ancestors)
