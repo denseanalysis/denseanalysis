@@ -421,12 +421,9 @@ classdef cline < handle
         % OVERLOADED functions
         function varargout = plot(obj,varargin)
             h = plotFcn(obj,varargin{:});
-            if nargout > 1, varargout{1} = h; end
+            if nargout, varargout{1} = h; end
         end
-
     end
-
-
 end
 
 

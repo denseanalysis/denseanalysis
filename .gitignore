@@ -7,6 +7,15 @@
 # Temporary Swap files
 *.m~
 
+# Mex files
+*.mex*
+
+# Misc files
+*.avi
+*.bmp
+*.gif
+*.csv
+*.xls*
 *.log
 *.zip
 *.info
