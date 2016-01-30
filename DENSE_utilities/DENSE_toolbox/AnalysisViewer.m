@@ -1796,7 +1796,8 @@ function file = exportExcelFcn(obj,startpath)
     end
 
     % search for Excel?
-    flag_excel = true;%true;
+    flag_excel = true;
+    excelCleanupObj = [];
 
     % attempt to open Excel automation server
     if flag_excel
