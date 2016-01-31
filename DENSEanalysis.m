@@ -360,10 +360,13 @@ function handles = initFcn(hfig,callingfile)
         handles.menu_save,handles.menu_saveas],'Enable');
     setappdata(handles.tool_save,'linkMenuToolEnable',hlink);
 
+    % Load plugins
+    base = 'plugins.DENSEanalysisPlugin';
+    handles.hmanager = plugins.PluginManager(base, hdata);
+    handles.hpluginmenu = plugins.PluginMenu(handles.hmanager, hfig);
+
     % save all data to the figure
     guidata(handles.hfig,handles);
-
-
 end
 
 
