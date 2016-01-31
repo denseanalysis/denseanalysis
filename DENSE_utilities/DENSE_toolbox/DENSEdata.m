@@ -133,6 +133,14 @@ classdef DENSEdata < handle
         function data = exportROI(obj,varargin)
             data = exportROIFcn(obj,varargin{:});
         end
+
+        function imdata = imagedata(varargin)
+            imdata = ImageData(varargin{:});
+        end
+
+        function condata = contourdata(varargin)
+            condata = contourData(varargin{:});
+        end
     end
 
 
@@ -237,32 +245,6 @@ function [uipath,uifile] = loadFcn(obj,type,startpath)
             uipath = [];
             return;
         end
-
-        % register DENSE groups
-%         for k = 1:numel(dns)
-%             midx = dns(k).MagIndex;
-%             tf = ~isnan(midx);
-%             if numel(unique(midx(tf))) <= 1
-%                 shft = NaN(2,3);
-%                 shft(tf,:) = 0;
-%             else
-%                 I = cell(3,1);
-%                 I(tf) = img(midx(tf));
-%                 shft = registerDENSE(I{:});
-%             end
-%             dns(k).ShiftIJ = shft;
-%
-%             % visually reorder fields
-%             if k == 1
-%                 tags = fieldnames(dns);
-%                 idx = find(cellfun(@(tag)...
-%                     any(strcmpi(tag,{'SwapFlag','NegFlag'})),tags));
-%                 perm = [setdiff(1:numel(tags),idx),idx(:)'];
-%                 dns = orderfields(dns,perm);
-%             end
-%
-%         end
-
 
         % empty roi
         roi = repmat(struct,[0 1]);
@@ -444,7 +426,7 @@ function file = saveFcn(obj,uipath,uifile,flag_fileselect)
     end
 
     % waitbar
-    [p,f,e] = fileparts(file);
+    [~,f,e] = fileparts(file);
     str = [f e];
     hwait = waitbar(0,{'Saving';str},...
         'WindowStyle','modal',...
@@ -452,7 +434,7 @@ function file = saveFcn(obj,uipath,uifile,flag_fileselect)
     try
         htext = findall(hwait,'type','text');
         set(htext,'interpreter','none');
-    catch ERR
+    catch
     end
 
     drawnow, pause(0.1);
@@ -474,7 +456,6 @@ function file = saveFcn(obj,uipath,uifile,flag_fileselect)
         if ishandle(hwait), close(hwait,'force'); end
         rethrow(ERR);
     end
-
 end
 
 
@@ -505,139 +486,6 @@ function roiidx = createROIFcn(obj,seqidx)
         return;
     end
 
-%     % locate copy-able ROIs
-%     % --any ROI whose parent sequence has the same sliceid as the
-%     %   seqidx sliceid is fully copy-able.  Here, we'll check for a single
-%     %   frame with a non-empty position.
-%     % --The first frame of any ROI from the same slice plane may be
-%     %   copy-able.  Here, we'll check that the first frame has a non-empty
-%     %   position.
-%     tfall = false(numel(obj.roi),1);
-%     tfone = tfall;
-%
-%     Nfr     = obj.seq(seqidx).NumberInSequence;
-%     sliceid = obj.seq(seqidx).sliceid;
-%     planeid = obj.seq(seqidx).planeid;
-%
-%     copydata = repmat(struct,size(obj.roi));
-%
-%     for k = 1:numel(tfall)
-%
-%         % current ROI information
-%         idx = obj.roi(k).SeqIndex(1);
-%         sid = obj.seq(idx).sliceid;
-%         pid = obj.seq(idx).planeid;
-%
-%         % test for valid contour def on each frame
-%         valid = all(~cellfun(@isempty,obj.roi(k).Position),2);
-%
-%         % reate copydata
-%         if (sid == sliceid) && any(valid)
-%             str = strcat(obj.roi(k).Name,' (all frames)');
-%             action = 'all';
-%             tfall(k) = true;
-%         elseif pid == planeid && valid(1)
-%             str = strcat(obj.roi(k).Name,' (first frame only)');
-%             action = 'one';
-%             tfone(k) = true;
-%         else
-%             continue;
-%         end
-%
-%
-%         copydata(k).Name     = str;
-%         copydata(k).UID      = obj.roi(k).UID;
-%         copydata(k).Type     = obj.roi(k).Type;
-%         copydata(k).Action   = action;
-%         copydata(k).ROIIndex = k;
-%         copydata(k).SeqIndex = idx;
-%
-%     end
-%
-%     copydata = copydata(tfall|tfone);
-%
-%
-%     % get new ROI
-%     roi = guiROIselection(name,copydata);
-%     if isempty(roi),
-%         roiidx = [];
-%         return;
-%     end
-%
-%
-%     % type-specific values
-%     switch lower(roi.Type)
-%         case 'sa'
-%             Nline = 2;
-%             iscls = true;
-%             iscrv = true;
-%         case 'la'
-%             Nline = 2;
-%             iscls = false;
-%             iscrv = true;
-%         case 'line'
-%             Nline = 1;
-%             iscls = true;
-%             iscrv = false;
-%         otherwise
-%             Nline = 1;
-%             iscls = true;
-%             iscrv = true;
-%     end
-%
-%     % add fields to ROI
-%     ind = find(cellfun(@(x)isequal(x,sliceid),...
-%         {obj.seq.sliceid}));
-%
-%     roi.SeqIndex = ind(:)';
-%     roi.Position = repmat({zeros(0,2)}, [Nfr,Nline]);
-%     roi.IsClosed = repmat({iscls},      [Nfr,Nline]);
-%     roi.IsCurved = repmat({iscrv},      [Nfr,Nline]);
-%     roi.IsCorner = repmat({false},      [Nfr,Nline]);
-%
-%
-%
-%     % copy action
-%     if strcmpi(roi.Action,'copy')
-%
-%         % locate ROI to copy
-%         [tmp,ind] = find(strcmpi(roi.CopyUID,{copydata.UID}),1,'first');
-%
-%         copyaction = copydata(ind).Action;
-%         copyidx    = copydata(ind).ROIIndex;
-%
-%         if strcmpi(copyaction,'all')
-%             roi.Position = obj.roi(copyidx).Position;
-%             roi.IsClosed = obj.roi(copyidx).IsClosed;
-%             roi.IsCurved = obj.roi(copyidx).IsCurved;
-%             roi.IsCorner = obj.roi(copyidx).IsCorner;
-%         else
-%
-%             % convert positions between image spaces
-%             pos = obj.roi(copyidx).Position(1,:);
-%             seqA = copydata(ind).SeqIndex;
-%             tformAto3D = obj.seq(seqA).tform;
-%             seqB = seqidx;
-%             tformBto3D = obj.seq(seqB).tform;
-%             for k = 1:numel(pos)
-%                 postmp = pos{k};
-%                 postmp(:,3) = 0;
-%                 postmp = tforminv(tformBto3D,tformfwd(tformAto3D,postmp));
-%                 pos{k} = postmp(:,[1 2]);
-%             end
-%
-%             roi.Position(1,:) = pos;
-%             roi.IsClosed(1,:) = obj.roi(copyidx).IsClosed(1,:);
-%             roi.IsCurved(1,:) = obj.roi(copyidx).IsCurved(1,:);
-%             roi.IsCorner(1,:) = obj.roi(copyidx).IsCorner(1,:);
-%
-%
-%         end
-%     end
-%
-%     % remove unnecessary fields from ROI
-%     roi = rmfield(roi,{'Action','CopyUID'});
-
     % copy new ROI to the object
     roiidx = numel(obj.roi)+1;
     tags = fieldnames(roi);
@@ -647,8 +495,6 @@ function roiidx = createROIFcn(obj,seqidx)
 
     % notify event
     notify(obj,'NewState',DENSEEventData('new','roi'));
-
-
 end
 
 
@@ -1052,7 +898,7 @@ function tf = maskGeneral(X,Y,C)
 end
 
 
-function imdata = imageData(obj,didx,checkonlyflag)
+function imdata = ImageData(obj,didx,checkonlyflag)
     if nargin < 3 || isempty(checkonlyflag)
         checkonlyflag = false;
     end
