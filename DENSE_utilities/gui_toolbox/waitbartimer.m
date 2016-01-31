@@ -19,7 +19,7 @@
 
 
 %% CLASS DEFINITION
-classdef waitbartimer < handle
+classdef waitbartimer < hgsetget
 
     % set/get properties
     properties

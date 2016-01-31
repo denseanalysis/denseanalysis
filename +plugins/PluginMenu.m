@@ -317,19 +317,27 @@ classdef PluginMenu < hgsetget
 
             % If we are debugging, we want any errors to be caught inside
             % of the function where the error actually was
-            try
+            if isDebug()
                 plugin.validate(data);
                 plugin.run(data);
-            catch ME
-                if isDebug()
-                    rethrow(ME);
+            else
+                try
+                    plugin.validate(data);
+                    plugin.run(data);
+                catch ME
+                    % All errors should be thrown as an error dialog
+                    plugin.setStatus('');
+                    msg = sprintf('%s Plugin failed to complete.', plugin.Name);
+                    msg = {msg, '', sprintf('ERROR: %s', ME.message)};
+                    errordlg(msg, 'Plugin Error');
                 end
+            end
 
-                % All errors should be thrown as an error dialog
-                plugin.setStatus('');
-                msg = sprintf('%s Plugin failed to complete.', plugin.Name);
-                msg = {msg, '', sprintf('ERROR: %s', ME.message)};
-                errordlg(msg, 'Plugin Error');
+            try
+                plugin.cleanup()
+            catch ME
+                fprintf('Plugin cleanup for %s was unsuccessful.\n', class(self));
+                disp(getReport(ME));
             end
         end
 
@@ -401,11 +409,11 @@ classdef PluginMenu < hgsetget
 
                 setToolTipText(self.reloadmenu, 'Reload all active plugins')
             end
-            
+
             % Do a refresh which actually creates all of the sub-menus for
             % each of the loaded plugins
             self.refresh();
-   
+
             % Re-order the menu to ensure that the reload option is
             % always the last menu item
             kids = get(self.Menu, 'children');

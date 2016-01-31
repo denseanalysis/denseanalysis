@@ -23,6 +23,10 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
         Version     % String representing the version
     end
 
+    properties (Hidden)
+        hwait       % Handle to the waitbartimer object
+    end
+
     properties (SetAccess = 'private')
         Path        % Path to where the plugin code is located
     end
@@ -71,6 +75,42 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             %   can be checked with `isAvailable()`
 
             return;
+        end
+
+        function cleanup(self, varargin)
+            % cleanup - Cleanup routine that is run by the plugin manager
+            %
+            % USAGE:
+            %   self.cleanup()
+
+            if ~isempty(self.hwait) && isvalid(self.hwait)
+                delete(self.hwait)
+            end
+        end
+
+        function hwait = waitbar(self, varargin)
+            % waitbar - Creates a waitbartimer specific to the plugin
+            %
+            % USAGE:
+            %   hwait = self.waitbar(...)
+            %
+            % INPUTS:
+            %   ...:    Any parameter/value pair accepted by the
+            %           waitbartimer. This includes 'String',
+            %           'WindowStyle', etc.
+            %
+            % OUTPUTS:
+            %   hwait:  Object, Waitbartimer object that can be used to
+            %           start, stop, or modify the waitbartimer object
+
+            if isempty(self.hwait) || ~isvalid(self.hwait)
+                hwait = waitbartimer();
+                self.hwait = hwait;
+            else
+                hwait = self.hwait;
+            end
+
+            set(hwait, varargin{:})
         end
     end
 
