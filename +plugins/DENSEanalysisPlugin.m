@@ -21,6 +21,9 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
         Name        % Plugin name specified in menus and elsewhere
         Description % Brief, description of the plugin
         Version     % String representing the version
+        Author      % Author of the plugin
+        Email       % Email of the author
+        URL         % Url where the plugin was obtained from
     end
 
     properties (Hidden)
@@ -37,19 +40,31 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
     methods
         function self = DENSEanalysisPlugin(varargin)
-            ip = inputParser();
-            ip.addParamValue('Name', '', @(x)ischar(x) && ~isempty(x));
-            ip.addParamValue('Description', '', @ischar);
-            ip.addParamValue('Version', '', @ischar);
-            ip.parse(varargin{:})
-            set(self, ip.Results);
-
             % Relative path of the plugin
             classpath = which(class(self));
             plugindir = fileparts(mfilename('fullpath'));
             pattern = regexptranslate('wildcard', plugindir);
 
             self.Path = fullfile('.', regexprep(classpath, pattern, '.'));
+
+            % Look to see if there is a plugin.json file
+            plugindir = fileparts(classpath);
+            jsonconfig = fullfile(plugindir, 'plugin.json');
+
+            if exist(jsonconfig, 'file')
+                varargin = [{loadjson(jsonconfig)}, varargin];
+            end
+
+            ip = inputParser();
+            ip.KeepUnmatched = true;
+            ip.addParamValue('Name', '', @(x)ischar(x) && ~isempty(x));
+            ip.addParamValue('Description', '', @ischar);
+            ip.addParamValue('Version', '', @ischar);
+            ip.addParamValue('Author', '', @ischar);
+            ip.addParamValue('Email', '', @ischar);
+            ip.addParamValue('URL', '', @ischar);
+            ip.parse(varargin{:})
+            set(self, ip.Results);
         end
 
         function setStatus(self, message, varargin)
