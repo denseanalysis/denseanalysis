@@ -87,16 +87,28 @@ classdef roitool < handle
             obj = roitoolFcn(obj,varargin{:});
         end
 
-        function copy(obj)
+        function buffer = copy(obj)
+            if strcmpi(obj.Enable, 'off'); return; end
             roi = obj.hdata.roi(obj.roiidx);
-            obj.copybuffer = struct( ...
+            buffer = struct( ...
                 'Position', {roi.Position(obj.frame,:)}, ...
                 'IsClosed', {roi.IsClosed(obj.frame,:)}, ...
                 'IsCurved', {roi.IsCurved(obj.frame,:)}, ...
                 'IsCorner', {roi.IsCorner(obj.frame,:)});
+            obj.copybuffer = buffer;
+        end
+
+        function cut(obj)
+            if strcmpi(obj.Enable, 'off'); return; end
+            % First perform a copy, then remove everything
+            buffer = copy(obj);
+            obj.cLine.reset( ...
+                'ResetUndo', false, ...
+                'NumberOfLines', numel(buffer.Position));
         end
 
         function paste(obj)
+            if strcmpi(obj.Enable, 'off'); return; end
             if isempty(obj.copybuffer); return; end
             obj.cLine.reset( ...
                 'Position', obj.copybuffer.Position, ...
@@ -115,7 +127,6 @@ classdef roitool < handle
             redrawFcn(obj);
         end
 
-
         function reset(obj)
             resetFcn(obj);
         end
@@ -123,38 +134,47 @@ classdef roitool < handle
         function val = get.Type(obj)
             val = obj.type;
         end
+
         function val = get.AxesHandles(obj)
             val = obj.hax;
         end
+
         function val = get.cLine(obj)
             val = obj.hcline;
         end
+
         function val = get.Visible(obj)
             val = obj.visible;
         end
+
         function val = get.Enable(obj)
             val = obj.enable;
         end
+
         function val = get.ROIIndex(obj)
             val = obj.roiidx;
         end
+
         function val = get.ROIFrame(obj)
             val = obj.frame;
         end
+
         function val = get.PositionConstraintFcn(obj)
             val = obj.pcfcn;
         end
 
-
         function set.Visible(obj,val)
             setVisibleFcn(obj,val);
         end
+
         function set.Enable(obj,val)
             setEnableFcn(obj,val);
         end
+
         function set.ROIIndex(obj,val)
             setROIIndexFcn(obj,val);
         end
+
         function set.ROIFrame(obj,val)
             setROIFrameFcn(obj,val);
         end
@@ -163,11 +183,10 @@ classdef roitool < handle
             obj.SequenceIndex = checkSequenceIndex(obj,val);
             reset(obj);
         end
+
         function set.DENSEIndex(obj,val)
             obj.DENSEIndex = checkDENSEIndex(obj,val);
         end
-
-
 
 %         function createROI(obj)
 %             createROIFcn(obj);
@@ -258,7 +277,6 @@ function obj = roitoolFcn(obj,hdata,hax)
     % cLINE listener
     obj.hlisten_cline = addlistener(obj.hcline,...
         'NewProperty',@(varargin)updateData(obj));
-
 end
 
 
@@ -530,15 +548,6 @@ function updateData(obj,data)
     obj.hdata.updateROI(idx,frame,data);
 
 end
-
-
-
-
-
-
-
-
-
 
 function resetFcn(obj)
 

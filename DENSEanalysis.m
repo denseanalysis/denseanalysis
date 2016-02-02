@@ -216,6 +216,10 @@ function windowkeypress(src, evnt)
             if isa(viewer, 'DENSEviewer')
                 handles.hdense.hroi.copy();
             end
+        case {'control-x', 'command-x'}
+            if isa(viewer, 'DENSEviewer')
+                handles.hdense.hroi.cut();
+            end
         case {'control-v', 'command-v'}
             if isa(viewer, 'DENSEviewer')
                 handles.hdense.hroi.paste();
