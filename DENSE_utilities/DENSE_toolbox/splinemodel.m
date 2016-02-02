@@ -706,7 +706,15 @@ function pointAdd(hax)
     api = guidata(hfig);
 
     % default position within mask
-    pos = api.pts(1,[2 1]);
+    pos = get(hax, 'CurrentPoint');
+    if isempty(pos)
+        pos = api.pts(1,[2 1]);
+    else
+        pos = closestPoint(api.pts, pos([1 3]));
+
+        % Convert from x/y to row/col
+        pos = fliplr(pos);
+    end
 
     % create point
     hpt = pointCreate(hax,[],pos,api.clrP);
@@ -729,7 +737,6 @@ function pointAdd(hax)
 
     guidata(hfig,api);
     redrawFcn(hfig)
-
 end
 
 function pointDelete(hpt)
@@ -828,16 +835,10 @@ function pointDragMain(hpt,hfig)
         try
             % current point
             pos = get(hax,'currentpoint');
-            pos = pos([1 3]);
-
-            % constrain to nearest masked pixel
-            d = (pos(1)-api.pts(:,1)).^2 + (pos(2)-api.pts(:,2)).^2;
-            [val,idx] = min(d(:));
-            pos = api.pts(idx,:);
+            pos = closestPoint(api.pts, pos([1 3]));
 
             % update point
             set(hpt,'xdata',pos(1),'ydata',pos(2));
-
         catch ERR
             set(hpt,'userdata','error');
             rethrow(ERR)
@@ -848,10 +849,28 @@ function pointDragMain(hpt,hfig)
     function buttonUp()
         set(hpt,'userdata','complete')
     end
-
-
 end
 
+function point = closestPoint(points, query)
+    % Determines the point that is closest to the supplied query point
+    %
+    % USAGE:
+    %   point = closestPoint(points, query)
+    %
+    % INPUTS:
+    %   points: [N x 2] Matrix, X/Y Coordinates of all points to compare to
+    %           the query point.
+    %
+    %   query:  [1 x 2] Array, X/Y Coordinates of the point to query with
+    %
+    % OUTPUTS:
+    %   point:  [1 x 2] Array, X/Y Coordinates of the point in POINTS that
+    %           is closest to the point specified as QUERY.
+
+    d = sum(bsxfun(@minus, points, query).^2, 2);
+    [~, index] = min(d(:));
+    point = points(index,:);
+end
 
 function pointDragCleanup(hfig)
 % drag cleanup - return the figure to its initial pre-drag state and force
