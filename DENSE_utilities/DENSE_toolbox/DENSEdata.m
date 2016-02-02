@@ -904,7 +904,7 @@ end
 %% ANALYSIS FUNCTION
 
 
-function spdata = analysisFcn(obj,didx,ridx,seedframe)
+function spdata = analysisFcn(obj,didx,ridx,seedframe,varargin)
 
     % gather data
     imdata = imageData(obj,didx);
@@ -971,7 +971,7 @@ function spdata = analysisFcn(obj,didx,ridx,seedframe)
     % Perform analysis
     try
         spdata = DENSEspline(imdata,cndata,options,...
-            'SeedFrame',seedframe,'OptionsPanel',true);
+            'SeedFrame',seedframe,'OptionsPanel',true, varargin{:});
     catch ERR
         hwait.stop;
         delete(hwait);
