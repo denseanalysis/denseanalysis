@@ -212,6 +212,14 @@ function windowkeypress(src, evnt)
                     cLine.undo();
                 end
             end
+        case {'control-c', 'command-c'}
+            if isa(viewer, 'DENSEviewer')
+                handles.hdense.hroi.copy();
+            end
+        case {'control-v', 'command-v'}
+            if isa(viewer, 'DENSEviewer')
+                handles.hdense.hroi.paste();
+            end
         case 'equal'
             ax = get(handles.hfig, 'CurrentAxes');
             zoom(ax, 2);

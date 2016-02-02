@@ -72,6 +72,7 @@ classdef roitool < handle
         redrawenable = false;
         clineenable  = false;
 
+        copybuffer = [];
     end
 
     events
@@ -84,6 +85,25 @@ classdef roitool < handle
         % constructor
         function obj = roitool(varargin)
             obj = roitoolFcn(obj,varargin{:});
+        end
+
+        function copy(obj)
+            roi = obj.hdata.roi(obj.roiidx);
+            obj.copybuffer = struct( ...
+                'Position', {roi.Position(obj.frame,:)}, ...
+                'IsClosed', {roi.IsClosed(obj.frame,:)}, ...
+                'IsCurved', {roi.IsCurved(obj.frame,:)}, ...
+                'IsCorner', {roi.IsCorner(obj.frame,:)});
+        end
+
+        function paste(obj)
+            if isempty(obj.copybuffer); return; end
+            obj.cLine.reset( ...
+                'Position', obj.copybuffer.Position, ...
+                'IsClosed', obj.copybuffer.IsClosed, ...
+                'IsCurved', obj.copybuffer.IsCurved, ...
+                'IsCorner', obj.copybuffer.IsCorner, ...
+                'ResetUndo', false);
         end
 
         % destructor

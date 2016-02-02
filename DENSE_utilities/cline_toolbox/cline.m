@@ -442,6 +442,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
 % Acceptable input properties are 'Position','IsClosed','IsCurved',
 %   and 'IsCorner'.
 
+    do_reset = true;
 
     % no VARARGIN = clear properties
     % note we do NOT change the NumberOfLines here
@@ -501,6 +502,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
             'Position',         zeros(0,2),...
             'IsClosed',         true,...
             'IsCurved',         true,...
+            'ResetUndo',        true,...
             'IsCorner',         false);
 
         % parse input
@@ -528,6 +530,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
         iscrv = args.IsCurved;
         iscrn = args.IsCorner;
 
+        do_reset = args.ResetUndo;
 
     % unrecognized input
     else
@@ -559,7 +562,9 @@ function obj = resetFcn(obj,nFLAG,varargin)
     obj.pcfcn = @(p)p;
 
     % reset undo structure
-    obj = undoResetFcn(obj);
+    if do_reset
+        obj = undoResetFcn(obj);
+    end
 
     % initialize the segcache
     obj.segcache = struct(...
