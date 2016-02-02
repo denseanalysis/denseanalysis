@@ -392,3 +392,4 @@ This Software uses code from other open source projects.
 * xlswrite1.m by Matt Swartz from http://www.mathworks.com/matlabcentral/fileexchange/10465-xlswrite1/content//xlswrite1.m
 * lsequal.m by D.C. Hanselman from http://www.mathworks.com/matlabcentral/fileexchange/loadFile.do?objectId=6728&objectType=file
 * overobj2.m by Yair Altman from http://undocumentedmatlab.com/blog/undocumented-mouse-pointer-functions
+* uigetdirs by Jonathan Suever from https://github.com/suever/uigetdirs
