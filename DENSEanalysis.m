@@ -205,6 +205,13 @@ function windowkeypress(src, evnt)
             if ~playbar.IsPlaying
                 playbar.Value = mod((playbar.Value - 2), playbar.Max) + 1;
             end
+        case {'control-z', 'command-z'}
+            if isa(viewer, 'DENSEviewer')
+                cLine = handles.hdense.hroi.cLine;
+                if cLine.UndoEnable
+                    cLine.undo();
+                end
+            end
         case 'equal'
             ax = get(handles.hfig, 'CurrentAxes');
             zoom(ax, 2);
@@ -319,6 +326,9 @@ function handles = initFcn(hfig,callingfile)
         'BackgroundColor',[0 0 0]);
     hdense = DENSEviewer(hdata,...
         dense_hpanel,handles.popup_dense);
+
+    % Enable undo functionality
+    hdense.hroi.cLine.UndoEnable = true;
 
     analysis_hpanel = uipanel(...
         'parent',handles.hfig,...
