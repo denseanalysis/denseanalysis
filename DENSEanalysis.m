@@ -183,6 +183,50 @@ function loadFcn(handles,type)
 
 end
 
+function windowkeypress(src, evnt)
+    if ~isempty(evnt.Modifier)
+        modifiers = sort(evnt.Modifier);
+        evnt.Key = strcat(sprintf('%s-', modifiers{:}), evnt.Key);
+    end
+
+    handles = guidata(src);
+
+    tab         = handles.LastTab;
+    viewertypes = {'hdicom', 'hdense', 'hanalysis'};
+    viewer      = handles.(viewertypes{tab});
+    playbar     = viewer.hplaybar;
+
+    switch evnt.Key
+        case {'n', 'rightarrow', 'd'}
+            if ~playbar.IsPlaying
+                playbar.Value = mod(playbar.Value, playbar.Max) + 1;
+            end
+        case {'b', 'leftarrow', 'a'}
+            if ~playbar.IsPlaying
+                playbar.Value = mod((playbar.Value - 2), playbar.Max) + 1;
+            end
+        case 'equal'
+            ax = get(handles.hfig, 'CurrentAxes');
+            zoom(ax, 2);
+        case 'hyphen'
+            ax = get(handles.hfig, 'CurrentAxes');
+            zoom(ax, 0.5);
+        case 'e'
+            if strcmpi(get(handles.tool_roi, 'state'), 'on')
+                set(handles.tool_roi, 'State', 'off')
+            else
+                set(handles.tool_roi, 'State', 'on')
+            end
+            cb = get(handles.tool_roi, 'ClickedCallback');
+            feval(cb, handles.tool_roi, []);
+        case 'space'
+            if playbar.IsPlaying
+                playbar.stop()
+            else
+                playbar.play()
+            end
+    end
+end
 
 function saveFcn(handles,flag_saveas)
     file = save(handles.hdata,handles.matpath,handles.matfile,flag_saveas);
@@ -213,7 +257,20 @@ function handles = initFcn(hfig,callingfile)
     % gather guidata
     handles = guidata(hfig);
 
+    % Bind all keyboard events
+    set(handles.hfig, 'WindowKeyPressFcn', @windowkeypress)
 
+    accelerators = struct(...
+        'menu_save',        'S', ...
+        'menu_about',       '/', ...
+        'menu_analysisopt', '.', ...
+        'menu_new',         'N', ...
+        'menu_open',        'O', ...
+        'menu_exportmat',   'M', ...
+        'menu_runanalysis', 'R');
+
+    func = @(x,y)set(findobj(handles.hfig, 'tag', x), 'Accelerator', y);
+    cellfun(func, fieldnames(accelerators), struct2cell(accelerators));
 
     % LOAD GUI DATA FROM FILE----------------------------------------------
     % Here, we attempt to locate and load saved GUI variables from a known
@@ -226,7 +283,7 @@ function handles = initFcn(hfig,callingfile)
 
     try
         s = load(filename,'-mat');
-    catch ERR
+    catch
         s = struct;
     end
 

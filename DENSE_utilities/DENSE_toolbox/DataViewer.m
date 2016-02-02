@@ -17,6 +17,9 @@ classdef DataViewer < handle
         isSuspended = false
         isAllowExportVideo = false
         isAllowExportImage = false
+
+        % generic playbar
+        hplaybar
     end
 
     properties (Abstract=true,SetAccess='protected',GetAccess='protected')
@@ -44,9 +47,6 @@ classdef DataViewer < handle
         % invisible container panels
         hdisplay
         hcontrol
-
-        % generic playbar
-        hplaybar
 
         % available context menu
         hcontext_control
