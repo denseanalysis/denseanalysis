@@ -2,8 +2,8 @@ function xlswrite1(Excel,file,data,sheet,range)
 % xlswrite1(Excel,file,data,sheet,range)
 
 % Author: Matt Swartz
-% Location: http://www.mathworks.com/matlabcentral/fileexchange/10465-xlswrite1/content//xlswrite1.m  
-    
+% Location: http://www.mathworks.com/matlabcentral/fileexchange/10465-xlswrite1/content//xlswrite1.m
+
 % Excel=evalin('base','Excel');
 % Set default values.
 Sheet1 = 1;
@@ -50,7 +50,7 @@ try
     end
 
     % Check for N-D array input data
-    if ndims(data)>2
+    if ~ismatrix(data)
         error('MATLAB:xlswrite:InputDimension',...
             'Dimension of input array cannot be higher than two.');
     end
@@ -90,13 +90,15 @@ try
     end
 
 catch
-    if ~isempty(nargchk(2,4,nargin))
-        error('MATLAB:xlswrite:InputArguments',nargchk(2,4,nargin));
-    elseif nargout == 0
-        rethrow(lasterror);  	   % Display last error.
-    else
-        success = false;
-        message = lasterror;       % Return last error.
+    try
+        narginchk(2, 4);
+    catch ME
+        if nargout == 0
+            rethrow(ME);  	   % Display last error.
+        else
+            success = false;
+            message = ME.message;       % Return last error.
+        end
     end
     return;
 end

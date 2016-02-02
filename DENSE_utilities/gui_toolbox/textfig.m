@@ -1,51 +1,42 @@
 function htext = textfig(varargin)
+    %TEXTFIG create a floating TEXT object within a figure (or uipanel)
+    %
+    %USAGE
+    %
+    %   TEXTFIG(HFIG) create a text object in an invisible non-selectable
+    %   axes, where the axes is parented to the figure HFIG.
+    %
+    %   TEXTFIG(HFIG,param,val...) allows parameter/value input pairs as
+    %   specified by TEXT.  See note below.
+    %
+    %   TEXTFIG() and TEXTFIG(param,val,...) are the same as TEXTFIG(GCF)
+    %   and TEXTFIG(GCF,param,val) respectively
+    %
+    %   TEXTFIG(HPANEL) parents the text axes to the uipanel object HPANEL.
+    %
+    %   H = TEXTFIG(...) returns the handle H to the text object.
+    %
+    %
+    %NOTES
+    %
+    %   This function extents the functionality of the TEXT tool to more
+    %   than just axes. We create an invisible & non-selectable axes
+    %   covering the entire parent object (figure or uipanel), and place
+    %   the TEXT within that object.  --Almost all of the TEXT properties
+    %   are available.  --TEXT position is specified as [x,y] rather than
+    %   the general style of [x,y,width,height].  --Changing the 'Parent'
+    %   property is not suggested, and may result in unrecoverable
+    %   problems.
+    %
 
-%TEXTFIG create a floating TEXT object within a figure (or uipanel)
-%
-%USAGE
-%
-%   TEXTFIG(HFIG) create a text object in an invisible non-selectable
-%   axes, where the axes is parented to the figure HFIG.
-%
-%   TEXTFIG(HFIG,param,val...) allows parameter/value input pairs
-%   as specified by TEXT.  See note below.
-%
-%   TEXTFIG() and TEXTFIG(param,val,...) are the same as
-%   TEXTFIG(GCF) and TEXTFIG(GCF,param,val) respectively
-%
-%   TEXTFIG(HPANEL) parents the text axes to the uipanel object HPANEL.
-%
-%   H = TEXTFIG(...) returns the handle H to the text object.
-%
-%
-%NOTES
-%
-%   This function extents the functionality of the TEXT tool to more than
-%   just axes. We create an invisible & non-selectable axes covering the
-%   entire parent object (figure or uipanel), and place the TEXT within
-%   that object.
-%   --Almost all of the TEXT properties are available.
-%   --TEXT position is specified as [x,y] rather than the general
-%     style of [x,y,width,height].
-%   --Changing the 'Parent' property is not suggested, and may result in
-%     unrecoverable problems.
-%
-
-% This Source Code Form is subject to the terms of the Mozilla Public
-% License, v. 2.0. If a copy of the MPL was not distributed with this
-% file, You can obtain one at http://mozilla.org/MPL/2.0/.
-%
-% Copyright (c) 2016 DENSEanalysis Contributors
-  
-%WRITTEN BY:    Drew Gilliam
-%
-%MODIFICATION HISTORY:
-%   2009.02     Drew Gilliam
-%     --creation
-
+    % This Source Code Form is subject to the terms of the Mozilla Public
+    % License, v. 2.0. If a copy of the MPL was not distributed with this
+    % file, You can obtain one at http://mozilla.org/MPL/2.0/.
+    %
+    % Copyright (c) 2016 DENSEanalysis Contributors
 
     % default parent
-    if nargin > 0 && isnumeric(varargin{1}) && isscalar(varargin{1})
+    if nargin > 0 && ishandle(varargin{1}) && isscalar(varargin{1})
         hparent  = varargin{1};
         varargin = varargin(2:end);
     else
@@ -53,8 +44,7 @@ function htext = textfig(varargin)
     end
 
     % check for valid parent
-    if ~ishandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uicontainer')
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent must be a figure or uipanel.');
     end
@@ -63,7 +53,7 @@ function htext = textfig(varargin)
     hax = [];
     if isappdata(hparent,'HiddenTextAxes')
         hax = getappdata(hparent,'HiddenTextAxes');
-        if ~ishandle(hax) || ~strcmpi(get(hax,'type'),'axes')
+        if ~ishghandle(hax, 'axes')
             warning(sprintf('%s:invalidHiddenAxes',mfilename),'%s',...
                 'You have run TEXTFIG before, but a necessary ',...
                 'graphic handle (hidden text axes) is no longer valid.');
@@ -92,7 +82,6 @@ function htext = textfig(varargin)
         rethrow(ERR);
     end
 
-
     % add deletion function to text, eliminating the hidden axes if no
     % other text exists
     iptaddcallback(htext,'DeleteFcn',@(varargin)deleteFcn());
@@ -100,10 +89,8 @@ function htext = textfig(varargin)
     % move axes to top of display stack
     uistack(hax,'top');
 
-
     % DELETE FUNCTION
     function deleteFcn()
-
         % test for exisiting axes
         if isempty(hax) || ~ishandle(hax) || ...
            strcmpi(get(hax,'BeingDeleted'),'on')
@@ -120,8 +107,5 @@ function htext = textfig(varargin)
             delete(hax);
             rmappdata(hparent,'HiddenTextAxes');
         end
-
     end
-
 end
-

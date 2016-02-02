@@ -90,7 +90,7 @@ elseif FLAG_test==2
 
 
     msz = [1 1];
-    hax = NaN(prod(msz),1);
+    hax = preAllocateGraphicsObjects(prod(msz),1);
     hfig = figure;
 
     for k = 1:prod(msz)
@@ -133,7 +133,7 @@ elseif FLAG_test == 3
     hcline.PositionConstraintFcn = fcn;
 
     msz = [1 1];
-    hax = NaN(prod(msz),1);
+    hax = preAllocateGraphicsObjects(prod(msz),1);
     hfig = figure;
 
     for k = 1:prod(msz)

@@ -183,6 +183,69 @@ function loadFcn(handles,type)
 
 end
 
+function windowkeypress(src, evnt)
+    if ~isempty(evnt.Modifier)
+        modifiers = sort(evnt.Modifier);
+        evnt.Key = strcat(sprintf('%s-', modifiers{:}), evnt.Key);
+    end
+
+    handles = guidata(src);
+
+    tab         = handles.LastTab;
+    viewertypes = {'hdicom', 'hdense', 'hanalysis'};
+    viewer      = handles.(viewertypes{tab});
+    playbar     = viewer.hplaybar;
+
+    switch evnt.Key
+        case {'n', 'rightarrow', 'd'}
+            if ~playbar.IsPlaying
+                playbar.Value = mod(playbar.Value, playbar.Max) + 1;
+            end
+        case {'b', 'leftarrow', 'a'}
+            if ~playbar.IsPlaying
+                playbar.Value = mod((playbar.Value - 2), playbar.Max) + 1;
+            end
+        case {'control-z', 'command-z'}
+            if isa(viewer, 'DENSEviewer')
+                cLine = handles.hdense.hroi.cLine;
+                if cLine.UndoEnable
+                    cLine.undo();
+                end
+            end
+        case {'control-c', 'command-c'}
+            if isa(viewer, 'DENSEviewer')
+                handles.hdense.hroi.copy();
+            end
+        case {'control-x', 'command-x'}
+            if isa(viewer, 'DENSEviewer')
+                handles.hdense.hroi.cut();
+            end
+        case {'control-v', 'command-v'}
+            if isa(viewer, 'DENSEviewer')
+                handles.hdense.hroi.paste();
+            end
+        case 'equal'
+            ax = get(handles.hfig, 'CurrentAxes');
+            zoom(ax, 2);
+        case 'hyphen'
+            ax = get(handles.hfig, 'CurrentAxes');
+            zoom(ax, 0.5);
+        case 'e'
+            if strcmpi(get(handles.tool_roi, 'state'), 'on')
+                set(handles.tool_roi, 'State', 'off')
+            else
+                set(handles.tool_roi, 'State', 'on')
+            end
+            cb = get(handles.tool_roi, 'ClickedCallback');
+            feval(cb, handles.tool_roi, []);
+        case 'space'
+            if playbar.IsPlaying
+                playbar.stop()
+            else
+                playbar.play()
+            end
+    end
+end
 
 function saveFcn(handles,flag_saveas)
     file = save(handles.hdata,handles.matpath,handles.matfile,flag_saveas);
@@ -213,7 +276,20 @@ function handles = initFcn(hfig,callingfile)
     % gather guidata
     handles = guidata(hfig);
 
+    % Bind all keyboard events
+    set(handles.hfig, 'WindowKeyPressFcn', @windowkeypress)
 
+    accelerators = struct(...
+        'menu_save',        'S', ...
+        'menu_about',       '/', ...
+        'menu_analysisopt', '.', ...
+        'menu_new',         'N', ...
+        'menu_open',        'O', ...
+        'menu_exportmat',   'M', ...
+        'menu_runanalysis', 'R');
+
+    func = @(x,y)set(findobj(handles.hfig, 'tag', x), 'Accelerator', y);
+    cellfun(func, fieldnames(accelerators), struct2cell(accelerators));
 
     % LOAD GUI DATA FROM FILE----------------------------------------------
     % Here, we attempt to locate and load saved GUI variables from a known
@@ -226,7 +302,7 @@ function handles = initFcn(hfig,callingfile)
 
     try
         s = load(filename,'-mat');
-    catch ERR
+    catch
         s = struct;
     end
 
@@ -263,6 +339,9 @@ function handles = initFcn(hfig,callingfile)
     hdense = DENSEviewer(hdata,...
         dense_hpanel,handles.popup_dense);
 
+    % Enable undo functionality
+    hdense.hroi.cLine.UndoEnable = true;
+
     analysis_hpanel = uipanel(...
         'parent',handles.hfig,...
         'BorderType','none',...
@@ -273,6 +352,9 @@ function handles = initFcn(hfig,callingfile)
     hslice = SliceViewer(hdata,handles.popup_slice);
     harial = ArialViewer(hdata,handles.popup_arial);
 
+    % Turn off all listeners
+    items = {hdense, hdicom, hanalysis, hslice, harial};
+    cellfun(@(x)x.disable('redraw'), items);
 
     % CREATE TAB OBJECTS---------------------------------------------------
 
@@ -321,7 +403,11 @@ function handles = initFcn(hfig,callingfile)
 
 
     % default renderers
-    handles.renderer = repmat({'painters'},[3 1]);
+    if feature('hgusingmatlabclasses')
+        handles.renderer = repmat({'opengl'},[3 1]);
+    else
+        handles.renderer = repmat({'painters'},[3 1]);
+    end
     handles.LastTab = 1;
 
 
@@ -367,6 +453,20 @@ function handles = initFcn(hfig,callingfile)
 
     % save all data to the figure
     guidata(handles.hfig,handles);
+
+    set(handles.hfig, 'ResizeFcn', @(s,e)resizeFcn(s));
+end
+
+function resizeFcn(hfig)
+    h = guidata(hfig);
+
+    h.hsidebar.redraw();
+    h.hpopup.redraw();
+
+    % Redraw only the visible tab because the others will automatically
+    % redraw when the tab is changed
+    objs = {h.hdicom, h.hdense, h.hanalysis};
+    objs{h.hsidebar.ActiveTab}.redraw();
 end
 
 
@@ -806,6 +906,3 @@ return
 
 %     hax =
 end
-
-
-%% END OF FILE=============================================================

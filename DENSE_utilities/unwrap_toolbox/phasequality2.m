@@ -49,7 +49,7 @@ function qual = phasequality2(phs, pxsz, mask)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -69,10 +69,10 @@ function qual = phasequality2(phs, pxsz, mask)
     %% SETUP
 
     % check number of inputs
-    error(nargchk(1,3,nargin));
+    narginchk(1, 3);
 
     % check input size
-    if ndims(phs) ~= 2 || any(size(phs)<3)
+    if ~ismatrix(phs) || any(size(phs)<3)
         error(sprintf('UNWRAP:%s:inputerror',mfilename),...
             'Phase imagery must be a 2D matrix, 3x3 or larger.');
     end
@@ -88,7 +88,7 @@ function qual = phasequality2(phs, pxsz, mask)
     if nargin < 3 || isempty(mask)
         mask = [];
     else
-        if ndims(mask) ~= 2 || any(size(phs) ~= size(mask))
+        if ~ismatrix(mask) || any(size(phs) ~= size(mask))
             error(sprintf('UNWRAP:%s:inputerror',mfilename),...
                 'Phase & mask must be of same size');
         end

@@ -214,8 +214,7 @@ function metadata = DENSEspline(varargin)
         'UnwrapConnectivity',   []);
 
     % parse inputs
-    [api,other_args] = parseinputs(defargs,[],varargin{:});
-
+    api = parseinputs(defargs,[],varargin{:});
 
 
     % VALIDATE-------------------------------------------------------------
@@ -300,18 +299,15 @@ function metadata = DENSEspline(varargin)
             error(errid,'Cannot supply both Mask and Contour/MaskFcn.');
         end
         mask = api.Mask;
-
-
     else
-
         % check contour data
         C = api.Contour;
-        if isempty(C) || ~iscell(C) || ndims(C)~=2 || size(C,1)~=Nfr
+        if isempty(C) || ~iscell(C) || ~ismatrix(C) || size(C,1) ~= Nfr
             error(errid,'Invalid Contour data.');
         end
 
         tfvalid = cellfun(@(c)(~isempty(c) && isnumeric(c) && ...
-            ndims(c)==2 && size(c,2)==2), C);
+            ismatrix(c) && size(c,2)==2), C);
         tfvalid = all(tfvalid,2);
 
         % MaskFcn
@@ -441,7 +437,7 @@ function metadata = DENSEspline(varargin)
     yseed = api.Yseed;
     zseed = api.Zseed;
 
-    checkfcn = @(x)isnumeric(x) && ndims(x)==2 && ...
+    checkfcn = @(x)isnumeric(x) && ismatrix(x) && ...
         size(x,2)==3 && all(mod(x(:),1)==0) && ...
         all(1<=x(:,1) & x(:,1)<=Isz(1)) && ...
         all(1<=x(:,2) & x(:,2)<=Isz(2)) && ...

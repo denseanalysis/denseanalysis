@@ -34,8 +34,7 @@ function options = splinemodel(varargin)
         'Mag',                  [],...
         'UnwrapRect',           []);
 
-    [api,other_args] = parseinputs(defargs,[],varargin{:});
-
+    api = parseinputs(defargs,[],varargin{:});
 
     % VALIDATION-----------------------------------------------------------
     % Xpha, Ypha, Zpha, Mask
@@ -181,7 +180,7 @@ function options = splinemodel(varargin)
 
     % validate seed locations
     idxfcn = @(x)x(:,1) + Isz(1)*(x(:,2)-1) + Isz(2)*Isz(1)*(seedframe-1);
-    checkfcn = @(x)isnumeric(x) && ndims(x)==2 &&  size(x,2)==2 && ...
+    checkfcn = @(x)isnumeric(x) && ismatrix(x) &&  size(x,2)==2 && ...
         all(mod(x(:),1)==0) && all(1<=x(:)) && all(x(:,1)<=Isz(1)) && ...
         all(x(:,2)<=Isz(2)) && all(api.Mask(idxfcn(x)));
 
@@ -436,7 +435,7 @@ function options = mainFcn(api)
 
     % xseed point creation
     Npt = size(api.Xseed,1);
-    api.hxseed = NaN(Npt,1);
+    api.hxseed = preAllocateGraphicsObjects(Npt,1);
 
     hmenu = [];
     if Npt > 1, hmenu = api.hdelcontext; end
@@ -448,7 +447,7 @@ function options = mainFcn(api)
 
     % yseed point creation
     Npt = size(api.Yseed,1);
-    api.hyseed = NaN(Npt,1);
+    api.hyseed = preAllocateGraphicsObjects(Npt,1);
 
     hmenu = [];
     if Npt > 1, hmenu = api.hdelcontext; end
@@ -460,7 +459,7 @@ function options = mainFcn(api)
 
     % zseed point creation
     Npt = size(api.Zseed,1);
-    api.hzseed = NaN(Npt,1);
+    api.hzseed = preAllocateGraphicsObjects(Npt,1);
 
     hmenu = [];
     if Npt > 1, hmenu = api.hdelcontext; end
@@ -474,36 +473,6 @@ function options = mainFcn(api)
     pointName(api.hxseed,'X.');
     pointName(api.hyseed,'Y.');
     pointName(api.hzseed,'Z.');
-%
-%     % point creation
-%     api.hpoint = NaN(Npt,1);
-%     for k = 1:Npt
-%
-%         % create graphics object
-%         api.hpoint(k) = line(...
-%             'parent',       hax(k),...
-%             'color',        api.clrP,...
-%             'marker',       'o',...
-%             'markersize',   15,...
-%             'linewidth',    3);
-%
-%         % Mouse Pointer Behavior
-%         pb = struct(...
-%             'enterFcn',     @(varargin)pointEnter(api.hpoint(k),api.hfig),...
-%             'traverseFcn',  [],...
-%             'exitFcn',      @(varargin)pointExit(api.hpoint(k),api.hfig));
-%         iptSetPointerBehavior(api.hpoint(k),pb);
-%
-%         % button down behavior
-%         set(api.hpoint(k),'ButtonDownFcn',...
-%             @(varargin)pointDrag(api.hpoint(k),api.hfig));
-%     end
-
-
-%     % set initial point locations
-%     x = {api.Xseed(:,2),api.Yseed(:,2),api.Zseed(:,2)};
-%     y = {api.Xseed(:,1),api.Yseed(:,1),api.Zseed(:,1)};
-%     set(api.hpoint(:),{'xdata'},x(:),{'ydata'},y(:));
 
     % ADDITIONAL SETUP-----------------------------------------------------
 
@@ -661,7 +630,7 @@ function spaceEditCallback(hfig,hobj)
     tag = tags{h==hobj};
 
     str = get(hobj,'string');
-    val = str2num(str);
+    val = str2double(str);
     if isempty(val) || val < 0 || 1 < val
         set(hobj,'string',api.(tag));
     else
@@ -737,7 +706,15 @@ function pointAdd(hax)
     api = guidata(hfig);
 
     % default position within mask
-    pos = api.pts(1,[2 1]);
+    pos = get(hax, 'CurrentPoint');
+    if isempty(pos)
+        pos = api.pts(1,[2 1]);
+    else
+        pos = closestPoint(api.pts, pos([1 3]));
+
+        % Convert from x/y to row/col
+        pos = fliplr(pos);
+    end
 
     % create point
     hpt = pointCreate(hax,[],pos,api.clrP);
@@ -760,7 +737,6 @@ function pointAdd(hax)
 
     guidata(hfig,api);
     redrawFcn(hfig)
-
 end
 
 function pointDelete(hpt)
@@ -859,16 +835,10 @@ function pointDragMain(hpt,hfig)
         try
             % current point
             pos = get(hax,'currentpoint');
-            pos = pos([1 3]);
-
-            % constrain to nearest masked pixel
-            d = (pos(1)-api.pts(:,1)).^2 + (pos(2)-api.pts(:,2)).^2;
-            [val,idx] = min(d(:));
-            pos = api.pts(idx,:);
+            pos = closestPoint(api.pts, pos([1 3]));
 
             % update point
             set(hpt,'xdata',pos(1),'ydata',pos(2));
-
         catch ERR
             set(hpt,'userdata','error');
             rethrow(ERR)
@@ -879,10 +849,28 @@ function pointDragMain(hpt,hfig)
     function buttonUp()
         set(hpt,'userdata','complete')
     end
-
-
 end
 
+function point = closestPoint(points, query)
+    % Determines the point that is closest to the supplied query point
+    %
+    % USAGE:
+    %   point = closestPoint(points, query)
+    %
+    % INPUTS:
+    %   points: [N x 2] Matrix, X/Y Coordinates of all points to compare to
+    %           the query point.
+    %
+    %   query:  [1 x 2] Array, X/Y Coordinates of the point to query with
+    %
+    % OUTPUTS:
+    %   point:  [1 x 2] Array, X/Y Coordinates of the point in POINTS that
+    %           is closest to the point specified as QUERY.
+
+    d = sum(bsxfun(@minus, points, query).^2, 2);
+    [~, index] = min(d(:));
+    point = points(index,:);
+end
 
 function pointDragCleanup(hfig)
 % drag cleanup - return the figure to its initial pre-drag state and force

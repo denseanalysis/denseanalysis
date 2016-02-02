@@ -17,7 +17,7 @@ function [st,p] = tpaps_v3(x,y,p)
     %% SETUP
 
     % check number of inputs
-    error(nargchk(2,3,nargin));
+    narginchk(2, 3);
 
     % default empty smoothing parameter
     % make this of size [1,0] for later error checks
@@ -75,7 +75,7 @@ function [st,p] = tpaps_v3(x,y,p)
 
 
     % check smoothing parameter
-    if ndims(p) ~= 2 || size(p,1) ~= 1 || ...
+    if ~ismatrix(p) || size(p,1) ~= 1 || ...
        ~any(size(p,2) == [0 1 nx]) || any(p<0 | 1<p)
 
         error(sprintf('SPLINES:%s:wrongsizeP',mfilename),...

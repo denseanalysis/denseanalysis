@@ -796,9 +796,9 @@ function resizeFcn(obj)
     for k = 1:numel(h)
         p(2) = p(2)-yshft(k);
         p(4) = height(k);
-        if strcmpi(get(h(k),'type'),'text')
+        if ishghandle(h(k), 'text')
             set(h(k),'units','pixels','Position',p(1:2));
-        elseif strcmpi(get(h(k),'type'),'uicontrol') && ...
+        elseif ishghandle(h(k), 'uicontrol') && ...
            strcmpi(get(h(k),'style'),'pushbutton')
             ppb = [xpb p(2) wpb p(4)];
             setpixelposition(h(k),ppb);
@@ -866,7 +866,7 @@ end
 function setSliceViewerFcn(obj,val)
 
     if ~isempty(val)
-        if ~isobject(val) || ~strcmpi(class(val),'SliceViewer')
+        if ~isa(val, 'SliceViewer')
             error(sprintf('%s:invalidSliceViewer',mfilename),...
                 'Invalid Slice Viewer Specification.');
         end
@@ -895,7 +895,7 @@ end
 function setArialViewerFcn(obj,val)
 
     if ~isempty(val)
-        if ~isobject(val) || ~strcmpi(class(val),'ArialViewer')
+        if ~isa(val, 'ArialViewer')
             error(sprintf('%s:invalidArialViewer',mfilename),...
                 'Invalid Arial Viewer Specification.');
         end

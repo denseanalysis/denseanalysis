@@ -24,11 +24,10 @@ function options = cardiacmodel(varargin)
         'Nseg',                 [],...
         'MaxSegments',          132);
 
-    [api,other_args] = parseinputs(defargs,[],varargin{:});
-
+    api = parseinputs(defargs,[],varargin{:});
 
     % check type
-    types = {'SA','LA','open','closed'}
+    types = {'SA','LA','open','closed'};
     if ~ischar(api.Type) || ~any(strcmpi(api.Type,types))
         error(errid,'Invalid Type.');
     end
@@ -66,7 +65,7 @@ function options = cardiacmodel(varargin)
 
     % check resting contour
     C0 = api.RestingContour;
-    checkfcn = @(c)ndims(c)==2 && size(c,1) > 3 && size(c,2)==2;
+    checkfcn = @(c)ismatrix(c) && size(c,1) > 3 && size(c,2) == 2;
     if ~iscell(C0) || numel(C0)~=2 || ~all(cellfun(checkfcn,C0))
         error(errid,'Invalid RestingContour.');
     end
@@ -293,7 +292,7 @@ function options = mainFcn(api)
     % interactive points
     Npt = 2;
 
-    api.hpoint = NaN(Npt,1);
+    api.hpoint = preAllocateGraphicsObjects(Npt,1);
     api.constrainFcn = cell(Npt,1);
     for k = 1:Npt
         api.hpoint(k) = line(...

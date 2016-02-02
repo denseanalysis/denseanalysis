@@ -10,17 +10,10 @@ function varargout = exportgui(varargin)
     % FIGURE OPTIONS-------------------------------------------------------
     FLAG_close = true;
 
-
     % SETUP----------------------------------------------------------------
 
     % gather compression codecs
-    if strcmpi(computer,'PCWIN')
-        codec = {'None','Indeo3','Indeo5','Cinepak','MSVC','RLE'};
-    elseif strcmpi(computer,'PCWIN64')
-        codec = {'None','MSVC','RLE'};
-    else
-        codec = {'None'};
-    end
+    codec = {'None', 'Motion JPEG AVI', 'Indexed AVI', 'Grayscale AVI'};
 
     % default options
     defapi = struct(...
@@ -45,8 +38,7 @@ function varargout = exportgui(varargin)
     defapi.ParseOptions = false;
 
     % parse options (ignoring additional fields)
-    [api,other_args] = parseinputs(defapi,[],varargin{:});
-
+    api = parseinputs(defapi,[],varargin{:});
 
     % ensure logical flags
     tags = {'ParseOptions','InitialFileBrowse',...
@@ -119,13 +111,10 @@ function varargout = exportgui(varargin)
         return
     end
 
-
     % save additional fields
     api.codec = codec;
     api.savetags = savetags;
     api.FLAG_close = FLAG_close;
-
-
 
     % LOAD FIGURE----------------------------------------------------------
     try
@@ -172,14 +161,7 @@ function varargout = exportgui(varargin)
         close(hfig(ishandle(hfig)),'force');
         rethrow(ERR);
     end
-
-
-
-
-
 end
-
-
 
 %% MAIN FUNCTION
 function output = mainFcn(api)
@@ -201,12 +183,10 @@ function output = mainFcn(api)
     set(api.hfps,   'Callback',@(h,evnt)editCallback(h,'FramesPerSecond'),...
         'String',api.FramesPerSecond);
 
-
     % compression codecs
     idx = find(strcmpi(api.AVICodec,api.codec),1,'first');
     set(api.hcodec,'string',api.codec,'value',idx,...
         'Callback',@(h,evnt)compressionCallback(h))
-
 
     % ok/cancel
     set(api.hok,'Callback',@(varargin)okCallback());
@@ -218,7 +198,6 @@ function output = mainFcn(api)
     uimenu('parent',api.hmenu,'Label','Add Codec',...
         'Callback',@(varargin)newCodec());
     set(api.hcodec,'uicontextmenu',api.hmenu);
-
 
     % make figure visible/modal
     set(api.hfig,'windowstyle','modal','visible','on');
@@ -249,7 +228,6 @@ function output = mainFcn(api)
                 'Yes','Cancel','Cancel');
             if strcmpi(answer,'Yes'), break; end
         end
-
     end
 
     % output
@@ -263,7 +241,6 @@ function output = mainFcn(api)
         output = [];
     end
 
-
     % FILE SELECTION CALLBACK
     function browseCallback()
         [file,format] = selectfile(api.File,api.AllFormats,true);
@@ -273,8 +250,6 @@ function output = mainFcn(api)
         api.Format = format;
         set(api.hfile,'string',api.File);
     end
-
-
 
     % SIZE SELECTION CALLBACK
     function sizeSelection(evnt)
@@ -296,9 +271,7 @@ function output = mainFcn(api)
         set([api.hheight,api.hsizetext,api.hwidth],'Enable',ena);
         set(api.hheight,'string',height);
         set(api.hwidth,'string',width);
-
     end
-
 
     % RESOLUTION SELECTION CALLBACK
     function resSelection(evnt)
@@ -316,7 +289,6 @@ function output = mainFcn(api)
             res = api.Resolution;
         end
         set(api.hres,'Enable',ena,'String',res);
-
     end
 
     % GENERAL EDIT UICONTROL CALLBACK
@@ -328,9 +300,7 @@ function output = mainFcn(api)
             api.(tag) = val;
         end
         set(h,'string',api.(tag));
-
     end
-
 
     % COMPRESSION
     function compressionCallback(h)
@@ -370,10 +340,7 @@ function output = mainFcn(api)
     function cancelCallback()
         set(api.hfig,'UserData','cancel');
     end
-
 end
-
-
 
 %% HELPER FUNCTION: CHECK POSITIVE SCALAR
 function [tf,val] = checkScalar(val,fcn,flaground)
@@ -390,14 +357,7 @@ function [tf,val] = checkScalar(val,fcn,flaground)
         tf = false;
         val = [];
     end
-
 end
-
-
-
-
-
-
 
 %% HELPER FUNCTION: BROWSE FOR FILE
 function [file,format] = selectfile(file,formats,flag_browse)
@@ -443,15 +403,10 @@ function [file,format] = selectfile(file,formats,flag_browse)
         format = formats(filteridx);
 
         % file
-        [p,f,e] = fileparts(uifile);
+        [~,~,e] = fileparts(uifile);
         if isempty(matchmultimediaformat(e,format))
             uifile = [uifile format.Extension{1}];
         end
         file = fullfile(uipath,uifile);
-
     end
-
-
 end
-
-

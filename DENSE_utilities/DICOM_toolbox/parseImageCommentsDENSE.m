@@ -63,7 +63,7 @@ function [id,data] = parseImageCommentsDENSE(str)
     % the 'id' output is empty if not a DENSE IC string,
 
     % check for single input
-    error(nargchk(1,1,nargin));
+    narginchk(1, 1);
 
     % check for string
     if isempty(str) || ~ischar(str)

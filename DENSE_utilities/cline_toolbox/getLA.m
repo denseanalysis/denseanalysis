@@ -93,7 +93,7 @@ function [outervert,innervert] = getLA(varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -109,9 +109,9 @@ function [outervert,innervert] = getLA(varargin)
     %% MAIN CODE
 
     % initialize construction containers
-    hpt        = NaN(4,1);
-    hconstruct = NaN(3,1);
-    hcontour   = NaN(2,1);
+    hpt        = preAllocateGraphicsObjects(4,1);
+    hconstruct = preAllocateGraphicsObjects(3,1);
+    hcontour   = preAllocateGraphicsObjects(2,1);
     args       = [];
     M          = 1001;
 

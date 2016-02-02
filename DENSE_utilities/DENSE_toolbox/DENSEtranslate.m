@@ -6,7 +6,7 @@ function shft = DENSEtranslate(varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     % default error id
     errid = sprintf('%s:invalidInput',mfilename);
 
@@ -17,8 +17,7 @@ function shft = DENSEtranslate(varargin)
         'zmag', [],...
         'shift', NaN(2,3));
 
-    [api,other_args] = parseinputs(defapi,[],varargin{:});
-
+    api = parseinputs(defapi,[],varargin{:});
 
     % check for at least two non-empty images
     tags = {'xmag','ymag','zmag'};
@@ -52,7 +51,7 @@ function shft = DENSEtranslate(varargin)
     end
 
     % check shift
-    checkfcn = @(s)~isempty(s) && isnumeric(s) && ndims(s)==2 && ...
+    checkfcn = @(s)~isempty(s) && isnumeric(s) && ismatrix(s) && ...
         all(size(s)==[2 3]);
 
     if ~checkfcn(api.shift)
@@ -135,8 +134,8 @@ function shft = mainFcn(api)
 
     % draw images
     api.hax    = [api.hxmag;api.hymag;api.hzmag];
-    api.him    = NaN(3,1);
-    api.htitle = NaN(3,1);
+    api.him    = preAllocateGraphicsObjects(3,1);
+    api.htitle = preAllocateGraphicsObjects(3,1);
     labels = {'x','y','z'};
     for k = 1:numel(api.him)
         imtag = [labels{k} 'mag'];
@@ -158,7 +157,7 @@ function shft = mainFcn(api)
     vals = linspace(0,1,Nline+2);
     vals = vals(2:end-1);
 
-    api.hgrid = NaN(1,3);
+    api.hgrid = preAllocateGraphicsObjects(1,3);
     for k = 1:numel(api.hax)
         api.hgrid(k) = axes('parent',api.haxespanel,...
             'units','pixels','position',getpixelposition(api.hax(k)));

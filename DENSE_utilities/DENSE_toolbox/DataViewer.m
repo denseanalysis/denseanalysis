@@ -17,11 +17,12 @@ classdef DataViewer < handle
         isSuspended = false
         isAllowExportVideo = false
         isAllowExportImage = false
+
+        % generic playbar
+        hplaybar
     end
 
-
     properties (Abstract=true,SetAccess='protected',GetAccess='protected')
-
     end
 
     % options
@@ -29,7 +30,6 @@ classdef DataViewer < handle
         ControlVisible = 'on';
         PlaybarVisible = 'on';
     end
-
 
     properties (SetAccess='protected',GetAccess='protected')
 
@@ -47,9 +47,6 @@ classdef DataViewer < handle
         % invisible container panels
         hdisplay
         hcontrol
-
-        % generic playbar
-        hplaybar
 
         % available context menu
         hcontext_control
@@ -83,16 +80,12 @@ classdef DataViewer < handle
         exvideoopts = [];
         exportrect  = [];
         exportaxes  = false;
-
-
     end
-
 
     events
         Suspend
         Restore
     end
-
 
     methods
         function obj = DataViewer(varargin)
@@ -119,7 +112,6 @@ classdef DataViewer < handle
             end
         end
 
-
         function set.DisplayParent(obj,hdisp)
             if isequal(obj.ControlVisible,'off')
                 setParentFcn(obj,hdisp,hdisp);
@@ -133,21 +125,6 @@ classdef DataViewer < handle
             setParentFcn(obj,[],hctrl);
             redraw(obj);
         end
-
-
-%         function set.ControlVisible(obj,val)
-%            obj.ControlVisible = checkString(val,...
-%                {'on','off'},'ControlVisible');
-% %            set(obj.hcontrol,'Visible',obj.ControlVisible);
-% %            redraw(obj);
-%         end
-%
-%         function set.PlaybarVisible(obj,val)
-%             obj.PlaybarVisible = checkString(val,...
-%                {'on','off'},'PlaybarVisible');
-% %             obj.hplaybar.Visible = obj.PlaybarVisible;
-% %             redraw(obj);
-%         end
 
         function suspend(obj)
             suspendFcn(obj);
@@ -166,63 +143,54 @@ classdef DataViewer < handle
         end
     end
 
-
     methods (Access=protected)
 
-        function playback(obj)
+        function playback(varargin)
             % function prototype
         end
 
-        function setZoomPanRot(obj)
+        function setZoomPanRot(varargin)
             % function prototype
         end
 
-        function dataevent(obj,evnt)
+        function dataevent(varargin)
             % function prototype
         end
 
-        function contextCallback(obj)
-
+        function contextCallback(varargin)
         end
 
         function resize(obj)
             resizeFcn(obj);
         end
-
     end
 
-%
-%     methods (Abstract)
-%
-%         suspend(obj)
-%         restore(obj)
-%
-%     end
-%
-%     methods (Abstract,Access='protected')
-%         playback(obj)
-%         zoompan(obj)
-%         resize(obj)
-%
-%     end
-%
-%     methods (Access='protected')
-%
-%         function createROItool(obj)
-%             createROItoolFcn(obj);
-%         end
-%
-%         function newData(obj)
-%             newDataFcn(obj);
-%         end
-%
-%     end
-
-
+    methods (Hidden)
+        function disable(obj, type)
+            disableFcn(obj, type);
+        end
+    end
 end
 
+function disableFcn(obj, type)
+    switch lower(type)
+        case 'redraw'
+            disableListener(obj.hlisten_redraw)
+        otherwise
+            error(sprintf('%s:UnsupportedType', mfilename), ...
+                'Type %s is not currently supported', type);
+    end
+end
 
-
+function disableListener(listener)
+    if isa(listener, 'handle.listener')
+        set(listener, 'Enabled', 'off')
+    else
+        for k = 1:numel(listener)
+            listener(k).Enabled = false;
+        end
+    end
+end
 
 %% CONSTRUCTOR
 
@@ -245,9 +213,8 @@ function obj = DataViewerFcn(obj,options,hdata,varargin)
         end
     end
 
-
     % test data
-    if ~isobject(hdata) || ~strcmpi(class(hdata),'DENSEdata')
+    if ~isa(hdata, 'DENSEdata')
         error(sprintf('%s:invalidDENSEdata',mfilename),...
             'First input must be DENSEdata object.');
     end
@@ -309,91 +276,11 @@ function obj = DataViewerFcn(obj,options,hdata,varargin)
         'tag',      sprintf('%s context',mfilename),...
         'Callback', @(varargin)contextCallback(obj));
 
-
     % DENSEdata listeners - if the DENSEdata object signals an event,
     % we need to respond accordingly.
     obj.hlisten_data = addlistener(obj.hdata,...
         'NewState',    @(src,evnt)dataevent(obj,evnt));
-
-%
-%
-%
-%
-%
-%
-%
-%     bgclr = [236 233 216]/255;
-%     hlclr  = [78 101 148]/255;
-%     edgeclr = 'w';
-%     axesclr = [.5 .5 .5];
-%
-%
-%     obj.hparent = hparent;
-%     obj.hdata   = hdata;
-%
-%     hfig = ancestor(hparent,'figure');
-%
-%     % create object hierarchy
-%     obj.hpanel    = uipanel('parent',hparent);
-%     obj.hplaybar  = playbar(obj.hpanel);
-%
-%
-%     % set object properties
-%     set(obj.hpanel,...
-%         'units',            'normalized',....
-%         'position',         [0 0 1 1],...
-%         'BorderType',       'none',...
-%         'BackgroundColor',  'none',...
-%         'ResizeFcn',        @(varargin)resizeFcn(obj));
-%
-%     % disabled playbar listener
-%     obj.hlisten_playbar = addlistener(obj.hplaybar,...
-%         'NewValue',@(varargin)playback(obj));
-%     obj.hlisten_playbar.Enabled = false;
-%
-%     % Deletion listener: when the Parent is destroyed,
-%     % the object is no longer valid and must be destroyed
-%     obj.hlisten_delete = handle.listener(...
-%         obj.hparent,'ObjectBeingDestroyed',@(varargin)delete(obj));
-%
-%     % resize listener: although the object panel has 'normalized' units,
-%     % sometimes the object fails to redraw (like when a parent figure is
-%     % maximized then un-maximized).  So we initialize a listener to ensure
-%     % the object is successfully redrawn
-%     obj.hlisten_redraw = handle.listener(obj.hparent,...
-%         findprop(handle(obj.hparent),'Position'),...
-%         'PropertyPostSet',@(src,evnt)resizeFcn(obj));
-%
-%
-%     % DENSEdata listener - if new data is loaded, we need to reset the
-%     % DICOM viewer to its initial state
-%     obj.hlisten_data = addlistener(obj.hdata,...
-%         'NewData',@(varargin)newData(obj));
-%
-%
-%
-%
-%     % gather zoom/pan/rotate behavior
-%     % permanently disable rotation
-%     hfig = ancestor(obj.hparent,'figure');
-%     obj.hzoom = zoom(hfig);
-%     obj.hpan  = pan(hfig);
-%     obj.hrot  = rotate3d(hfig);
-%
-%     setAllowAxesRotate(obj.hrot,obj.hax,false);
-%
-%     % add callback to zoom/pan behavior
-%     obj.iptids(1) = iptaddcallback_mod(obj.hzoom,...
-%         'ActionPostCallback', @(h,evnt)zoompan(obj,evnt.Axes));
-%     obj.iptids(2) = iptaddcallback_mod(obj.hpan,...
-%         'ActionPostCallback', @(h,evnt)zoompan(obj,evnt.Axes));
-%
-%     % ready the object
-%     newDataFcn(obj);
-
 end
-
-
 
 %% DESTRUCTOR
 
@@ -415,7 +302,7 @@ function deleteFcn(obj)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
             fprintf('could not delete %s.%s\n',...
                 mfilename,tags{ti});
         end
@@ -431,14 +318,7 @@ function deleteFcn(obj)
             end
         end
     end
-
-    % report
-%     fprintf('delete %s\n',mfilename);
-
 end
-
-
-
 
 %% SET PARENT
 % The user is able to move the object to different figures or uipanels by
@@ -473,10 +353,10 @@ function setParentFcn(obj,hdisp,hctrl)
     end
 
     % check for valid parent
-    if ~isnumeric(hdisp) || ~isscalar(hdisp) || ~ishandle(hdisp) || ...
-       ~isnumeric(hctrl) || ~isscalar(hctrl) || ~ishandle(hctrl) || ...
-       ~any(strcmpi(get(hdisp,'type'),{'figure','uipanel'})) || ...
-       ~any(strcmpi(get(hctrl,'type'),{'figure','uipanel'}))
+    if ~isscalar(hdisp) || ...
+       ~(ishghandle(hdisp, 'figure') || ishghandle(hdisp, 'uipanel')) || ...
+       ~isscalar(hctrl) || ...
+       ~(ishghandle(hctrl, 'figure') || ishghandle(hctrl, 'uipanel'))
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent objects must be figures or uipanels.');
     end
@@ -493,7 +373,6 @@ function setParentFcn(obj,hdisp,hctrl)
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Cannot change the figure ancestor!');
     end
-
 
     % REMOVE EXISTING OBJECTS----------------------------------------------
 
@@ -522,7 +401,6 @@ function setParentFcn(obj,hdisp,hctrl)
         obj.iptinfo = [];
     end
 
-
     % OBJECT UPDATE--------------------------------------------------------
 
     % graphics handles in hierarchy from (hparent_display) to (hfig_disp)
@@ -530,7 +408,6 @@ function setParentFcn(obj,hdisp,hctrl)
     % figure obejcts
     hhier = [hierarchy(hdisp,'figure'), hierarchy(hctrl,'figure')];
     hhier = setdiff(hhier,[hfig_disp,hfig_ctrl]);
-
 
     % save parents to object
     obj.hparent_display = hdisp;
@@ -549,7 +426,6 @@ function setParentFcn(obj,hdisp,hctrl)
         set(obj.hcontext_control,'Parent',hfig_ctrl);
     end
 
-
     % get zoom/pan/rotate objects from new figure
     obj.hzoom = zoom(hfig_disp);
     obj.hpan  = pan(hfig_disp);
@@ -567,62 +443,45 @@ function setParentFcn(obj,hdisp,hctrl)
     pos = getpixelposition(hdisp);
     obj.dispsz_cache = pos(3:4);
 
-
-
     % LISTENERS------------------------------------------------------------
 
     % Deletion listener: when either Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        [hdisp,hctrl],'ObjectBeingDestroyed',@(varargin)obj.delete());
+    cb = @(varargin)obj.delete();
+    obj.hlisten_delete = [addlistener(hdisp, 'ObjectBeingDestroyed', cb);
+                          addlistener(hctrl, 'ObjectBeingDestroyed', cb)];
 
     % Resize listener: initialize a listener to ensure the object is
     % redrawn whenever either parent object (or their figure ancestors)
     % are resized.
-    hand = [hdisp,hdisp,hdisp,...
-         hctrl,hctrl,hctrl,...
-         hfig_disp,hfig_ctrl];
-    tags = {'Position','BackgroundColor','Color',...
-         'Position','BackgroundColor','Color',...
-         'Position','Position'};
-    tf = false(size(hand));
-    for k = 1:numel(hand)
-        idx = setdiff(1:numel(hand),k);
-        tf(k) = isprop(hand(k),tags{k}) && ...
-            ~any(hand(k)==hand(idx) & strcmpi(tags{k},tags(idx)));
+    cback = @(src,evnt)redrawListenerCallback(obj,src,evnt);
+
+    obj.hlisten_redraw = [...
+        addlistener_mod(hdisp, 'BackgroundColor', 'PostSet', cback);
+        addlistener_mod(hctrl, 'BackgroundColor', 'PostSet', cback);
+        addlistener_mod(hdisp, 'Color', 'PostSet', cback);
+        addlistener_mod(hctrl, 'Color', 'PostSet', cback)];
+
+    objs = unique([hfig_disp, hfig_ctrl, hctrl, hdisp]);
+
+    for k = 1:numel(objs)
+        obj.hlisten_redraw = cat(1, obj.hlisten_redraw, ...
+                                    position_listener(objs(k), cback));
     end
-
-    prop = cell(size(hand));
-    for k = 1:numel(hand)
-        prop{k} = findprop(handle(hand(k)),tags{k});
-    end
-
-    obj.hlisten_redraw = handle.listener(handle(hand(:)),cat(1,prop{:}),...
-        'PropertyPostSet',@(src,evnt)redrawListenerCallback(obj,src,evnt));
-
-
-%     h = unique([hdisp,hctrl,hfig_disp,hfig_ctrl]);
-%     prop = cellfun(@(h)findprop(h,'Position'),...
-%         num2cell(handle(h)),'uniformoutput',0);
-%     obj.hlisten_redraw = handle.listener(handle(h),cell2mat(prop),...
-%         'PropertyPostSet',@(varargin)redrawListenerCallback(obj));
 
     % Hierachy listener: if the user attempts to change the figure
     % ancestors of the object (like moving the hparent_display panel
     % to a new figure), that could really mess stuff up.
     % Lets reject that action.
-    if ~isempty(hhier)
-        prop = cellfun(@(h)findprop(h,'Parent'),...
-            num2cell(handle(hhier)),'uniformoutput',0);
-        obj.hlisten_parent = handle.listener(handle(hhier),cell2mat(prop),...
-            'PropertyPostSet',@(src,evnt)parentListenerCallback(obj));
-    end
-
+    cback = @(src,evnt)parentListenerCallback(obj);
+    func = @(x)addlistener_mod(handle(x), 'Parent', 'PostSet', cback);
+    listeners = arrayfun(func, hhier, 'UniformOutput', false);
+    obj.hlisten_parent = cat(1, listeners{:});
 end
 
-
 function redrawListenerCallback(obj,src,evnt)
-    if strcmpi(src.Name,'Position')
+    if (isfield(src, 'Name') && strcmpi(src.Name, 'Position')) || ...
+            isa(evnt, 'matlab.ui.eventdata.SizeChangedData')
         cpos = getpixelposition(obj.hcontrol);
         dpos = getpixelposition(obj.hdisplay);
 
@@ -633,17 +492,6 @@ function redrawListenerCallback(obj,src,evnt)
     elseif any(strcmpi(src.Name,{'BackgroundColor','Color'}))
         resize(obj)
     end
-
-%     cpos = getpixelposition(obj.hcontrol);
-%     dpos = getpixelposition(obj.hdisplay);
-%
-%     if all(cpos(3:4) == obj.ctrlsz_cache) && ...
-%        all(dpos(3:4) == obj.dispsz_cache)
-%         return
-%     else
-%         resize(obj)
-%     end
-
 end
 
 function parentListenerCallback(obj)
@@ -665,37 +513,7 @@ function parentListenerCallback(obj)
     else
         setParentFcn(obj,[],[]);
     end
-
-
-%     return
-%     % source handle
-%     h = findobj(evnt.AffectedObject,'flat');
-%
-%     % new ancestor figure
-%     newfig = ancestor(evnt.NewValue,'figure');
-%
-%     % test for change in parent figure
-%     tfdisp = isancestor(obj.hdisplay,h) && ...
-%         newfig ~= obj.hfigure_display;
-%     tfctrl = isancestor(obj.hcontrol,h) && ...
-%         newfig ~= obj.hfigure_control;
-%
-%     % delete the object if the parent was changed
-%     if tfdisp || tfctrl
-%         delete(obj)
-%         error(sprintf('%s:changedFigure',mfilename),'%s',...
-%             'Cannot change figure ancestor of DataViewer object! ',...
-%             'The DataViewer object has been deleted.');
-%     else
-%
-%     end
-
-
-
-
 end
-
-
 
 %% REDRAW
 
@@ -727,7 +545,6 @@ function resizeFcn(obj)
         setpixelposition(obj.hdisplay,dpos);
     end
 
-
     % place the playbar at the bottom/center of the display panel
     if ~isempty(obj.hplaybar) && ...
        isequal(obj.hplaybar.Parent,obj.hdisplay)
@@ -754,10 +571,7 @@ function resizeFcn(obj)
         clr = get(obj.hparent_control,'BackgroundColor');
     end
     set(obj.hcontrol,'BackgroundColor',clr);
-
 end
-
-
 
 %% SUSPEND & RESTORE
 
@@ -793,9 +607,7 @@ function suspendFcn(obj)
     % notify the Suspend Event
     obj.isSuspended = true;
     notify(obj,'Suspend');
-
 end
-
 
 function restoreFcn(obj)
 
@@ -820,27 +632,7 @@ function restoreFcn(obj)
     % notify the Restore Event
     obj.isSuspended = false;
     notify(obj,'Restore');
-
 end
-
-
-
-
-%% HELPER FUNCTION
-
-function val = checkString(val,vals,name)
-
-    if ~ischar(val) || ~any(strcmpi(val,vals))
-        str = sprintf('%s|',vals{:});
-        error(sprintf('%s:invalid%s',mfilename,name),'%s',...
-            'Invalid ', name,' input; acceptable values are [',...
-            str(1:end-1), '].');
-    end
-
-end
-
-
-
 
 %% export IMAGE/VIDEO
 
@@ -919,7 +711,7 @@ function filename = exportFcn(obj,type,startpath)
             obj.eximageopts = opts;
 
             % copy display panel
-            hpanel = grabPanel(obj,opts,rect,hfig);
+            grabPanel(obj,opts,rect,hfig);
 
             % parse additional options
             tags = {'Format','Resolution','LockAxes','FontMode'};
@@ -931,7 +723,6 @@ function filename = exportFcn(obj,type,startpath)
 
             % export file
             hgexport(hfig,filename,hgoptions);
-
 
         case 'video'
 
@@ -960,7 +751,7 @@ function filename = exportFcn(obj,type,startpath)
             end
 
             % test for AVI object
-            [p,f,e] = fileparts(filename);
+            [~,~,e] = fileparts(filename);
             FLAG_aviobj = strcmpi(e,'.avi');
 
             % determine delay
@@ -968,21 +759,15 @@ function filename = exportFcn(obj,type,startpath)
 
             % create AVI object
             if FLAG_aviobj
-                if any(strcmpi(opts.AVICompression,{'MSVC','RLE'}))
-                    map = colorcube(256);
-                    args = {'colormap',map};
-                    FLAG_index = true;
-                elseif any(strcmpi(opts.AVICompression,{'Indeo3'}))
-                    map = colorcube(236);
-                    args = {'colormap',map};
+                aviobj = VideoWriter(filename);
+                aviobj.FrameRate = opts.FPS;
+                open(aviobj);
+                if any(strcmpi(opts.AVIProfile,{'Indexed AVI'}))
+                    aviobj.Colormap = colorcube(236);
                     FLAG_index = true;
                 else
-                    args = {};
                     FLAG_index = false;
                 end
-                aviobj = avifile(filename,args{:},...
-                    'compression',  opts.AVICompression,...
-                    'fps',          opts.FPS);
             end
 
             try
@@ -1006,8 +791,7 @@ function filename = exportFcn(obj,type,startpath)
 
                     % get a hardcopy of the figure
                     res = ['-r' num2str(opts.Resolution)];
-                    I = hardcopy(hfig,'temp.tif','-dzbuffer',res,'-loose');
-
+                    I = hardcopy(hfig, '-dzbuffer', res, '-loose');
 
                     % delete panel / reset figure
                     delete(hpanel);
@@ -1022,13 +806,12 @@ function filename = exportFcn(obj,type,startpath)
                         if FLAG_index
                             I = rgb2ind(I,map);
                         end
-                        aviobj = addframe(aviobj,I);
+                        writeVideo(aviobj, I);
                         if any(k == [1 numel(rng)])
                             for n = 2:pausefac
-                                aviobj = addframe(aviobj,I);
+                                writeVideo(aviobj, I);
                             end
                         end
-
 
                     % ANIMATED GIF frame
                     % try a couple of times to write to the file, as
@@ -1068,15 +851,13 @@ function filename = exportFcn(obj,type,startpath)
                     else
                         waitbar(k/numel(rng),hwait);
                     end
-
-
                 end
 
             % ERROR: close avi, delete invalid video, rethrow error
             catch ERR
                 if FLAG_aviobj
-                    aviobj = close(aviobj);
-                    obj.exvideoopts.AVICompression = 'None';
+                    close(aviobj);
+                    obj.exvideoopts.AVIProfile = 'Motion JPEG AVI';
                 end
                 if exist(filename,'file'), delete(filename); end
                 delete(hwait(ishandle(hwait)));
@@ -1084,18 +865,14 @@ function filename = exportFcn(obj,type,startpath)
             end
 
             if FLAG_aviobj
-                aviobj = close(aviobj);
+                close(aviobj);
             end
             if FLAG_quit && exist(filename,'file')
                 delete(filename)
             end
 
             if ishandle(hwait), close(hwait); end
-
     end
-
-
-
 end
 
 function cleanupExport(obj,hwait,fr)
@@ -1103,7 +880,6 @@ function cleanupExport(obj,hwait,fr)
     obj.hplaybar.Value = fr;
     restore(obj);
 end
-
 
 function hpanel = grabPanel(obj,opts,rect,hfig)
 
@@ -1130,11 +906,6 @@ function hpanel = grabPanel(obj,opts,rect,hfig)
         delete(h);
         hchild = findall(hpanel);
     end
-
-    % hide all children panels
-    h = findobj(hchild,'flat','type','uipanel');
-    h = setdiff(h,hpanel);
-    set(h,'backgroundcolor','none');
 
     % move the display panel to the appropriate location
     pos = getpixelposition(hpanel,true);
@@ -1176,10 +947,4 @@ function hpanel = grabPanel(obj,opts,rect,hfig)
 
     % manually edit background color
     set(hpanel,'BackgroundColor',opts.Background);
-
-
 end
-
-
-
-

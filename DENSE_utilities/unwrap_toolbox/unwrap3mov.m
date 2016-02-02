@@ -107,7 +107,7 @@ function [Vunwrap,seeds] = unwrap3mov(Vwrap, varargin)
     %% SETUP
 
     % check minimum number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % input size
     if ndims(Vwrap) ~= 4

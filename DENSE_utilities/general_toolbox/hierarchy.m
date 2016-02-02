@@ -17,13 +17,8 @@ function hhier = hierarchy(h,type,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
-%WRITTEN BY:    Drew Gilliam
-%
-%MODIFICATION HISTORY:
-%   2009.02     Drew Gilliam
-%     --creation
 
+%WRITTEN BY:    Drew Gilliam
 
     % determine final ancestor
     % additionally, check for any invalid inputs
@@ -36,11 +31,10 @@ function hhier = hierarchy(h,type,varargin)
     % determine hierarchy from h to ancestor
     hhier = [];
     while 1
-        hhier(end+1) = h;
+        hhier = cat(2, hhier, h);
         if h == hancestor
             break;
         end
         h = get(h,'Parent');
     end
-
 end

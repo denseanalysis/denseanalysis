@@ -107,10 +107,10 @@ function [Iunwrap,seeds] = unwrap2(Iwrap, varargin)
     FLAG_nomex = checknomex();
 
     % check number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % input size
-    if ndims(Iwrap) ~= 2
+    if ~ismatrix(Iwrap)
         error(sprintf('UNWRAP:%s:inputerror',mfilename),...
             'Input must be 2D');
     end
@@ -376,8 +376,8 @@ function [Iunwrap,seeds] = unwrap2(Iwrap, varargin)
 
     function hfig = initdisplay()
 
-        hax = NaN(2,1);
-        him = NaN(2,1);
+        hax = preAllocateGraphicsObjects(2,1);
+        him = preAllocateGraphicsObjects(2,1);
 
         hfig = figure;
         hax(1) = subplot(1,2,1);

@@ -51,7 +51,7 @@ function qual = phasequality3(phs, vxsz, mask)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -65,7 +65,7 @@ function qual = phasequality3(phs, vxsz, mask)
     %% SETUP
 
     % check number of inputs
-    error(nargchk(1,3,nargin));
+    narginchk(1, 3);
 
     % check input size
     if ndims(phs) ~= 3 || any(size(phs)<3)

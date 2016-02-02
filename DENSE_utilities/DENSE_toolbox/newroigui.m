@@ -6,9 +6,9 @@ function output = newroigui(hdata,sidx,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     % check number of inputs
-    error(nargchk(2,Inf,nargin));
+    narginchk(2, Inf);
 
     % close figure on output?
     FLAG_close = true;
@@ -182,7 +182,7 @@ function newroi = mainFcn(api)
 
     % gather togglehandle/texthandle
     api.types = {'curve','line','SA','LA','closed','open'};
-    api.htb = NaN(size(api.types));
+    api.htb = preAllocateGraphicsObjects(size(api.types));
     api.htx = api.htb;
     for k = 1:numel(api.types)
         api.htb(k) = eval(['api.h' api.types{k}]);

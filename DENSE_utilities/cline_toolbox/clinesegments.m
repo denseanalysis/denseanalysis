@@ -46,7 +46,7 @@ function varargout = clinesegments(pos,iscls,iscrv,iscrn,res)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -58,14 +58,14 @@ function varargout = clinesegments(pos,iscls,iscrv,iscrn,res)
     %% SETUP
 
     % check number of inputs/outputs
-    error(nargchk(4,5,nargin));
-    error(nargchk(1,2,nargout));
+    narginchk(4, 5);
+    nargoutchk(1, 2);
 
     % default resolution
     if nargin < 5 || isempty(res), res = 0.5; end
 
     % check position
-    if ~isnumeric(pos) || ndims(pos)~= 2 || size(pos,2)~=2
+    if ~isnumeric(pos) || ~ismatrix(pos) || size(pos,2)~=2
         error(sprintf('%s:invalidInput',mfilename),...
             'Invalid position matrix.');
     end

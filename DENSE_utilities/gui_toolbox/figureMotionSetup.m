@@ -11,7 +11,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
     % motion api check
     apptag = 'figure_motionapi';
     if isappdata(hfig,apptag) && ~isempty(getappdata(hfig,apptag))
@@ -69,7 +69,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
         'handlevisibility','off',...
         'enable','inactive');
 
-    htooltip = NaN(1,2);
+    htooltip = preAllocateGraphicsObjects(1,2);
 
     htooltip(1) = uicontrol(...
         'parent',hfig,...
@@ -130,13 +130,12 @@ function motionapi = figureMotionSetup(hfig,varargin)
 
     % listen for mode change
     prop = findprop(figModeManager,'CurrentMode');
-    hlisten_mode = handle.listener(figModeManager,...
-        prop,'PropertyPostSet',@(varargin)updatefcn(true));
-
+    hlisten_mode = addlistener_mod(figModeManager,...
+        prop,'PostSet',@(varargin)updatefcn(true));
 
     % listen for figure deletion (to delete tooltip timer)
-    hlisten_delete = handle.listener(...
-        hfig,'ObjectBeingDestroyed',@(varargin)cleanupfcn());
+    hlisten_delete = addlistener(hfig, ...
+        'ObjectBeingDestroyed',@(varargin)cleanupfcn());
 
     % initialize figure motion fcn
     set(hfig,'WindowButtonMotionFcn',@(h,evnt)updatefcn(false));
@@ -206,9 +205,11 @@ function motionapi = figureMotionSetup(hfig,varargin)
         pt = tmp(1:2);
 
         % new object in current figure
-        if active && isequal(get(0,'currentfigure'),hfig)% && isempty(figModeManager.CurrentMode)
-            hnew = hittest(hfig,pt);
-            if isempty(hnew) || ~ishandle(hnew), hnew = -1; end
+        if active && isequal(get(0, 'currentfigure'), hfig)
+            hnew = overobj2('type', 'axes');
+            if isempty(hnew) || ~ishandle(hnew)
+                hnew = -1;
+            end
         else
             hnew = -1;
         end
@@ -327,7 +328,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
                     for k = 1:2
                         set(htooltip(k),'string',str{k});
                     end
-                catch ERR
+                catch
                     warning('figureMotionFcn:ToolTip',...
                         ['Unknown error executing ''ToolTip'' ',...
                          'string function.'])
@@ -396,34 +397,6 @@ function motionapi = figureMotionSetup(hfig,varargin)
                         'visible','on');
                 end
             end
-
-            return
-
-
-
-%             if pt(1) > (sfig(1)-pt(1))
-%                 pt(1) = pt(1)-stip(1)+1 - offset(1);
-%             else
-%                 pt(1) = pt(1) + offset(1);
-%             end
-%             if pt(2) > (sfig(2)-pt(2))
-%                 pt(2) = pt(2)-stip(2)+1 - offset(2);
-%             else
-%                 pt(2) = pt(2) + offset(2);
-%             end
-
-%             if (sfig(1)-pt(1)-stip(1)) < (pt(1)-stip(1))
-%                 pt(1) = pt(1)-stip(1);
-%             end
-%             if (sfig(2)-pt(2)-stip(2)) > (pt(2)-stip(2))
-%                 pt(2) = pt(2)+stip(2);
-%             end
-
-            % update tooltip position
-            set(htooltip,'position',[pt+2,stip-4]);
-            set(hframe,'position',[pt,stip]);
-            set([htooltip,hframe],'visible','on');%,'position',[pt,stip]);
-%             drawnow, pause(0.1)
         end
     end
 
@@ -543,7 +516,7 @@ function motionapi = figureMotionSetup(hfig,varargin)
             fcn = input;
             try
                 input = fcn();
-            catch ERR
+            catch
                 str = [];
                 fcn = [];
                 warning('figureMotionFcn:ToolTip',...

@@ -38,7 +38,6 @@ classdef AnalysisViewer < DataViewer
         Enable = 'on';
         enableobject = [];
 
-
         strainopts = struct(...
             'Colormap', 'jet',...
             'XXrng',    [-0.5 0.5],...
@@ -56,21 +55,15 @@ classdef AnalysisViewer < DataViewer
             'twistrng', [-10 10],...
             'Pixelate', true,...
             'Marker',   true);
-
     end
 
-
-
-
     methods
-
         function obj = AnalysisViewer(varargin)
-            options = struct([]);
-            obj = obj@DataViewer(options,varargin{:});
+            opts = struct([]);
+            obj = obj@DataViewer(opts, varargin{:});
             obj = analysisViewerFcn(obj);
             obj.redrawenable = true;
             redraw(obj);
-
         end
 
         function redraw(obj)
@@ -93,7 +86,6 @@ classdef AnalysisViewer < DataViewer
         function strainoptions(obj)
             strainoptsFcn(obj);
         end
-
     end
 
     methods (Access=protected)
@@ -118,7 +110,7 @@ classdef AnalysisViewer < DataViewer
             if ~isempty(obj.api.resizeFcn)
                 try
                     obj.api.resizeFcn();
-                catch ERR
+                catch
                     obj.api.resizeFcn = [];
                 end
             end
@@ -127,14 +119,8 @@ classdef AnalysisViewer < DataViewer
         function loadspl(obj)
             loadsplFcn(obj);
         end
-
-
     end
-
-
-
 end
-
 
 %% CONTROL PANEL DISPLAY OPTIONS
 function opt = controlOptions()
@@ -218,7 +204,6 @@ function opt = controlOptions()
     opt(idx).Fcn   = @(obj)fvDisplay(obj,{'twist'});
     opt(idx).Type  = {'SA'};
 
-
     % xy strain
     idx = idx+1;
     opt(idx).Name  = 'cartstrain';
@@ -254,7 +239,6 @@ function opt = controlOptions()
     opt(idx).Fcn   = @(obj)fvDisplay(obj,{'SS'});
     opt(idx).Type  = {'open','closed'};
 
-
     % principal strain/time curve
     idx = idx+1;
     opt(idx).Name  = 'prinstraintime';
@@ -289,9 +273,7 @@ function opt = controlOptions()
     opt(idx).Label = 'Contour Strain/Time Curves';
     opt(idx).Fcn   = @(obj)timeDisplay(obj,{'SS'});
     opt(idx).Type  = {'open','closed'};
-
 end
-
 
 %% CONSTRUCTOR
 function obj = analysisViewerFcn(obj)
@@ -304,7 +286,7 @@ function obj = analysisViewerFcn(obj)
     clr = [1 1 1];
     try
         for k = 1:numel(hhier)
-            if strcmpi(get(hhier(k),'type'),'figure')
+            if ishghandle(hhier(k), 'figure')
                 tag = 'Color';
             else
                 tag = 'BackgroundColor';
@@ -315,7 +297,7 @@ function obj = analysisViewerFcn(obj)
                 break;
             end
         end
-    catch ERR
+    catch
     end
 
     % create a button group
@@ -327,7 +309,6 @@ function obj = analysisViewerFcn(obj)
         'SelectionChangeFcn',   @(src,evnt)switchstate(obj,evnt),...
         'BackgroundColor',      clr);
 
-
     % populate button group with options
     fcn = @(tag,str)uicontrol(...
         'parent',           obj.hbuttongroup,...
@@ -336,10 +317,9 @@ function obj = analysisViewerFcn(obj)
         'string',           str,...
         'BackgroundColor',  clr);
 
-    hopt = cellfun(fcn,{opt.Name},{opt.Label});
+    hopt = cellfun(fcn,{opt.Name},{opt.Label}, 'UniformOutput', false);
 
     % save options to control structure
-    hopt = num2cell(hopt);
     [opt.Handle] = deal(hopt{:});
 
     % save options to object
@@ -353,8 +333,6 @@ function obj = analysisViewerFcn(obj)
         'BackgroundColor',  'w',...
         'Callback',         @(varargin)hmodelCallback(obj));
 
-
-
     % initialize empty API
     obj.api = obj.emptyapi;
 
@@ -364,7 +342,6 @@ function obj = analysisViewerFcn(obj)
     else
         loadspl(obj);
     end
-
 end
 
 function dataeventFcn(obj,evnt)
@@ -375,9 +352,7 @@ function dataeventFcn(obj,evnt)
         case 'new'
             if isequal(evnt.Field,'spl'), loadspl(obj); end
     end
-
 end
-
 
 function resetDispFcn(obj,optionsflag)
 
@@ -415,10 +390,7 @@ function resetDispFcn(obj,optionsflag)
     obj.exportrect = [];
     obj.isAllowExportImage = false;
     obj.isAllowExportVideo = false;
-
-
 end
-
 
 function loadsplFcn(obj)
 
@@ -460,11 +432,7 @@ function loadsplFcn(obj)
     else
         obj.enableobject = h(idx);
     end
-
-
 end
-
-
 
 function switchstate(obj,evnt)
 
@@ -524,7 +492,6 @@ function switchstate(obj,evnt)
     else
         obj.isAllowExportExcel = false;
     end
-
 end
 
 function resizeCtrl(obj)
@@ -542,10 +509,7 @@ function resizeCtrl(obj)
 
     p = p + [15 -25 -30 0];
     setpixelposition(obj.hmodel,p);
-
 end
-
-
 
 function val = setEnableFcn(obj,val)
 
@@ -595,12 +559,8 @@ function val = setEnableFcn(obj,val)
             switchstate(obj,evnt);
         end
         obj.enableobject = [];
-
     end
-
-
 end
-
 
 function hmodelCallback(obj)
 
@@ -614,22 +574,20 @@ function hmodelCallback(obj)
     switchstate(obj,evnt);
 end
 
-
 %% WRAPPED/UNWRAPPED DISPLAY
 
 function api = phaseDisplay(obj)
 
     % persistant objects
-    hax    = NaN(6,1);
-    him    = NaN(6,1);
-    htitle = NaN(6,1);
+    hax    = [];
+    him    = [];
+    htitle = [];
 
     % application data
     api.initFcn     = @initFcn;
     api.playbackFcn = @playbackFcn;
     api.deleteFcn   = @deleteFcn;
     api.resizeFcn   = @resizeFcn;
-
 
     function initFcn()
 
@@ -655,9 +613,9 @@ function api = phaseDisplay(obj)
 
         % create object hierarchy
         for n = 1:6
-            hax(n) = axes('parent',obj.hdisplay);
-            him(n) = imshow(rand(Isz),'parent',hax(n));
-            htitle(n) = textfig(obj.hdisplay);
+            hax = cat(1, hax, axes('parent',obj.hdisplay));
+            him = cat(1, him, imshow(rand(Isz),'parent',hax(n)));
+            htitle = cat(1, htitle, textfig(obj.hdisplay));
         end
 
         % set properties
@@ -726,9 +684,7 @@ function api = phaseDisplay(obj)
         if (obj.hplaybar.Max-obj.hplaybar.Min) > 1
             obj.isAllowExportVideo = true;
         end
-
     end
-
 
     function resizeFcn()
 
@@ -762,9 +718,7 @@ function api = phaseDisplay(obj)
         % export rect
         obj.exportrect = getpixelposition(obj.hdisplay,true)...
                 + [0 45 0 -45];
-
     end
-
 
     function playbackFcn()
         fr = obj.hplaybar.Value;
@@ -775,17 +729,13 @@ function api = phaseDisplay(obj)
             I(isnan(I)) = 0;
             set(him(ti),'cdata',I);
         end
-
     end
 
     function deleteFcn()
         h = [hax(:); htitle(:)];
         delete(h(ishandle(h)));
     end
-
-
 end
-
 
 %% 2D EULARIAN VECTOR DISPLAY
 
@@ -832,7 +782,6 @@ function api = vectorDisplay(obj,mode,dim,tag,bulk)
     api.playbackFcn = @playbackFcn;
     api.deleteFcn   = @deleteFcn;
     api.resizeFcn   = @resizeFcn;
-
 
     function initFcn()
 
@@ -955,7 +904,6 @@ function api = vectorDisplay(obj,mode,dim,tag,bulk)
 
             % remove lines
             set(hvec,'linestyle','none');
-
         end
 
         % disable image for bulk motion removal
@@ -977,13 +925,11 @@ function api = vectorDisplay(obj,mode,dim,tag,bulk)
         if (obj.hplaybar.Max-obj.hplaybar.Min) > 1
             obj.isAllowExportVideo = true;
         end
-
     end
 
     function resizeFcn()
         resizeAxes(obj,hax,dim);
     end
-
 
     function playbackFcn()
         fr = obj.hplaybar.Value;
@@ -1005,7 +951,6 @@ function api = vectorDisplay(obj,mode,dim,tag,bulk)
             v1 = [X(:),Y(:),Z1(:)];
             mask = ~isnan(X0) & ~isnan(Y0) & changemask;
             newfaces = faces(mask(:),:);
-
 
         % LAGRANGIAN
         else
@@ -1047,11 +992,7 @@ function api = vectorDisplay(obj,mode,dim,tag,bulk)
             set(obj.hfigure_display,'renderer',renderer);
         end
     end
-
-
 end
-
-
 
 %% VALUE VERSUS TIME DISPLAY
 function api = timeDisplay(obj,names)
@@ -1080,9 +1021,9 @@ function api = timeDisplay(obj,names)
     end
 
     % persistant variables
-    haxseg = NaN;
-    hcbseg = NaN;
-    hax = NaN(size(names));
+    haxseg = preAllocateGraphicsObjects(1);
+    hcbseg = preAllocateGraphicsObjects(1);
+    hax = preAllocateGraphicsObjects(size(names));
 
     % we require the "zbuffer" or "opengl" renderer, so temporarily
     % update the display figure
@@ -1095,10 +1036,7 @@ function api = timeDisplay(obj,names)
     api.deleteFcn   = @deleteFcn;
     api.resizeFcn   = @resizeFcn;
 
-
-
     function initFcn()
-
 
         % ensure image/video export includes visible axes
         obj.exportaxes = true;
@@ -1153,13 +1091,12 @@ function api = timeDisplay(obj,names)
             'TickLength',   [0 0],...
             'Ydir',         'reverse');
 
-
-
         htmp(1) = title(haxseg,'Segments');
         htmp(2) = xlabel(hax(end),'Frame Number');
         for k = 1:numel(hax)
-            htmp(2+k) = ylabel(hax(k),ttls{k});
+            htmp = cat(2, htmp, ylabel(hax(k),ttls{k}));
         end
+
         set(htmp(:),...
             'color',obj.dispclr(1,:),...
             'fontweight','bold',...
@@ -1171,7 +1108,6 @@ function api = timeDisplay(obj,names)
         yrng = obj.hdata.spl.irng;
         rng = [floor(xrng(1)),ceil(xrng(2)),floor(yrng(1)),ceil(yrng(2))];
         axis(haxseg,rng + [-0.5 0.5 -0.5 0.5]);
-
 
         % vertices & faces
         vert = obj.straindata.fv.vertices;
@@ -1207,14 +1143,11 @@ function api = timeDisplay(obj,names)
         clrs = hsv(Nseg);
         fvcd = clrs(id,:);
 
-        hseg = patch(...
-            'parent',haxseg,...
-            patchopts,...
-            'vertices',vert,...
-            'faces',face,...
-            'facevertexcdata',fvcd(fvcdindex,:));
-
-
+        patch('parent',             haxseg,...
+              patchopts, ...
+              'vertices',           vert,...
+              'faces',              face,...
+              'facevertexcdata',    fvcd(fvcdindex,:));
 
         % segment colorbar
         hcbseg = colorbarmod(haxseg,'southoutside',clrs,[0.5 Nseg+0.5]);
@@ -1223,7 +1156,6 @@ function api = timeDisplay(obj,names)
             'hittest','off','handlevisibility','off');
 
         set(hax(:),'Colororder',clrs);
-
 
         % display value/time per segment
         for k = 1:numel(names)
@@ -1234,10 +1166,7 @@ function api = timeDisplay(obj,names)
                    data(fr,si) = mean(strain(id==si,:));
                 end
             end
-%             if any(strcmpi(names{k},{'CURE'}))
-%                 sv.straindata = data;
-%                 save('straindata.mat','-struct','sv');
-%             end
+
             if any(strcmpi(names{k},{'CURE','RURE'}))
                 tmp = data(frrng(1):frrng(2),:);
                 data = NaN(Nfr,1);
@@ -1249,16 +1178,11 @@ function api = timeDisplay(obj,names)
             hold(hax(k),'off')
         end
 
-
         % update export rules
         obj.exportaxes = true;
         obj.isAllowExportImage = true;
         obj.isAllowExportVideo = false;
-
     end
-
-
-
 
     function resizeFcn()
 
@@ -1295,12 +1219,9 @@ function api = timeDisplay(obj,names)
             setpixelposition(hax(k),[x y(k) width height])
         end
 
-
         % export rect
         obj.exportrect = getpixelposition(obj.hdisplay,true);
-
     end
-
 
     function deleteFcn()
         h = [hcbseg;haxseg;hax(:)];
@@ -1310,13 +1231,7 @@ function api = timeDisplay(obj,names)
             set(obj.hfigure_display,'renderer',renderer);
         end
     end
-
-
-
 end
-
-
-
 
 %% FACE/VERTEX DISPLAY (STRAIN/TWIST)
 function api = fvDisplay(obj,tag,flag_nobulk)
@@ -1354,10 +1269,11 @@ function api = fvDisplay(obj,tag,flag_nobulk)
     set(obj.hfigure_display,'Renderer','zbuffer');
 
     % persistant variables
-    hax = NaN(size(tag));
+    hax = preAllocateGraphicsObjects(size(tag));
     hcb = hax;
     hfv = hax;
     hor = hax;
+    htitle = hax;
 
     % face centroids
     pface = [];
@@ -1378,7 +1294,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
     api.playbackFcn = @playbackFcn;
     api.deleteFcn   = @deleteFcn;
     api.resizeFcn   = @resizeFcn;
-
 
     function initFcn()
 
@@ -1460,7 +1375,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
         end
 
         % create objects
-        htitle = NaN(size(tag));
         for k = 1:numel(tag)
             hax(k) = axes('parent',obj.hdisplay);
             hcb(k) = colorbarmod(hax(k),'southoutside',cmap,crng{k});
@@ -1515,7 +1429,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
             end
         end
 
-
         % link axes
         if numel(tag) > 1
             hlink = linkprop(hax,{'XLim','YLim','DataAspectRatio'});
@@ -1552,7 +1465,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
         if (obj.hplaybar.Max-obj.hplaybar.Min) > 1
             obj.isAllowExportVideo = true;
         end
-
     end
 
     function resizeFcn()
@@ -1580,7 +1492,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
         % export rect
         obj.exportrect = getpixelposition(obj.hdisplay,true)...
                 + [0 45 0 -45];
-
     end
 
     function playbackFcn()
@@ -1610,7 +1521,6 @@ function api = fvDisplay(obj,tag,flag_nobulk)
                   pface + 0.5*[dX(:),dY(:)]];
             set(hor(k),'vertices',v,'LineWidth',2);
         end
-
     end
 
     function deleteFcn()
@@ -1620,15 +1530,12 @@ function api = fvDisplay(obj,tag,flag_nobulk)
             set(obj.hfigure_display,'renderer',renderer);
         end
     end
-
-
 end
-
 
 %% EXPORT MAT FILE
 % MAT file contains images and recovered displacement data, with some
 % information on the image source and analysis options
-function file = exportMatFcn(obj,startpath)
+function [file, out] = exportMatFcn(obj,startpath)
 
     % check for startpath
     if nargin < 2 || isempty(startpath) || ~exist(startpath,'dir')
@@ -1641,9 +1548,6 @@ function file = exportMatFcn(obj,startpath)
 
     ruid = obj.hdata.spl.ROIUID;
     ridx = obj.hdata.UIDtoIndexROI(ruid);
-
-
-
 
     % file name
     header = sprintf('%s_%s',...
@@ -1669,7 +1573,7 @@ function file = exportMatFcn(obj,startpath)
 
     % check extension
     file = fullfile(uipath,uifile);
-    [p,f,e] = fileparts(file);
+    [~,~,e] = fileparts(file);
     if ~isequal(e,'.mat')
         file = [file, '.mat'];
     end
@@ -1683,7 +1587,6 @@ function file = exportMatFcn(obj,startpath)
         end
     end
 
-
     % start waitbartimer
     hwait = waitbartimer;
     cleanupObj = onCleanup(@()delete(hwait(isvalid(hwait))));
@@ -1692,9 +1595,6 @@ function file = exportMatFcn(obj,startpath)
     hwait.AllowClose  = false;
     start(hwait);
     drawnow
-
-
-
 
     % magnitude/phase indices
     midx = obj.hdata.dns(didx).MagIndex;
@@ -1728,7 +1628,6 @@ function file = exportMatFcn(obj,startpath)
     end
 
     % ROI information
-%     tags = {'Contour','RestingContour','MaskFcn'};
     tags = {'ROIType','RestingContour','Contour'};
     ROIInfo = struct;
     for ti = 1:numel(tags)
@@ -1778,7 +1677,7 @@ function file = exportMatFcn(obj,startpath)
 
     x = 1:Isz(2);
     y = 1:Isz(1);
-    [X,Y,Z] = meshgrid(x,y,0);
+    [X,Y] = meshgrid(x,y,0);
 
     mask0 = obj.hdata.spl.MaskFcn(...
         X,Y,obj.hdata.spl.RestingContour);
@@ -1818,31 +1717,6 @@ function file = exportMatFcn(obj,startpath)
 
         DisplacementInfo.Angle = theta(:);
     end
-
-%     DisplacementInfo = struct(...
-%         'dX',NaN([Isz,Nfr]),...
-%         'dY',NaN([Isz,Nfr]),...
-%         'dZ',NaN([Isz,Nfr]));
-%
-%     pts = [Y(:),X(:),zeros(size(X(:)))];
-%     pts = pts(mask0,:)';
-%
-%     dtmp = NaN(Isz);
-%     for fr = frames
-%         pts(3,:) = fr;
-%
-%         dtmp(:) = NaN;
-%         dtmp(mask0) = fnvalmod(pts,obj.hdata.spl.spldx);
-%         DisplacementInfo.dX(:,:,fr) = dtmp;
-%
-%         dtmp(:) = NaN;
-%         dtmp(mask0) = fnvalmod(pts,obj.hdata.spl.spldy);
-%         DisplacementInfo.dY(:,:,fr) = dtmp;
-%
-%         dtmp(:) = NaN;
-%         dtmp(mask0) = fnvalmod(pts,obj.hdata.spl.spldz);
-%         DisplacementInfo.dZ(:,:,fr) = dtmp;
-%     end
 
     % fv & strain tags
     if any(strcmpi(obj.hdata.spl.ROIType,{'open','closed'}))
@@ -1899,13 +1773,18 @@ function file = exportMatFcn(obj,startpath)
 
     % export file
     AnalysisInstanceUID = dicomuid;
-    save(file,'AnalysisInstanceUID',...
-        'ImageInfo','ROIInfo','DisplacementInfo',...
-        'AnalysisInfo','DENSEInfo','SequenceInfo','StrainInfo');
 
+    out.ImageInfo = ImageInfo;
+    out.ROIInfo = ROIInfo;
+    out.DisplacementInfo = DisplacementInfo;
+    out.AnalysisInfo = AnalysisInfo;
+    out.DENSEInfo = DENSEInfo;
+    out.SequenceInfo = SequenceInfo;
+    out.StrainInfo = StrainInfo;
+    out.AnalysisInstanceUID = AnalysisInstanceUID;
 
+    set(file, '-struct', 'out')
 end
-
 
 %% EXPORT EXCEL DOCUMENT
 
@@ -1965,7 +1844,7 @@ function file = exportExcelFcn(obj,startpath)
 
     % ensure proper extension
     file = fullfile(uipath,uifile);
-    [p,f,e] = fileparts(file);
+    [~,~,e] = fileparts(file);
     if ~isequal(e,ext), file = [file, ext]; end
 
     % check for excel
@@ -2018,7 +1897,6 @@ function file = exportExcelFcn(obj,startpath)
             Nsec = max(obj.straindata.fv.sectorid);
     end
 
-
     [i,j]  = ndgrid(1:numel(strainnames),1:numel(layernames));
     tags  = straintags(i);
     lids  = layerids(j);
@@ -2041,10 +1919,6 @@ function file = exportExcelFcn(obj,startpath)
         % copy template file
         copyfile(filetemplate,file,'f');
 
-    %     % Open Excel Automation server
-    %     Excel = actxserver('Excel.Application');
-    %     excelCleanupObj = onCleanup(@()excelCleanup(Excel));
-
         % Open Excel file
         Workbooks = Excel.Workbooks;
         Workbook = Workbooks.Open(file);
@@ -2057,7 +1931,6 @@ function file = exportExcelFcn(obj,startpath)
         fid = fopen(file,'w');
         csvCleanupObj = onCleanup(@()csvCleanup(fid));
     end
-
 
     for k = 1:numel(names)%numel(names):-1:1
 
@@ -2075,7 +1948,6 @@ function file = exportExcelFcn(obj,startpath)
             for fr = frames
                 data(fr,sid) = mean(obj.straindata.strain.(tag)(tf,fr));
             end
-
         end
         Cdata(1+frames,2:end) = num2cell(data(frames,:));
 
@@ -2107,7 +1979,6 @@ function file = exportExcelFcn(obj,startpath)
         end
 
         drawnow
-
     end
 
     % CURE/RURE output
@@ -2167,7 +2038,6 @@ function file = exportExcelFcn(obj,startpath)
         end
 
         drawnow
-
     end
 
     % excel options
@@ -2189,10 +2059,7 @@ function file = exportExcelFcn(obj,startpath)
     else
         delete(csvCleanupObj);
     end
-
-
 end
-
 
 function excelCleanup(Excel)
 %     disp('Excel Cleanup!');
@@ -2202,9 +2069,8 @@ function excelCleanup(Excel)
 end
 
 function csvCleanup(fid)
-    fid = fclose(fid);
+    fclose(fid);
 end
-
 
 %% HELPER FUNCTION: RESIZE SINGLE AXES w/ PLAYBAR
 function resizeAxes(obj,hax,dim)
@@ -2232,9 +2098,7 @@ function resizeAxes(obj,hax,dim)
     else
         obj.exportrect = round(plotboxpos(hax,true)) + [-1 -1 0 0];
     end
-
 end
-
 
 %% MODIFIED COLORBAR AXES
 % we use the "colorbar" command as it supplies the necessary resizing
@@ -2252,6 +2116,13 @@ function hcb = colorbarmod(hax,loc,map,rng)
 
     % make the colorbar image invisible
     hchild = findall(hcb,'type','image');
+
+    if isempty(hchild)
+        set(hcb, 'Colormap', map);
+        set(hax, 'CLim', rng);
+        return
+    end
+
     set(hchild,'visible','off');
 
     % change the colorbar limits & add new patch object
@@ -2267,9 +2138,7 @@ function hcb = colorbarmod(hax,loc,map,rng)
     patch('parent',hcb,'facecolor','flat',...
         'edgecolor','none','facevertexcdata',map,...
         'vertices',v,'faces',f);
-
 end
-
 
 %% STRAIN HELPER FUNCTIONS
 function strainoptsFcn(obj)
@@ -2304,9 +2173,7 @@ function strainoptsFcn(obj)
 
     obj.strainopts = opts;
     obj.Enable = val;
-
 end
-
 
 function spl2strainFcn(obj)
 
@@ -2318,7 +2185,6 @@ function spl2strainFcn(obj)
     hwait.AllowClose = false;
     hwait.start;
 
-
     % ROI type
     type = obj.hdata.spl.ROIType;
 
@@ -2326,9 +2192,6 @@ function spl2strainFcn(obj)
     Nfr    = size(obj.hdata.spl.Mag,3);
     frrng  = obj.hdata.spl.frrng;
     frames = frrng(1):frrng(2);
-
-    tffr = false(1,Nfr);
-    tffr(frames) = true;
 
     api = struct(...
         'Type',             type,...
@@ -2415,7 +2278,6 @@ function spl2strainFcn(obj)
             Y = bsxfun(@plus,ori(:,2),data.(sttag).dY);
             Y = bsxfun(@minus,Y,mean(Y,1));
             [t,r] = cart2pol(X,Y);
-            tsv = t;
 
             % unwrap trajectory angle
             tall = [t0,t];
@@ -2438,9 +2300,7 @@ function spl2strainFcn(obj)
             data.(sttag).dR = dR;
             data.(sttag).dC = dC;
             data.(sttag).twist = dT*180/pi;
-
         end
-
 
         % extend all strain data to size [Nx x Nfr]
         tags = fieldnames(data.(sttag));
@@ -2449,305 +2309,18 @@ function spl2strainFcn(obj)
             tmp(:,frames) = data.(sttag).(tags{ti});
             data.(sttag).(tags{ti}) = tmp;
         end
-
     end
 
     % save to object
     obj.straindata = data;
-
-    return
-
-
-    tags = fieldnames(data.strainpix);
-    for ti = 1:numel(tags)
-        tmp = zeros([size(data.fvpix.faces,1),Nfr]);
-        tmp(:,frrng(1):frrng(2)) = data.strainpix.(tags{ti});
-        data.strainpix.(tags{ti}) = tmp;
-    end
-
-    data.frrng = frrng;
-
-
-    % cartesian displacement data
-    % (bulk corrected, scaled to mm)
-    % XXXXXXXXXXX
-
-    % face centroids (average of face vertices)
-    x = data.fv.vertices(:,1);
-    y = data.fv.vertices(:,2);
-    f = data.fv.faces;
-    pos = [mean(y(f),2),mean(x(f),2)]';
-
-    x = data.fvpix.vertices(:,1);
-    y = data.fvpix.vertices(:,2);
-    f = data.fvpix.faces;
-    pix = [mean(y(f),2),mean(x(f),2)]';
-
-    % cartesian/polar displacement
-
-
-    for ti = 1:numel(tags)
-
-        % face/vertex & strain tags
-        fvtag = ['fv' tags{ti}];
-        sttag = ['strain' tags{ti}];
-
-        % trajectory origins coordinates
-        xv = data.(fvtag).vertices(:,1);
-        yv = data.(fvtag).vertices(:,2);
-        f  = data.(fvtag).faces;
-
-        X0 = [mean(xv(f),2),mean(yv(f),2)];
-        Nx = size(X0,1);
-
-        % trajectories
-        pos = X0(:,[2 1])';
-        for k = 1:numel(types)
-            tagA = ['d' upper(tags{ti})];
-            tagB = ['spld' lower(tags{ti})];
-
-            tmp = zeros(Nx,Nfr);
-            for fr = frames
-                pos(3,:) = fr;
-                tmp(:,fr) = fnvalmod(obj.hdata.spl.(tagB),pos);
-            end
-            data.(sttag).(tagA) = tmp;
-        end
-
-        % polar origins (bulk corrected)
-        [t0,r0] = cart2pol(X0(:,1)-mean(X0(:,1)),Y0(:,1)-mean(Y0(:,1)));
-
-        % polar trajectories (bulk corrected)
-        dX = data.(sttag).dX;
-        dX = bsxfun(@minus,dX,mean(dX,1));
-        X  = bsxfun(@plus,X0(:),dX);
-
-        dY = data.(sttag).dY;
-        dY = bsxfun(@minus,dY,mean(dY,1));
-        Y  = bsxfun(@plus,Y0(:),dY);
-
-        t = zeros(Nx,Nfr);
-        r = zeros(Nx,Nfr);
-        [t(:,frames),r(:,frames)] = cart2pol(X(:,frames),Y(:,frames));
-
-        % unwrap theta
-        tall = [t0,t(:,frames)];
-        tall = unwrap(tall,[],2);
-        t(:,frames) = tall(:,2:end);
-
-        % change in radius/theta
-        dR = r0 - r;
-        dT = t - t0;
-
-        % change theta direction if necessary
-        if ~obj.straindata.Clockwise
-
-        end
-
-        x = data.fv.vertices(:,1);
-    y = data.fv.vertices(:,2);
-    f = data.fv.faces;
-    pos = [mean(y(f),2),mean(x(f),2)]';
-
-
-
-
-
-    end
-
-
-    disptags = {'X','Y','Z'};
-    for ti = 1:numel(tags)
-        tagA = ['d' upper(tags{ti})];
-        tagB = ['spld' lower(tags{ti})];
-
-        tmp = zeros(size(pos,2),Nfr);
-        for fr = frrng(1):frrng(2)
-            pos(3,:) = fr;
-            tmp(:,fr) = fnvalmod(obj.hdata.spl.(tagB),pos);
-        end
-        data.strain.(tagA) = tmp;
-
-        tmp = zeros(size(pix,2),Nfr);
-        for fr = frrng(1):frrng(2)
-            pix(3,:) = fr;
-            tmp(:,fr) = fnvalmod(obj.hdata.spl.(tagB),pix);
-        end
-        data.strainpix.(tagA) = tmp;
-    end
-
-    % polar displacement
-
-
-    % polar displacement
-    if any(strcmpi(type,{'SA'}))
-
-        tags = {'strain','strainpix'}
-
-        % polar origins (bulk corrected)
-        X0 = pos(2,:) - mean(pos(2,:));
-        Y0 = pos(1,:) - mean(pos(1,:));
-        [t0,r0] = cart2pol(X0(:),Y0(:));
-
-        % polar trajectories (bulk corrected)
-        dX = data.strain.dX;
-        dX = bsxfun(@minus,dX,mean(dX,1));
-        X  = bsxfun(@plus,X0(:),dX);
-
-        dY = data.strain.dY;
-        dY = bsxfun(@minus,dY,mean(dY,1));
-        Y  = bsxfun(@plus,Y0(:),dY);
-
-        [t,r] = cart2pol(X,Y);
-
-        % unwrap theta
-        tall = [t0,t];
-        tall = unwrap(tall,[],2);
-        t = tall(:,2:end);
-
-        % change in radius/theta
-        dR = r0 - r;
-        dT = t - t0;
-
-
-        api = struct(...
-            'vertices',  data.fv.vertices,...
-            'faces',     data.fv.faces,...
-            'times',     frrng(1):frrng(end),...
-            'spldx',     obj.hdata.spl.spldx,...
-            'spldy',     obj.hdata.spl.spldy,...
-            'origin',    data.PositionA,...
-            'clockwise', data.Clockwise);
-        twist = cardiactwist(api);
-
-        tmp = zeros(size(twist,1),Nfr);
-        tmp(:,frrng(1):frrng(2)) = twist;
-        twist = tmp;
-
-        api.vertices = data.fvpix.vertices;
-        api.faces    = data.fvpix.faces;
-        twistpix = cardiactwist(api);
-
-        tmp = zeros(size(twistpix,1),Nfr);
-        tmp(:,frrng(1):frrng(2)) = twistpix;
-        twistpix = tmp;
-
-        data.strain.twist    = 180/pi * twist;
-        data.strainpix.twist = 180/pi * twistpix;
-
-    end
-
-
-
-
-    % centroid displacements
-%     dX = zeros(
-
-%     ptrj = NaN([size(pos),Ntime]);
-%
-%     pts = pos';
-%     for k = 1:Ntime
-%         pts(3,:) = time(k);
-%         dx = fnvalmod(api.spldx,pts([2 1 3],:));
-%         dy = fnvalmod(api.spldy,pts([2 1 3],:));
-%         ptrj(:,:,k) = pos + [dx(:),dy(:)];
-%     end
-%
-
-
-%     dX = fnvalmod(obj.hdata.spl.spldx,vert);
-%     dY = fnvalmod(obj.hdata.spl.spldy,vert);
-%     dZ = fnvalmod(obj.hdata.spl.spldz,vert);
-%
-%     dxbulk = mean(dx);
-%     dybulk = mean(dy(mask0));
-%     dzbulk = mean(dz(mask0));
-%     dx = dx - dxbulk;
-%     dy = dy - dybulk;
-%     dz = dz - dzbulk;
-
-
-%     v0 = [X(:),Y(:),Z(:)];
-%
-%             dx = zeros(Isz);
-%             dy = zeros(Isz);
-%             dz = zeros(Isz);
-%
-%             pts = [Y(:),X(:),fr*ones(size(X(:)))]';
-%             dx(mask0) = fnvalmod(pts(:,mask0),obj.hdata.spl.spldx);
-%             dy(mask0) = fnvalmod(pts(:,mask0),obj.hdata.spl.spldy);
-%             dz(mask0) = fnvalmod(pts(:,mask0),obj.hdata.spl.spldz);
-%
-%             % bulk motion removal
-%             if ~bulk
-%                 dxbulk = mean(dx(mask0));
-%                 dybulk = mean(dy(mask0));
-%                 dzbulk = mean(dz(mask0));
-%                 dx = dx - dxbulk;
-%                 dy = dy - dybulk;
-%                 dz = dz - dzbulk;
-%             end
-
-
-    % twist data
-    if any(strcmpi(type,{'SA'}))
-        api = struct(...
-            'vertices',  data.fv.vertices,...
-            'faces',     data.fv.faces,...
-            'times',     frrng(1):frrng(end),...
-            'spldx',     obj.hdata.spl.spldx,...
-            'spldy',     obj.hdata.spl.spldy,...
-            'origin',    data.PositionA,...
-            'clockwise', data.Clockwise);
-        twist = cardiactwist(api);
-
-        tmp = zeros(size(twist,1),Nfr);
-        tmp(:,frrng(1):frrng(2)) = twist;
-        twist = tmp;
-
-        api.vertices = data.fvpix.vertices;
-        api.faces    = data.fvpix.faces;
-        twistpix = cardiactwist(api);
-
-        tmp = zeros(size(twistpix,1),Nfr);
-        tmp(:,frrng(1):frrng(2)) = twistpix;
-        twistpix = tmp;
-
-        data.strain.twist    = 180/pi * twist;
-        data.strainpix.twist = 180/pi * twistpix;
-
-    end
-
-    % save to object
-    obj.straindata = data;
-
-%
-%     % construct patchstrain API
-%     Nfr = size(obj.hdata.spl.Mag,3);
-%     api = struct(...
-%         'vertices', obj.strainopts.vertices,...
-%         'faces',    obj.strainopts.faces,...
-%         'times',    1:Nfr,...
-%         'spldx',    obj.hdata.spl.spldx,...
-%         'spldy',    obj.hdata.spl.spldy);
-%     if any(strcmpi(type,{'SA','LA'}))
-%         api.FaceOrientation = obj.strainopts.orientation;
-%     end
-%
-%     obj.straindata = patchstrain(api);
-
-
 end
-
 
 function fvcd = straincolorFcn(vals,map,rng)
 
     fvcd = (vals - rng(1)) / diff(rng);
     fvcd = round(fvcd*(size(map,1)-1)) + 1;
     fvcd = squeeze(ind2rgb(fvcd,map));
-
 end
-
 
 %% TEMPLATE DISPLAY FUNCTION
 % function templateDisplay(obj)

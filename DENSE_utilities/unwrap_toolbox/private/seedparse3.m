@@ -66,7 +66,7 @@ function [seeds,FLAG_seed] = seedparse3(...
     end
 
     % number of inputs
-    error(nargchk(3,5,nargin));
+    narginchk(3, 5);
 
     % default "seedframe" input
     if nargin < 4 || isempty(seedframe)
@@ -115,7 +115,7 @@ function [seeds,FLAG_seed] = seedparse3(...
 
 
     % numeric inputs
-    elseif isnumeric(seedinput) && ndims(seedinput) == 2
+    elseif isnumeric(seedinput) && ismatrix(seedinput)
 
         FLAG_seed = 0;
         seeds     = seedinput;

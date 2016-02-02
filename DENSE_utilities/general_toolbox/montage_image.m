@@ -10,7 +10,7 @@ function [bigImage,montageSize] = montage_image(varargin)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -103,7 +103,7 @@ end %MONTAGE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [I,cmap,montageSize,idxs,displayRange] = parse_inputs(varargin)
 
-iptchecknargin(1, 8, nargin, mfilename);
+narginchk(1, 8);
 
 % initialize variables
 cmap = [];
@@ -118,7 +118,7 @@ if iscell(varargin{1})
 else
     %MONTAGE(I,...) or MONTAGE(X,MAP,...)
     I = varargin{1};
-    iptcheckinput(varargin{1}, ...
+    validateattributes(varargin{1}, ...
         {'uint8' 'double' 'uint16' 'logical' 'single' 'int16'}, {}, ...
         mfilename, 'I, BW, or RGB', 1);
 end
@@ -148,7 +148,7 @@ paramStrings = {'Size', 'Indices', 'DisplayRange'};
 for k = charStart:2:nargin
 
     param = lower(varargin{k});
-    inputStr = iptcheckstrs(param, paramStrings, mfilename, 'PARAM', k);
+    inputStr = validateattributes(param, paramStrings, mfilename, 'PARAM', k);
     valueIdx = k + 1;
     if valueIdx > nargin
         eid = sprintf('Images:%s:missingParameterValue', mfilename);
@@ -160,7 +160,7 @@ for k = charStart:2:nargin
     switch (inputStr)
         case 'Size'
             montageSize = varargin{valueIdx};
-            iptcheckinput(montageSize,{'numeric'},...
+            validateattributes(montageSize,{'numeric'},...
                 {'vector','positive'}, ...
                 mfilename, 'Size', valueIdx);
             if numel(montageSize) ~= 2
@@ -172,7 +172,7 @@ for k = charStart:2:nargin
 
         case 'Indices'
             idxs = varargin{valueIdx};
-            iptcheckinput(idxs, {'numeric'},...
+            validateattributes(idxs, {'numeric'},...
                 {'vector','integer','nonnan'}, ...
                 mfilename, 'Indices', valueIdx);
 
@@ -206,7 +206,7 @@ if isa(I,'int16')
         'double, single, or logical.');
 end
 
-iptcheckinput(cmap,{'double'},{},mfilename,'MAP',1);
+validateattributes(cmap,{'double'},{},mfilename,'MAP',1);
 
 if size(cmap,1) == 1 && prod(cmap) == numel(I)
     % MONTAGE(D,[M N P]) OBSOLETE

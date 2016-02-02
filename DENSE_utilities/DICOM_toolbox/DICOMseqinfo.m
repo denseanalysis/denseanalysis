@@ -194,20 +194,29 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
 
     % choose new directory
     if FLAG_skipdialog
-        uipath = startpath;
+        uipaths = {startpath};
     else
-        uipath = uigetdir(startpath,'Choose DICOM directory');
-        if isequal(uipath,0)
+        uipaths = uigetdirs(startpath, 'Choose DICOM directory');
+        if isempty(uipaths)
             seqdata = []; uipath = [];
             return;
         end
     end
 
+    % Store the parent directory if multiple dirs were selected
+    if numel(uipaths) > 1
+        uipath = fileparts(uipaths{1});
+    else
+        uipath = uipaths{1};
+    end
+
     % ensure directory exists
-    if exist(uipath,'dir')~=7
-        error(sprintf('%s:noPath',mfilename),'%s\n%s',...
-            'The specified directory does not exist:',...
-            ['<',char(uipath),'>']);
+    for k = 1:numel(uipaths)
+        if exist(uipaths{k}, 'dir') ~= 7
+            error(sprintf('%s:noPath', mfilename), '%s\n%s', ...
+                'The specified directory does not exist:', ...
+                ['<', char(uipath{k}), '>']);
+        end
     end
 
     % initialize waitbar
@@ -218,8 +227,6 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
         hwaitCleanupObj = onCleanup(@()hwaitCleanupFcn(hwait));
         drawnow, pause(0.1)
     end
-
-
 
     %% LOCATE CANDIDATE DICOM FILES
     % Here, we search the chosen directory hierarchy for candidate DICOM
@@ -232,7 +239,8 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
         'Locating DICOM files...',0);
 
     % all files from hierarchy
-    files = getfiles(uipath,filefilters,1);
+    files = cellfun(@(pth)getfiles(pth, filefilters, 1), uipaths, 'uni', 0);
+    files = cat(1, files{:});
     Nfiles = numel(files);
 
     % check for cancellation

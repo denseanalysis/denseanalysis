@@ -68,7 +68,7 @@ function [pp,sparam] = cscvn2(points,endconds,iscorner)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %% WRITTEN BY:  Drew Gilliam
 % Derived from MATLAB builtin CSCVN
 %
@@ -81,7 +81,7 @@ function [pp,sparam] = cscvn2(points,endconds,iscorner)
     %% SETUP
 
     % check points input
-    if ~isnumeric(points) || ndims(points)~=2
+    if ~isnumeric(points) || ~ismatrix(points)
         error(sprintf('%s:invalidInput',mfilename),...
             'Invalid ''points'' Input.');
     end
@@ -200,8 +200,8 @@ function [pp,sparam] = cscvn2(points,endconds,iscorner)
             for k = 1:size(seg,2)
                 sk = s(seg(1,k):seg(2,k));
                 pk = points(:,seg(1,k):seg(2,k));
-                coefs = [coefs;...
-                    ppbrk(csape(sk,pk,'variational'),'c')];
+                coefs = cat(1, coefs,...
+                    ppbrk(csape(sk,pk,'variational'),'c'));
             end
 
             % Remove the extra periodic extension coefficents

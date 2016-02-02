@@ -72,6 +72,7 @@ classdef roitool < handle
         redrawenable = false;
         clineenable  = false;
 
+        copybuffer = [];
     end
 
     events
@@ -86,6 +87,37 @@ classdef roitool < handle
             obj = roitoolFcn(obj,varargin{:});
         end
 
+        function buffer = copy(obj)
+            if strcmpi(obj.Enable, 'off'); return; end
+            roi = obj.hdata.roi(obj.roiidx);
+            buffer = struct( ...
+                'Position', {roi.Position(obj.frame,:)}, ...
+                'IsClosed', {roi.IsClosed(obj.frame,:)}, ...
+                'IsCurved', {roi.IsCurved(obj.frame,:)}, ...
+                'IsCorner', {roi.IsCorner(obj.frame,:)});
+            obj.copybuffer = buffer;
+        end
+
+        function cut(obj)
+            if strcmpi(obj.Enable, 'off'); return; end
+            % First perform a copy, then remove everything
+            buffer = copy(obj);
+            obj.cLine.reset( ...
+                'ResetUndo', false, ...
+                'NumberOfLines', numel(buffer.Position));
+        end
+
+        function paste(obj)
+            if strcmpi(obj.Enable, 'off'); return; end
+            if isempty(obj.copybuffer); return; end
+            obj.cLine.reset( ...
+                'Position', obj.copybuffer.Position, ...
+                'IsClosed', obj.copybuffer.IsClosed, ...
+                'IsCurved', obj.copybuffer.IsCurved, ...
+                'IsCorner', obj.copybuffer.IsCorner, ...
+                'ResetUndo', false);
+        end
+
         % destructor
         function delete(obj)
             deleteFcn(obj);
@@ -95,7 +127,6 @@ classdef roitool < handle
             redrawFcn(obj);
         end
 
-
         function reset(obj)
             resetFcn(obj);
         end
@@ -103,38 +134,47 @@ classdef roitool < handle
         function val = get.Type(obj)
             val = obj.type;
         end
+
         function val = get.AxesHandles(obj)
             val = obj.hax;
         end
+
         function val = get.cLine(obj)
             val = obj.hcline;
         end
+
         function val = get.Visible(obj)
             val = obj.visible;
         end
+
         function val = get.Enable(obj)
             val = obj.enable;
         end
+
         function val = get.ROIIndex(obj)
             val = obj.roiidx;
         end
+
         function val = get.ROIFrame(obj)
             val = obj.frame;
         end
+
         function val = get.PositionConstraintFcn(obj)
             val = obj.pcfcn;
         end
 
-
         function set.Visible(obj,val)
             setVisibleFcn(obj,val);
         end
+
         function set.Enable(obj,val)
             setEnableFcn(obj,val);
         end
+
         function set.ROIIndex(obj,val)
             setROIIndexFcn(obj,val);
         end
+
         function set.ROIFrame(obj,val)
             setROIFrameFcn(obj,val);
         end
@@ -143,11 +183,10 @@ classdef roitool < handle
             obj.SequenceIndex = checkSequenceIndex(obj,val);
             reset(obj);
         end
+
         function set.DENSEIndex(obj,val)
             obj.DENSEIndex = checkDENSEIndex(obj,val);
         end
-
-
 
 %         function createROI(obj)
 %             createROIFcn(obj);
@@ -174,17 +213,13 @@ end
 function obj = roitoolFcn(obj,hdata,hax)
 
     % test hdata input
-    if ~isobject(hdata) || numel(hdata)>1 || ...
-       ~strcmpi(class(hdata),'DENSEdata')
-
+    if ~isa(hdata, 'DENSEdata') || numel(hdata) > 1
         error(sprintf('%s:invalidInput',mfilename),...
             'Function requires valid DENSEdata input');
     end
 
     % test for valid axes handles
-    if any(~isnumeric(hax)) || any(~ishandle(hax)) || ...
-       any(~isprop(hax,'type')) || any(~strcmpi(get(hax,'type'),'axes'))
-
+    if ~all(ishghandle(hax, 'axes'))
         error(sprintf('%s:invalidInput',mfilename),...
             'Function requires one or more Axes handles.');
     end
@@ -236,13 +271,12 @@ function obj = roitoolFcn(obj,hdata,hax)
 
     % Deletion listener: when the axes are destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hax,'ObjectBeingDestroyed',@(varargin)delete(obj));
+    obj.hlisten_delete = addlistener_mod(handle(obj.hax), ...
+        'ObjectBeingDestroyed',@(varargin)delete(obj));
 
     % cLINE listener
     obj.hlisten_cline = addlistener(obj.hcline,...
         'NewProperty',@(varargin)updateData(obj));
-
 end
 
 
@@ -268,7 +302,7 @@ function deleteFcn(obj)
                 end
                 delete(h(tf));
             end
-        catch ERR
+        catch
             fprintf('could not delete %s.%s\n',...
                 mfilename,tags{ti});
         end
@@ -514,15 +548,6 @@ function updateData(obj,data)
     obj.hdata.updateROI(idx,frame,data);
 
 end
-
-
-
-
-
-
-
-
-
 
 function resetFcn(obj)
 
@@ -851,14 +876,7 @@ function contextMenuFcn(obj)
 
         % update display
         playbackFcn(obj)
-
     end
-
-
-    function MGS(method)
-        obj.hdata.MGS(obj.DENSEIndex,roiidx,frame,method);
-    end
-
 end
 
 
@@ -873,8 +891,7 @@ function ignoreAxesFcn(obj,hax)
     end
 
     % ensure all inputs are axes
-    if ~isnumeric(hax) || ~all(ishandle(hax)) || ...
-       ~all(strcmpi(get(hax,'type'),'Axes'))
+    if ~all(ishghandle(hax, 'axes'))
         errstr = 'Function requires Axes handles.';
     elseif ~isempty(setdiff(hax,obj.hax))
         errstr = 'One or more axes is not recognized.';

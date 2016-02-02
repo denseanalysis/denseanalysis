@@ -26,7 +26,7 @@ function fcn = clineConstrainToRectFcn(hcline,xlim,ylim)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -38,7 +38,7 @@ function fcn = clineConstrainToRectFcn(hcline,xlim,ylim)
     tol = 1e-10;
 
     % check number of inputs
-    error(nargchk(3,3,nargin));
+    narginchk(3,3);
 
     % check first input
     if ~isobject(hcline) || ~isequal(class(hcline),'cline')
@@ -71,7 +71,7 @@ function fcn = clineConstrainToRectFcn(hcline,xlim,ylim)
 
     % test constraint function for success
     try
-        tmp = constrainFcn(hcline.Position);
+        constrainFcn(hcline.Position);
     catch ME1
         ERR = MException(sprintf('%s:testFailure',mfilename),...
             'Constraint function test failure.');

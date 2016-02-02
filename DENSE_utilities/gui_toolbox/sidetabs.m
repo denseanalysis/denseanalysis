@@ -376,7 +376,7 @@ function obj = sidetabsFcn(obj,hparent)
 % hfig....Figure parent
 
     % check number of inputs
-    error(nargchk(1,2,nargin));
+    narginchk(1, 2);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)
@@ -416,14 +416,13 @@ end
 
 function obj = deleteFcn(obj)
 
-	% handles to listeners
-    h = [obj.hlisten_parent, obj.hlisten_delete];
+    % handles to listeners
+    h = cat(1, obj.hlisten_parent(:), obj.hlisten_delete(:));
     delete(h(ishandle(h)));
 
     % delete drawing objects
     h = obj.hsidepanel;
     delete(h(ishandle(h)));
-
 end
 
 
@@ -439,9 +438,7 @@ function obj = setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~isnumeric(hparent) || ~isscalar(hparent) || ...
-       ~ishandle(hparent) || ...
-       ~strcmpi(get(hparent,'type'),'figure')
+    if ~isscalar(hparent) || ~ishghandle(hparent, 'figure')
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of SIDETABS must be a valid figure.');
     end
@@ -471,17 +468,17 @@ function obj = setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.Parent,'ObjectBeingDestroyed',@(varargin)obj.delete());
+    obj.hlisten_delete = addlistener(obj.Parent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 
     % Parent listener: when the parent is Resized, the color changes,
     % or the renderer changes, we need to update the SIDETABS object
-    prp = [findprop(handle(obj.Parent),'Position');...
-           findprop(handle(obj.Parent),'Color');...
-           findprop(handle(obj.Parent),'Renderer');];
-    obj.hlisten_parent = handle.listener(obj.Parent,...
-        prp,'PropertyPostSet',@(src,evnt)obj.redrawPrimer(src));
 
+    cback = @(src, evnt)obj.redrawPrimer(src);
+    obj.hlisten_parent = [...
+        position_listener(obj.Parent, cback);
+        addlistener_mod(obj.Parent, 'Color', 'PostSet', cback);
+        addlistener_mod(obj.Parent, 'Renderer', 'PostSet', cback)];
 end
 
 
@@ -505,10 +502,8 @@ function obj = addTabFcn(obj,str,href)
     % check handle input
     if nargin < 3 || isempty(href)
         href = NaN;
-    elseif ~ishandle(href) || ...
-       ~strcmpi(get(href,'type'),'uipanel') || ...
-       ~isequal(obj.Parent,get(href,'Parent'))
-
+    elseif ~ishghandle(href, 'uicontainer') || ...
+       ~isequal(obj.Parent, get(href, 'Parent'))
         error(sprintf('%s:invalidHandle',mfilename),'%s',...
             '''addTab'' accepts only UIPANEL objects with the same ',...
             'Parent as the SIDETABS object.');
@@ -811,7 +806,7 @@ function obj = redrawFcn(obj)
     end
 
     % throw warning if any reference panels stopped exisiting
-    if ~isequalwithequalnans(href,obj.hrefpanels)
+    if ~isequaln(href,obj.hrefpanels)
         warning(sprintf('%s:invalidPanel',mfilename),'%s',...
             'One or more panels under SIDETABS control became invalid ',...
             '(either the object handle no longer is valid, or the ',...

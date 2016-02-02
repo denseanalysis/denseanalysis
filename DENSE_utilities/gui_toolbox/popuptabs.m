@@ -266,7 +266,7 @@ function obj = popuptabsFcn(obj,hparent)
 % hparent....parent figure/uipanel
 
     % check number of inputs
-    error(nargchk(1,2,nargin));
+    narginchk(1, 2);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)
@@ -310,7 +310,7 @@ end
 function deleteFcn(obj)
 
 	% handles to listeners
-    h = [obj.hlisten_parent, obj.hlisten_delete];
+    h = [obj.hlisten_parent(:); obj.hlisten_delete(:)];
     delete(h(ishandle(h)));
 
     % move reference panels back to parent
@@ -319,7 +319,7 @@ function deleteFcn(obj)
        ~strcmpi(get(obj.hparent,'BeingDeleted'),'on')
         try
             set(obj.hrefpanels,'Parent',obj.hparent);
-        catch ERR
+        catch
         end
     end
 
@@ -341,9 +341,8 @@ function setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~isnumeric(hparent) || ~isscalar(hparent) || ...
-       ~ishandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~isscalar(hparent) || ...
+        (~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel'))
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of PLAYBAR must be a figure or uipanel.');
     end
@@ -372,25 +371,25 @@ function setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hparent,'ObjectBeingDestroyed',@(varargin)obj.delete());
+    obj.hlisten_delete = addlistener(obj.hparent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 
     % Property listener: when the parent is Resized, the parent color
     % changes, or the ancestor figure is resized, we need to update
     % the SIDETABS object
-    if strcmpi(get(obj.hparent,'type'),'figure')
-        h = [obj.hparent,obj.hparent];
-        tags = {'Position','Color'};
+    cback = @(varargin)redrawFcn(obj);
+
+    if ishghandle(obj.hparent, 'figure')
+        obj.hlisten_parent = [ ...
+            addlistener_mod(obj.hparent, 'Color', 'PostSet', cback);
+            position_listener(obj.hparent, cback)];
     else
-        h = [obj.hparent,obj.hparent,ancestor(obj.hparent,'figure')];
-        tags = {'Position','BackgroundColor','Position'};
+        fig = ancestor(obj.hparent, 'figure');
+        obj.hlisten_parent = [...
+            position_listener(obj.hparent, cback);
+            addlistener_mod(obj.hparent, 'BackgroundColor', 'PostSet', cback);
+            position_listener(fig, cback)];
     end
-
-    prp = cellfun(@(h,tag)findprop(h,tag),...
-        num2cell(handle(h)),tags,'uniformoutput',0);
-    obj.hlisten_parent = handle.listener(handle(h),cell2mat(prp),...
-        'PropertyPostSet',@(varargin)redrawFcn(obj));
-
 end
 
 
@@ -439,9 +438,7 @@ function addTabFcn(obj,str,href)
     % check handle input
     if nargin < 3 || isempty(href)
         href = NaN;
-    elseif ~ishandle(href) || ...
-       ~strcmpi(get(href,'type'),'uipanel')
-
+    elseif ~ishghandle(href, 'uicontainer')
         error(sprintf('%s:invalidHandle',mfilename),'%s',...
             '''addTab'' accepts only UIPANEL objects with the same ',...
             'Parent as the POPUPTABS object.');
@@ -479,7 +476,7 @@ function addTabFcn(obj,str,href)
 
     % default reference panel height
     % move reference panels to POPUPTABS panel
-    if isnan(href)
+    if ~ishghandle(href)
         obj.PanelHeights(idx) = 0;
         obj.Enable{idx} = 'off';
     else
@@ -494,24 +491,6 @@ function addTabFcn(obj,str,href)
     redrawFcn(obj);
 
 end
-
-
-%% REMOVE TAB
-
-function removeTab(obj,idx)
-
-
-
-
-end
-
-
-
-
-
-
-
-
 
 
 function redrawFcn(obj)
@@ -535,7 +514,7 @@ function redrawFcn(obj)
     setpixelposition(obj.hmainpanel,ppnl);
 
     % update background colors
-    if strcmpi(get(obj.hparent,'type'),'figure')
+    if ishghandle(obj.hparent, 'figure')
         clr = get(obj.hparent,'color');
     else
         clr = get(obj.hparent,'backgroundcolor');
@@ -567,7 +546,7 @@ function redrawFcn(obj)
             obj.Enable{k} = 'off';
         end
     end
-    if ~isequalwithequalnans(href,obj.hrefpanels)
+    if ~isequaln(href,obj.hrefpanels)
         warning(sprintf('%s:invalidPanel',mfilename),'%s',...
             'One or more panels under POPUPTABS control became invalid ',...
             '(either the object handle no longer is valid, or the ',...

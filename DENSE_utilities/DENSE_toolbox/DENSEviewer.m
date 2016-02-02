@@ -24,15 +24,12 @@ classdef DENSEviewer < DataViewer
         ROIEdit = 'off';
     end
 
-
     properties (SetAccess='private',GetAccess='public')
 
         % DENSEdata indices
         dnsidx = [];
         roiuid = [];
         frame = 1;
-
-
 
         dnsbuf = [];
         roibuf = [];
@@ -56,7 +53,6 @@ classdef DENSEviewer < DataViewer
         % zoom/pan/rotate objects
         constraintFcn
 
-
         hdns_text
         hdns_menu
         hdns_button
@@ -74,10 +70,7 @@ classdef DENSEviewer < DataViewer
         harial
 
         hclimlink
-
     end
-
-
 
     methods
         function obj = DENSEviewer(varargin)
@@ -122,13 +115,11 @@ classdef DENSEviewer < DataViewer
             end
         end
 
-
         function set.ROIEdit(obj,val)
             val = checkROIEdit(obj,val);
             if ~isempty(obj.ROIIndex), obj.hroi.Enable = val; end
             obj.ROIEdit = val;
         end
-
 
         function val = get.SliceViewer(obj)
             val = obj.hslice;
@@ -143,7 +134,6 @@ classdef DENSEviewer < DataViewer
         function set.ArialViewer(obj,val)
             setArialViewerFcn(obj,val);
         end
-
 
         function newROI(obj)
             obj.hroi.createROI(obj.SequenceIndex(1));
@@ -178,9 +168,7 @@ classdef DENSEviewer < DataViewer
         function path = exportROI(obj,varargin)
             path = exportROIFcn(obj,varargin{:});
         end
-
     end
-
 
     methods (Access=protected)
         function playback(obj)
@@ -208,36 +196,26 @@ classdef DENSEviewer < DataViewer
             contextCallbackFcn(obj);
         end
     end
-
 end
-
-
-
-
-
-
 
 function obj = DENSEviewerFcn(obj)
 
     hlclr   = [78 101 148]/255;
-    edgeclr = 'w';
     axesclr = [.5 .5 .5];
-    txtclr  = [1 0.5 0];
 
-    titles = {'X MAGNITUDE','X-PHASE',...
+    titles = {'X-MAGNITUDE','X-PHASE',...
               'Y-MAGNITUDE','Y-PHASE',...
               'Z-MAGNITUDE','Z-PHASE'};
     tags = {'xmag','xpha','ymag','ypha','zmag','zpha'};
 
-
     % create object hierarchy
-    obj.hax    = NaN(6,1);
-    obj.him    = NaN(6,1);
-    obj.htitle = NaN(6,1);
+    obj.hax    = [];
+    obj.him    = [];
+    obj.htitle = [];
     for k = 1:6
-        obj.hax(k) = axes('parent',obj.hdisplay);
-        obj.him(k) = imshow(rand(10),'parent',obj.hax(k));
-        obj.htitle(k) = textfig(obj.hdisplay);
+        obj.hax = cat(1, obj.hax, axes('parent',obj.hdisplay));
+        obj.him = cat(1, obj.him, imshow(rand(10),'parent',obj.hax(k)));
+        obj.htitle = cat(1, obj.htitle, textfig(obj.hdisplay));
     end
 
     obj.hroi = roitool(obj.hdata,obj.hax);
@@ -256,7 +234,6 @@ function obj = DENSEviewerFcn(obj)
     obj.hroi_text   = textfig(hctrl);
     obj.hroi_menu   = uicontrol('parent',hctrl,'style','popupmenu');
     obj.hroi_button = uicontrol('parent',hctrl,'style','pushbutton');
-
 
     % set properties
 
@@ -306,7 +283,6 @@ function obj = DENSEviewerFcn(obj)
         'BorderType',      'line',...
         'HighlightColor',   hlclr);
 
-
     h = [obj.hflag_swap,obj.hflag_negx,...
          obj.hflag_negy,obj.hflag_negz];
     pos = {[5 35 75 15]; [80 35 75 15]; [80 20 75 15]; [80 5 75 15]};
@@ -338,10 +314,9 @@ function obj = DENSEviewerFcn(obj)
                              @(varargin)hreg_button_Callback(obj);
                              @(varargin)hroi_button_Callback(obj)});
 
-
     % link axes limits
     hlink = linkprop(obj.hax,{'XLim','YLim','DataAspectRatio'});
-    setappdata(obj.hax(1),'graphics_linkaxes',hlink);
+    setappdata(obj.hax(1), 'custom_graphics_linkaxes', hlink);
 
     % ROI suspend/restore listeners
     obj.hlisten_suspend = addlistener(obj.hroi,...
@@ -349,20 +324,14 @@ function obj = DENSEviewerFcn(obj)
     obj.hlisten_restore = addlistener(obj.hroi,...
         'Restore',@(varargin)restore(obj));
 
-
-
     % initialize zoom/pan/rot
     setZoomPanRot(obj);
 
-
     % ready the object
     loaddnsFcn(obj);
-
 end
 
-
 function setZoomPanRotFcn(obj)
-
 
     % do not complete until axes have been created
     if isempty(obj.hax), return; end
@@ -396,9 +365,7 @@ function setZoomPanRotFcn(obj)
 
     % disable phase contrast
     obj.hcontrast.setAllowAxes(obj.hax([2 4 6]),false);
-
 end
-
 
 function zoompan(obj,hax)
     if any(hax==obj.hax) && ~isempty(obj.dnsidx)
@@ -419,12 +386,6 @@ function contrastfcn(obj,hax)
         end
     end
 end
-
-
-
-
-
-
 
 function deleteFcn(obj)
 
@@ -449,9 +410,7 @@ function deleteFcn(obj)
                 mfilename,tags{ti});
         end
     end
-
 end
-
 
 function resetFcn(obj)
 
@@ -481,9 +440,7 @@ function resetFcn(obj)
 
     % reset display
     resetdisp(obj);
-
 end
-
 
 function resetdisp(obj)
 
@@ -514,14 +471,9 @@ function resetdisp(obj)
     % reset ROI tool
     reset(obj.hroi);
     obj.ROIEdit = 'off';
-
 end
 
-
-
 function dataeventFcn(obj,evnt)
-
-
     switch lower(evnt.Action)
         case 'load'
             loaddnsFcn(obj);
@@ -533,18 +485,8 @@ function dataeventFcn(obj,evnt)
             end
         case {'delete','rename'}
             redraw(obj);
-%         case 'delete'
-%             if strcmpi(event.Field,'roi')
-%                 obj.roiuid = [];
-
     end
-
-
 end
-
-
-
-
 
 function loaddnsFcn(obj)
 
@@ -571,7 +513,6 @@ function loaddnsFcn(obj)
         % current DENSE information
         duid = obj.hdata.dns(k).UID;
 
-
         % check for exisiting display information
         % if we already have this information, copy to the new data
         % structure and continue.  Otherwise we need to setup the new
@@ -587,7 +528,6 @@ function loaddnsFcn(obj)
                 continue
             end
         end
-
 
         % DENSE information
         sidx  = [obj.hdata.dns(k).MagIndex;
@@ -621,7 +561,6 @@ function loaddnsFcn(obj)
         data(k).CurrentCLim   = repmat([0 1],[1 1 6]);
         data(k).CurrentXYLim  = xylim;
         data(k).CurrentROIUID = [];
-
     end
 
     % save to object
@@ -632,25 +571,7 @@ function loaddnsFcn(obj)
     obj.roiuid = data(1).CurrentROIUID;
     obj.frame  = 1;
     redraw(obj);
-
-%     strs = cell(N,1);
-%     for k = 1:N
-%         idx = [obj.hdata.dns(k).MagIndex; ...
-%                obj.hdata.dns(k).PhaIndex];
-%         str = sprintf('[%d/%d] ',idx(~isnan(idx)));
-%         strs{k} = sprintf('%3s: %s',...
-%             obj.hdata.dns(k).Type,str);
-%     end
-%     set(obj.hdns_menu,'String',strs,'Value',1,'Enable','on');
-%     set(obj.hdns_button,'Enable','on');
-%
-%     % display the first sequence
-%     obj.DENSEIndex = 1;
-
-
 end
-
-
 
 function redrawFcn(obj)
 
@@ -669,7 +590,6 @@ function redrawFcn(obj)
         return
     end
 
-
     % DENSE name buffer, containing all sequence display names
     if ~isempty(obj.hdata.dns)
         N = numel(obj.hdata.dns);
@@ -687,14 +607,12 @@ function redrawFcn(obj)
         obj.dnsbuf = {};
     end
 
-
     % ROI name buffer, containing all ROI display names
     if ~isempty(obj.hdata.roi)
         obj.roibuf = {obj.hdata.roi.Name};
     else
         obj.roibuf = {};
     end
-
 
     % if the current DENSE UID is as expected, lets display the current
     % sequence.  Otherwise, lets display the first sequence.
@@ -723,15 +641,12 @@ function redrawFcn(obj)
     % all sequence indices
     sidx = [midx; pidx];
 
-
     % update registration controls
     if numel(unique(midx(~isnan(midx)))) > 1
         set(obj.hreg_button,'enable','on');
     else
         set(obj.hreg_button,'enable','off');
     end
-
-
 
     % gather available ROI options (including "none")
     allridx = findROI(obj.hdata,sidx(~isnan(sidx)));
@@ -764,8 +679,6 @@ function redrawFcn(obj)
         'Enable',    'on');
     set(obj.hroi_button,'Enable','on');
 
-
-
     % set image visibility
     for k = 1:6
         if isnan(sidx(k))
@@ -790,9 +703,6 @@ function redrawFcn(obj)
        fix(obj.hcontrast,obj.hax(k));
     end
 
-
-
-
     % display ROI of interest
     if ridx==0
         reset(obj.hroi);
@@ -810,7 +720,6 @@ function redrawFcn(obj)
             obj.hroi.Enable = obj.ROIEdit;
         end
     end
-
 
     % reset the cLine position constraint function
     fcn = clineConstrainToRectFcn(obj.hroi.cLine,...
@@ -835,7 +744,6 @@ function redrawFcn(obj)
     dar = [1 px(2)/px(1) 1];
     daspect(obj.hax(1),dar);
 
-
     % update SliceViewer
     if ~isempty(obj.hslice)
         tf = obj.hslice.SequenceHighlight;
@@ -848,14 +756,12 @@ function redrawFcn(obj)
         obj.harial.Limits = lim;
     end
 
-
     % flag display
     swap = obj.hdata.dns(didx).SwapFlag;
     neg  = obj.hdata.dns(didx).NegFlag;
     set(obj.hflag_swap,'value',swap);
     set([obj.hflag_negx,obj.hflag_negy,obj.hflag_negz]',...
         {'value'},num2cell(neg)');
-
 
     % enable playbar
     obj.hplaybar.Max = obj.displaydata(didx).NumberOfFrames;
@@ -868,7 +774,6 @@ function redrawFcn(obj)
     % save the current ROI uid
     obj.displaydata(didx).CurrentROIUID = obj.roiuid;
 
-
     % determine export options
     obj.isAllowExportImage = true;
     if obj.hplaybar.Max > 1
@@ -876,13 +781,7 @@ function redrawFcn(obj)
     else
         obj.isAllowExportVideo = false;
     end
-
 end
-
-
-
-
-
 
 function resizeFcn(obj)
 
@@ -890,7 +789,6 @@ function resizeFcn(obj)
     minwh = [400 300];  % minimum allowable panel size
     vert  = [10 10 50]; % internal axes vertical spacing (top/mid/bot)
     horz  = [30 30 10]; % internal horizontal spacing    (lft/mid/rgt)
-    ploff = 5;          % playbar lower offset
     margin = 5;
 
     % get the current panel margin
@@ -939,9 +837,9 @@ function resizeFcn(obj)
     for k = 1:numel(h)
         p(2) = p(2)-yshft(k);
         p(4) = height(k);
-        if strcmpi(get(h(k),'type'),'text')
+        if ishghandle(h(k), 'text')
             set(h(k),'units','pixels','Position',p(1:2));
-        elseif strcmpi(get(h(k),'type'),'uicontrol') && ...
+        elseif ishghandle(h(k), 'uicontrol') && ...
            strcmpi(get(h(k),'style'),'pushbutton')
             ppb = [xpb p(2) wpb p(4)];
             setpixelposition(h(k),ppb);
@@ -949,13 +847,7 @@ function resizeFcn(obj)
             setpixelposition(h(k),p);
         end
     end
-
-
 end
-
-
-
-
 
 function playbackFcn(obj)
 
@@ -982,7 +874,7 @@ function playbackFcn(obj)
 
     % issue warning for strange shifts
     for k = 1:3
-        if ~isequalwithequalnans(shft{1,k},shft{2,k})
+        if ~isequaln(shft{1,k},shft{2,k})
             warning(sprintf('%s:translationsWarning',mfilename),...
                 'Magnitude/Phase translations do not match...');
             break
@@ -991,79 +883,46 @@ function playbackFcn(obj)
 
     % determine multi-type, indicating we should swap and
     % negate the image display
-%     if any(strcmpi(group.Type,{'xy','xyz'}));
 
-        % swap imagery
-        if group.SwapFlag
-            I(:,[1 2]) = I(:,[2 1]);
+    % swap imagery
+    if group.SwapFlag
+        I(:,[1 2]) = I(:,[2 1]);
+    end
+
+    % negate imagery
+    for k = 1:3
+        if neg(k)
+            I{2,k} = 1-I{2,k};
         end
-
-        % negate imagery
-        for k = 1:3
-            if neg(k)
-                I{2,k} = 1-I{2,k};
-            end
-        end
-
-%     end
+    end
 
     % update image
     for k = 1:6
         set(obj.him(k),'cdata',I{k});
     end
 
-%     for k = 1:6
-%         if ~isnan(sidx(k))
-%             set(obj.him(k),'cdata',I{k});
-%
-% %             if tfmulti && neg(k)
-% %                 set(obj.him(k),'cdata',...
-% %                     mxphs - obj.hdata.img{sidx(k)}(:,:,frame));
-% %             else
-% %                 set(obj.him(k),'cdata',...
-% %                     obj.hdata.img{sidx(k)}(:,:,frame));
-% %             end
-%
-%             if any(k == [2 4 6])
-%                 clim = [0 mxphs];
-%             else
-%                 clim = obj.displaydata(didx).CurrentCLim(frame,:,k);
-%             end
-%             set(obj.hax(k),'clim',clim);
-%         end
-%     end
-
     if ~isempty(obj.ROIIndex)
         obj.hroi.ROIFrame = frame;
     end
 
     obj.frame = frame;
-
 end
-
-
 
 function val = checkROIEdit(obj,val)
 
     if ~ischar(val) || ~any(strcmpi(val,{'on','off'}))
         errstr = 'Invalid ROIEdit; valid strings are [on|off]';
-%     elseif strcmpi(val,'on') && ...
-%        (isempty(obj.ROIIndex) || strcmpi(obj.hroi.Visible,'off'))
-%         errstr = 'No valid visible ROI to edit.';
     end
 
     if exist('errstr','var')
         error(sprintf('%s:invalidROIEdit',mfilename),errstr);
     end
-
 end
-
-
 
 function setSliceViewerFcn(obj,val)
 
     if ~isempty(val)
-        if ~isobject(val) || ~strcmpi(class(val),'SliceViewer')
+        if ~isa(val, 'SliceViewer')
             error(sprintf('%s:invalidSliceViewer',mfilename),...
                 'Invalid Slice Viewer Specification.');
         end
@@ -1092,13 +951,12 @@ function setSliceViewerFcn(obj,val)
         tf(sidx) = true;
         obj.hslice.SequenceHighlight = tf;
     end
-
 end
 
 function setArialViewerFcn(obj,val)
 
     if ~isempty(val)
-        if ~isobject(val) || ~strcmpi(class(val),'ArialViewer')
+        if ~isa(val, 'ArialViewer')
             error(sprintf('%s:invalidArialViewer',mfilename),...
                 'Invalid Arial Viewer Specification.');
         end
@@ -1126,11 +984,7 @@ function setArialViewerFcn(obj,val)
             obj.harial.Limits = obj.displaydata(didx).CurrentXYLim;
         end
     end
-
 end
-
-
-
 
 function hdns_menu_Callback(obj)
     if interrupt(obj.hdns_menu), return; end
@@ -1143,12 +997,10 @@ function hdns_menu_Callback(obj)
         obj.frame  = 1;
         redraw(obj);
     end
-
 end
 
 function hroi_menu_Callback(obj)
     if interrupt(obj.hroi_menu), return; end
-
 
     prop = get(obj.hroi_menu,{'userdata','value'});
     ridx = prop{1}(prop{2});
@@ -1160,13 +1012,6 @@ function hroi_menu_Callback(obj)
     end
 
     redraw(obj)
-
-
-%     prop = get(obj.hroi_menu,{'userdata','value'});
-%     ridx = prop{1}(prop{2});
-%
-%     obj.ROIIndex = ridx;
-
 end
 
 function tf = interrupt(h)
@@ -1179,12 +1024,6 @@ function tf = interrupt(h)
     end
 end
 
-
-
-
-
-
-
 function suspendFcn(obj)
 
     % check isSuspended
@@ -1196,9 +1035,7 @@ function suspendFcn(obj)
 
     % deactivate objects
 %     obj.hroi.Visible = 'off';
-
 end
-
 
 function restoreFcn(obj)
 
@@ -1208,21 +1045,16 @@ function restoreFcn(obj)
     if ~isempty(obj.statecache)
 %         obj.hroi.Visible = obj.statecache.ROIVisible;
     end
-
 end
-
-
 
 function hdns_button_Callback(obj)
     obj.hdata.editDENSE;
 end
 
-
 function hreg_button_Callback(obj)
     obj.hdata.regDENSE(obj.DENSEIndex);
     redraw(obj);
 end
-
 
 function hroi_button_Callback(obj)
 
@@ -1234,12 +1066,7 @@ function hroi_button_Callback(obj)
 %         obj.frame
         redraw(obj);
     end
-
 end
-
-
-
-
 
 function contextCallbackFcn(obj)
 
@@ -1287,11 +1114,7 @@ function contextCallbackFcn(obj)
         ridx = prop{1}(prop{2});
         obj.hdata.deleteROI(ridx);
     end
-
 end
-
-
-
 
 function path = exportROIFcn(obj,startpath)
 
@@ -1329,6 +1152,5 @@ function path = exportROIFcn(obj,startpath)
     end
     obj.exportroiapi.StudyInstanceUID = uid;
     path = output.ExportPath;
-
 end
 

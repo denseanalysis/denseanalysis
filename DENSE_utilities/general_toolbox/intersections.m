@@ -43,17 +43,17 @@ function [x0,y0,iout,jout] = intersections(x1,y1,x2,y2,robust)
 
 % Copyright (c) 2008, Douglas M. Schwarz
 % All rights reserved.
-% 
+%
 % Redistribution and use in source and binary forms, with or without
 % modification, are permitted provided that the following conditions are
 % met:
-% 
+%
 %     * Redistributions of source code must retain the above copyright
 %       notice, this list of conditions and the following disclaimer.
 %     * Redistributions in binary form must reproduce the above copyright
 %       notice, this list of conditions and the following disclaimer in
 %       the documentation and/or other materials provided with the distribution
-% 
+%
 % THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 % AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 % IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -112,7 +112,7 @@ function [x0,y0,iout,jout] = intersections(x1,y1,x2,y2,robust)
 
 
 % Input checks.
-error(nargchk(2,5,nargin))
+narginchk(2, 5)
 
 % Adjustments when fewer than five arguments are supplied.
 switch nargin
@@ -224,7 +224,7 @@ if robust
 		lastwarn('')
 		for k = 1:n
 			T(:,k) = AA(:,:,k)\B(:,k);
-			[unused,last_warn] = lastwarn;
+			[~,last_warn] = lastwarn;
 			lastwarn('')
 			if strcmp(last_warn,'MATLAB:singularMatrix')
 				% Force in_range(k) to be false.

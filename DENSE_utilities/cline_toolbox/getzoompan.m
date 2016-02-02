@@ -23,12 +23,8 @@ function htools = getzoompan(hfig)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
-%
-%MODIFICATION HISTORY:
-%   2009.02     Drew Gilliam
-%     --creation
 
     % valid tag identifiers
     strs = {'Exploration.ZoomOut',...
@@ -36,7 +32,7 @@ function htools = getzoompan(hfig)
             'Exploration.Pan'};
 
     % check for valid figure handle
-    if ~ishandle(hfig) || ~strcmpi(get(hfig,'type'),'figure')
+    if ~ishghandle(hfig, 'figure')
         warning(sprintf('%s:invalidFigure',mfilename),...
             'Handle was not a valid figure.');
         htools = [];
@@ -53,6 +49,4 @@ function htools = getzoompan(hfig)
         tf = tf | strcmpi(tags,strs{k});
     end
     htools = h(tf);
-
 end
-

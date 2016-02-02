@@ -169,18 +169,18 @@ classdef waitbartimer < hgsetget
 
         % retrieve missing objects
         function obj = find()
-           h = findall(0,'type','figure','-and','tag','WaitbarTimer');
-           if numel(h) > 0
-               for k = 1:numel(h)
-                    obj(k) = getappdata(h,'waitbartimerObjectReference');
-               end
-           else
-               obj = [];
-           end
+            obj = [];
+            h = findall(0,'type','figure','-and','tag','WaitbarTimer');
+            if numel(h) > 0
+                for k = 1:numel(h)
+                    o = getappdata(h,'waitbartimerObjectReference');
+                    obj = cat(2, obj, o);
+                end
+            else
+                obj = [];
+            end
         end
-
     end
-
 end
 
 

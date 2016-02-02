@@ -117,9 +117,8 @@ classdef rotatetool < handle
         function obj = rotatetool(hfig)
 
             % check figure
-            if ~isnumeric(hfig) || ~isscalar(hfig) || ...
-               ~ishandle(hfig) || ~strcmpi(get(hfig,'type'),'figure')
-                error(sprintf('%s:invalidFigure',mfilename),...
+            if ~isscalar(hfig) || ~ishghandle(hfig, 'figure')
+                error(sprintf('%s:invalidFigure', mfilename),...
                     'Invalid figure handle.');
             end
 
@@ -250,7 +249,7 @@ function obj = mainFcn(obj,hfig)
             im(:,:,k) = tmp;
         end
         obj.icon = im;
-    catch ERR
+    catch
         obj.icon = zeros([16 16 3]);
     end
 
@@ -272,29 +271,18 @@ function obj = mainFcn(obj,hfig)
 
     % deletion listener: is the parent figure is deleted, we need to
     % delete the contrast object
-    obj.hlisten_delete = handle.listener(...
-        hfig,'ObjectBeingDestroyed',@(varargin)delete(obj));
+    obj.hlisten_delete = addlistener(hfig, 'ObjectBeingDestroyed', ...
+        @(varargin)delete(obj));
 
     % mode listener: if the mode manager changes the figure mode, we
     % need start/stop the contrast tool appropriately
     hmanager = uigetmodemanager(hfig);
     prop = findprop(hmanager,'CurrentMode');
-    obj.hlisten_mode = handle.listener(hmanager,...
-        prop,'PropertyPostSet',@(varargin)modeFcn(obj));
+    obj.hlisten_mode = addlistener_mod(hmanager, prop, 'PostSet', ...
+        @(varargin)modeFcn(obj));
 
     % create a UI mode object
     createMode(obj);
-%     obj.hmode = getuimode(hfig,obj.modename);
-%     if isempty(obj.hmode)
-%         obj.hmode = uimode(hfig,obj.modename);
-%         set(obj.hmode,'WindowButtonDownFcn',@(varargin)buttonDownFcn(obj));
-%         set(obj.hmode,'WindowButtonUpFcn',@(varargin)buttonUpFcn(obj));
-%         set(obj.hmode,'WindowButtonMotionFcn',@(src,evnt)motionFcn(obj,evnt));
-%         set(obj.hmode,'UIContextMenu',[]);
-%         set(obj.hmode,'UseContextMenu','on');
-%     end
-
-
 end
 
 
@@ -321,7 +309,7 @@ function deleteFcn(obj)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
         end
     end
 
@@ -333,8 +321,7 @@ end
 function addToggleFcn(obj,htoolbar)
 
     % check toolbar
-    if ~isnumeric(htoolbar) || ~isscalar(htoolbar) || ...
-       ~ishandle(htoolbar) || ~strcmpi(get(htoolbar,'type'),'uitoolbar')
+    if ~isscalar(htoolbar) || ~ishghandle(htoolbar, 'uitoolbar')
         error(sprintf('%s:invalidToolbar',mfilename),...
             'Invalid toolbar handle.');
     end
@@ -455,9 +442,15 @@ function motionFcn(obj,evnt)
     % figure handle
     hfig = obj.FigureHandle;
 
+    try % HG2
+        currentPoint = evnt.Point;
+    catch % HG1 fallback
+        currentPoint = evnt.CurrentPoint;
+    end
+
     % manually update the current figure point
-    curr_units = hgconvertunits(hfig,[0 0 evnt.CurrentPoint],...
-        'pixels',get(hfig,'Units'),hfig);
+    curr_units = hgconvertunits(hfig, [0 0 currentPoint],...
+        'pixels', get(hfig, 'Units'), hfig);
     pt = curr_units(3:4);
     set(hfig,'CurrentPoint',pt);
 
@@ -766,10 +759,10 @@ function createMode(obj)
         obj.hmode = uimode(hfig,obj.modename);
         set(obj.hmode,...
             'WindowButtonDownFcn',  @(varargin)buttonDownFcn(obj),...
-        	'WindowButtonUpFcn',    @(varargin)buttonUpFcn(obj),...
-        	'WindowButtonMotionFcn',@(src,evnt)motionFcn(obj,evnt),...
-        	'UIContextMenu',        [],...
-        	'UseContextMenu',       'on');
+            'WindowButtonUpFcn',    @(varargin)buttonUpFcn(obj),...
+            'WindowButtonMotionFcn',@(src,evnt)motionFcn(obj,evnt),...
+            'UIContextMenu',        [],...
+            'UseContextMenu',       'on');
     end
 
     % create a context menu
@@ -793,8 +786,7 @@ end
 function hax = findAxes(obj)
 
     % locate axes
-    hitaxes = hittest(obj.FigureHandle,'axes');
-    hitaxes = findobj(hitaxes,'flat','Type','Axes','HandleVisibility','on');
+    hitaxes = get(obj.FigureHandle, 'CurrentAxes');
 
     % inventory
     objaxes = [obj.inventory.AxesHandle];
@@ -832,9 +824,8 @@ function testaxes(obj,hax)
     errid = sprintf('%s:invalidAxes',mfilename);
 
     % check for valid axes handles
-    if ~isnumeric(hax) || ~all(ishandle(hax)) || ...
-       ~all(strcmpi(get(hax,'type'),'axes'))
-        error(errid,'Input must be axes handles.');
+    if ~all(ishghandle(hax, 'axes'))
+        error(errid, 'Input must be axes handles.');
     end
 
     % ensure axes are within object

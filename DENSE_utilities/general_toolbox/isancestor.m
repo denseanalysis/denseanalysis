@@ -1,4 +1,4 @@
-function tf = isancestor(hA,hB)
+function tf = isancestor(hA, hB)
 %ISANCESTOR determines if handle hB is an ancestor of handle hA.
 
 % This Source Code Form is subject to the terms of the Mozilla Public
@@ -6,20 +6,18 @@ function tf = isancestor(hA,hB)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 % WRITTEN BY: Drew Gilliam
 % MODIFICATION HISTORY
 %   2009.04     Drew Gilliam
 %       --creation
 
-    if ~isnumeric(hA) || ~isscalar(hA) || ~ishandle(hA) || ...
-       ~isnumeric(hB) || ~isscalar(hB) || ~ishandle(hB)
-        error(sprintf('%s:invalidInputs',mfilename),...
+    if ~isscalar(hA) || ~ishghandle(hA) || ~isscalar(hB) || ~ishghandle(hB)
+        error(sprintf('%s:invalidInputs', mfilename),...
             'Inputs must be valid handles.');
     end
 
-    hhier = hierarchy(hA,'root');
+    hhier = hierarchy(hA, 'root');
 
-    tf = ismember(hB,hhier);
-
+    tf = ismember(hB, hhier);
 end

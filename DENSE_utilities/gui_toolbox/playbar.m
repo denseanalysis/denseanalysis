@@ -379,7 +379,7 @@ function obj = playbarFcn(obj,hparent)
 % hparent....figure/uipanel parent
 
     % check number of inputs
-    error(nargchk(1,2,nargin));
+    narginchk(1, 2);
 
     % attempt to load better icons
     file = 'playbar.mat';
@@ -388,7 +388,7 @@ function obj = playbarFcn(obj,hparent)
             s = load(file);
             obj.playicon = s.playicon;
             obj.stopicon = s.stopicon;
-        catch ERR
+        catch
         end
     end
 
@@ -399,8 +399,7 @@ function obj = playbarFcn(obj,hparent)
 
     % create graphics
     obj.hpanel = uipanel(...
-        'parent',obj.Parent,...
-        'ResizeFcn',@(varargin)resizeFcn(obj),...
+        'parent',   obj.Parent,...
         'units',    'pixels',...
         'tag',      'Playbar');
 
@@ -438,11 +437,12 @@ function obj = playbarFcn(obj,hparent)
     % in HG hierarchy and can be retrieved.
     setappdata(obj.hpanel,'playbarObjectReference',obj);
 
+    % Only assign the resize callback after all objects are created
+    set(obj.hpanel, 'ResizeFcn', @(varargin)resizeFcn(obj))
+
     % update display
     obj.redrawenable = true;
     redrawFcn(obj);
-
-
 end
 
 
@@ -482,8 +482,7 @@ function obj = setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~ishandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel')
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of PLAYBAR must be a figure or uipanel.');
     end
@@ -507,9 +506,8 @@ function obj = setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hparent,'ObjectBeingDestroyed',@(varargin)obj.delete());
-
+    obj.hlisten_delete = addlistener(obj.hparent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 end
 
 

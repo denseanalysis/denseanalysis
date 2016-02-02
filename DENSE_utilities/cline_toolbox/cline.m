@@ -442,6 +442,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
 % Acceptable input properties are 'Position','IsClosed','IsCurved',
 %   and 'IsCorner'.
 
+    do_reset = true;
 
     % no VARARGIN = clear properties
     % note we do NOT change the NumberOfLines here
@@ -457,7 +458,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
     elseif isobject(varargin{1})
 
         % error check
-        if numel(varargin)~=1 || ~strcmpi(class(varargin{1}),mfilename)
+        if numel(varargin)~=1 || ~isa(varargin{1}, mfilename)
             error(sprintf('%s:invalidInput',mfilename),...
                 'Copy constructor does not accept additional inputs.');
         end
@@ -501,6 +502,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
             'Position',         zeros(0,2),...
             'IsClosed',         true,...
             'IsCurved',         true,...
+            'ResetUndo',        true,...
             'IsCorner',         false);
 
         % parse input
@@ -528,6 +530,7 @@ function obj = resetFcn(obj,nFLAG,varargin)
         iscrv = args.IsCurved;
         iscrn = args.IsCorner;
 
+        do_reset = args.ResetUndo;
 
     % unrecognized input
     else
@@ -559,7 +562,9 @@ function obj = resetFcn(obj,nFLAG,varargin)
     obj.pcfcn = @(p)p;
 
     % reset undo structure
-    obj = undoResetFcn(obj);
+    if do_reset
+        obj = undoResetFcn(obj);
+    end
 
     % initialize the segcache
     obj.segcache = struct(...
@@ -979,7 +984,7 @@ function hgroup = plotFcn(obj,varargin)
 
     if isempty(args.Parent)
         haxes = gca;
-    elseif ishandle(args.Parent) && strcmpi(get(args.Parent,'type'),'axes')
+    elseif ishghandle(args.Parent', 'axes')
         haxes = args.Parent;
     else
         error(sprintf('%s:badParent',mfilename),...
@@ -1051,7 +1056,7 @@ function pos = checkPosition(pos,nline,npos)
 
         % check for valid position input
         tf = isnumeric(p) && all(isfinite(p(:))) ...
-            && ndims(p)==2 && size(p,2)==2 ...
+            && ismatrix(p) && size(p,2)==2 ...
             && (size(p,1)==0 || size(p,1) >= 3) ...
             && (isempty(npos) || size(p,1) == npos(k));
 

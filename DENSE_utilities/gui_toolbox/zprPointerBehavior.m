@@ -34,7 +34,7 @@ function zprPointerBehavior(haxes,behavior)
 % file, You can obtain one at http://mozilla.org/MPL/2.0/.
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
-  
+
 %WRITTEN BY:    Drew Gilliam
 %
 %MODIFICATION HISTORY:
@@ -45,10 +45,8 @@ function zprPointerBehavior(haxes,behavior)
     FLAG_iptoverride = false;
 
     % check for valid axes handles
-    if ~all(isnumeric(haxes)) || ~all(ishandle(haxes)) || ...
-       ~all(strcmpi(get(haxes,'type'),'axes'));
-
-        error(sprintf('%s:invalidAxes',mfilename),...
+    if ~all(ishghandle(haxes, 'axes'))
+        error(sprintf('%s:invalidAxes', mfilename),...
             'Function requires axes handles as input');
     end
 
@@ -162,9 +160,9 @@ function zprPointerBehavior(haxes,behavior)
     % is enabled. This code is taken from iptPointerManager.
     if FLAG_iptoverride
         figModeManager = uigetmodemanager(hfig);
-        hlisten_override = handle.listener(figModeManager, ...
+        hlisten_override = addlistener_mod(figModeManager, ...
             figModeManager.findprop('CurrentMode'), ...
-            'PropertyPostSet', @(varargin)listenerFcn);
+            'PostSet', @(varargin)listenerFcn);
     end
 
 

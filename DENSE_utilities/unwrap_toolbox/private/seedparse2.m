@@ -88,7 +88,6 @@ function seeds = seedparse2(api)
     name      = api.name;
 
     % validate mask/Iwrap/qual
-    dim = ndims(mask);
     Isz = size(mask(:,:,1));
     Nfr = size(mask,3);
 
@@ -136,7 +135,7 @@ function seeds = seedparse2(api)
         end
 
     % numeric inputs
-    elseif isnumeric(seedinput) && ndims(seedinput) == 2
+    elseif isnumeric(seedinput) && ismatrix(seedinput)
 
         % seed information
         seeds     = seedinput;

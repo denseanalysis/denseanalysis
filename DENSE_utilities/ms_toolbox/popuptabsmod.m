@@ -77,7 +77,6 @@
 %   2009.02     Drew Gilliam
 %     --creation
 
-
 %% CLASS DEFINITION
 classdef popuptabsmod < handle
 
@@ -85,7 +84,7 @@ classdef popuptabsmod < handle
     properties
 
         TabColor = [100 121 162]/255;
-        BackgroundColor = 'none';
+        BackgroundColor = get(0, 'Defaultuipanelbackgroundcolor')
 
         FontAngle       = 'normal';
         FontName        = 'default';
@@ -101,10 +100,7 @@ classdef popuptabsmod < handle
         TabNames  = {};
         Visible   = {};
         Enable    = {};
-
     end
-
-
 
     % get-only properties
     properties (SetAccess='private')
@@ -148,9 +144,7 @@ classdef popuptabsmod < handle
         TabMargin = 5;
 
         posparent = NaN(1,4);
-
     end
-
 
     % method prototypes
     methods
@@ -165,7 +159,6 @@ classdef popuptabsmod < handle
             deleteFcn(obj);
         end
 
-
         % ACTION functions
         function obj = addTab(obj,varargin)
             obj = addTabFcn(obj,varargin{:});
@@ -174,7 +167,6 @@ classdef popuptabsmod < handle
         function obj = redraw(obj)
             obj = redrawFcn(obj);
         end
-
 
         % GET/SET dependent properties
         function val = get.Parent(obj)
@@ -185,7 +177,6 @@ classdef popuptabsmod < handle
             redrawFcn(obj);
         end
 
-
         function val = get.IsOpen(obj)
             val = get(obj.hchecks,'Value');
             if iscell(val), val = [val{:}]'; end
@@ -195,14 +186,13 @@ classdef popuptabsmod < handle
             redrawFcn(obj);
         end
 
-
         % SET functions
         function set.TabColor(obj,clr)
             obj.TabColor = checkColor(clr,{},'TabColor');
             redrawFcn(obj);
         end
         function set.BackgroundColor(obj,clr)
-            obj.BackgroundColor = checkColor(clr,{'none'},'BackgroundColor');
+            obj.BackgroundColor = checkColor(clr,{},'BackgroundColor');
             redrawFcn(obj);
         end
 
@@ -224,7 +214,7 @@ classdef popuptabsmod < handle
                 set(0,'DefaultUIControlFontWeight'));
             redrawFcn(obj);
         end
-        function set.FontColor(obj,val)
+        function set.FontColor(obj,clr)
             obj.FontColor = checkColor(clr,{},'FontColor');
             redrawFcn(obj);
         end
@@ -266,10 +256,7 @@ classdef popuptabsmod < handle
         function set(obj,varargin)
             setFcn(obj,varargin{:});
         end
-
-
     end
-
 
     % hidden overloaded properties
     methods (Hidden=true)
@@ -277,17 +264,14 @@ classdef popuptabsmod < handle
         function pos = getpixelposition(obj)
             pos = getpixelposition(obj.hmainpanel);
         end
-
     end
 
     methods (Hidden=true,Access='private');
-        function redrawPrimer(obj,src)
-            redrawPrimerFcn(obj,src);
+        function redrawPrimer(obj)
+            redrawPrimerFcn(obj);
         end
     end
-
 end
-
 
 %% CONSTRUCTOR
 % This function creates the POPUPTABS object, initializing graphic
@@ -298,7 +282,7 @@ function obj = popuptabsFcn(obj,hparent,varargin)
 % hparent....parent figure/uipanel
 
     % check number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % parse parent argument
     % (note this function also creates the parent deletion listener)
@@ -309,14 +293,12 @@ function obj = popuptabsFcn(obj,hparent,varargin)
     obj.hmainpanel = uipanel(...
         'parent',           obj.hparent,...
         'bordertype',       'none',...
-        'BackgroundColor',  'none',...
         'units',            'pixels');
 
     % initialize tab panel
     obj.htabpanel = uipanel(...
         'parent',           obj.hmainpanel,...
         'bordertype',       'none',...
-        'BackgroundColor',  'none',...
         'units',            'pixels');
 
     % initialize slider object
@@ -338,10 +320,7 @@ function obj = popuptabsFcn(obj,hparent,varargin)
     % update display
     obj.redrawenable = true;
     redrawFcn(obj);
-
 end
-
-
 
 %% DESTRUCTOR
 % ensure all listeners and graphic objects are deleted
@@ -359,17 +338,14 @@ function obj = deleteFcn(obj)
        ~strcmpi(get(obj.hparent,'BeingDeleted'),'on')
         try
             set(obj.hrefpanels,'Parent',obj.hparent);
-        catch ERR
+        catch
         end
     end
 
     % delete drawing objects
     h = obj.hmainpanel;
     delete(h(ishandle(h)));
-
 end
-
-
 
 %% SET PARENT
 % The user is able to move the object to various figures or uipanels by
@@ -381,9 +357,8 @@ function obj = setParentFcn(obj,hparent)
 % hparent....candidate figure/uipanel
 
     % check for valid parent
-    if ~isnumeric(hparent) || ~isscalar(hparent) || ...
-       ~ishandle(hparent) || ...
-       ~any(strcmpi(get(hparent,'type'),{'figure','uipanel'}))
+    if ~isscalar(hparent) || ...
+        (~ishghandle(hparent, 'figure') && ~ishghandle(hparent, 'uipanel'))
         error(sprintf('%s:invalidParent',mfilename),'%s',...
             'Parent of PLAYBAR must be a figure or uipanel.');
     end
@@ -413,28 +388,20 @@ function obj = setParentFcn(obj,hparent)
 
     % Deletion listener: when the Parent is destroyed,
     % the object is no longer valid and must be destroyed
-    obj.hlisten_delete = handle.listener(...
-        obj.hparent,'ObjectBeingDestroyed',@(varargin)obj.delete());
+    obj.hlisten_delete = addlistener(obj.hparent, ...
+        'ObjectBeingDestroyed',@(varargin)obj.delete());
 
     % Property listener: when the parent is Resized, the parent color
     % changes, or the ancestor figure is resized, we need to update
     % the object
-    if strcmpi(get(obj.hparent,'type'),'figure')
+    if ishghandle(obj.hparent, 'figure')
         h = [obj.hparent];
-        tags = {'Position'};
     else
         h = [obj.hparent,ancestor(obj.hparent,'figure')];
-        tags = {'Position','Position'};
     end
 
-    prp = cellfun(@(h,tag)findprop(h,tag),...
-        num2cell(handle(h)),tags,'uniformoutput',0);
-    obj.hlisten_parent = handle.listener(handle(h),cell2mat(prp),...
-        'PropertyPostSet',@(src,evnt)obj.redrawPrimer(src));
-
+    obj.hlisten_parent = position_listener(h, @(s,e)obj.redrawPrimer());
 end
-
-
 
 %% SET ISOPEN
 % programatically open/close the various popuptabs
@@ -459,8 +426,6 @@ function obj = setIsOpenFcn(obj,val)
     end
 end
 
-
-
 %% ADD TAB
 % this function allows the user to add new tabs to the POPUPTABS object,
 % specifying a new title string as well as an optional UIPANEL object to
@@ -480,9 +445,7 @@ function obj = addTabFcn(obj,str,href)
     % check handle input
     if nargin < 3 || isempty(href)
         href = NaN;
-    elseif ~ishandle(href) || ...
-       ~strcmpi(get(href,'type'),'uipanel')
-
+    elseif ~ishghandle(href, 'uipanel')
         error(sprintf('%s:invalidHandle',mfilename),'%s',...
             '''addTab'' accepts only UIPANEL objects with the same ',...
             'Parent as the POPUPTABS object.');
@@ -520,10 +483,9 @@ function obj = addTabFcn(obj,str,href)
     obj.TabNames{idx} = str;
     obj.Visible{idx} = 'on';
 
-
     % default reference panel height
     % move reference panels to POPUPTABS panel
-    if isnan(href)
+    if ~ishghandle(href)
         obj.PanelHeights(idx) = 0;
         obj.Enable{idx} = 'off';
     else
@@ -536,9 +498,7 @@ function obj = addTabFcn(obj,str,href)
     % update display
     obj.redrawenable = true;
     redrawFcn(obj);
-
 end
-
 
 %% REDRAW DISPLAY
 % These functions control the SIDETABS object display refresh, executing
@@ -547,26 +507,20 @@ end
 % The "redrawPrimerFcn" includes additional decisions on automated redraw
 % from the "hlisten_parent" listener.
 
-
-function obj = redrawPrimerFcn(obj,src)
+function obj = redrawPrimerFcn(obj)
 % we want to limit a redraw on a position change, i.e. we should only
 % redraw if the parent width/height changes, not its location on screen.
 
-    if strcmpi(src.Name,'Position')
-        pos = getpixelposition(obj.hparent);
-        if any(pos(3:4) ~= obj.posparent(3:4))
-            obj.posparent = pos;
-            redraw(obj);
-        end
+    pos = getpixelposition(obj.hparent);
+    if any(pos(3:4) ~= obj.posparent(3:4))
+        obj.posparent = pos;
+        redraw(obj);
     end
-
 end
-
 
 function obj = redrawFcn(obj)
 
     slwidth = 15;
-
 
     % only allow redraw after setup
     if ~obj.redrawenable || ~ishandle(obj.Parent) || ...
@@ -587,7 +541,7 @@ function obj = redrawFcn(obj)
             obj.Enable{k} = 'off';
         end
     end
-    if ~isequalwithequalnans(href,obj.hrefpanels)
+    if ~isequaln(href,obj.hrefpanels)
         warning(sprintf('%s:invalidPanel',mfilename),'%s',...
             'One or more panels under POPUPTABS control became invalid ',...
             '(either the object handle no longer is valid, or the ',...
@@ -657,7 +611,6 @@ function obj = redrawFcn(obj)
         return;
     end
 
-
     % CALCULATE TAB PARAMETERS
     N = obj.NumberOfTabs;
     tvis = cell(N,1);
@@ -702,18 +655,13 @@ function obj = redrawFcn(obj)
         end
 
         % tab/reference panel position
-%         if isequal(rvis{k},'on')
-            rpos(k,:) = [xy - [0,obj.PanelHeights(k)],...
-                obj.TabWidth, obj.PanelHeights(k)];
-%         else
-%             rpos(k,:) = [1 1 obj.TabWidth obj.PanelHeights(k)];
-%         end
+        rpos(k,:) = [xy - [0,obj.PanelHeights(k)],...
+            obj.TabWidth, obj.PanelHeights(k)];
 
         % offset due to visible tab
         if isequal(tvis{k},'on')
             xy(2) = xy(2) + obj.TabHeight + obj.TabMargin;
         end
-
     end
 
     % size of tab panel
@@ -730,9 +678,6 @@ function obj = redrawFcn(obj)
 
         val  = -get(obj.hslider,'value');
         if val > maxshft, val = maxshft; end
-
-%         if val > maxshft, val = maxshft; end
-%         if val < 0, val = 0; end
 
         if isequal(get(obj.hslider,'visible'),'off')
             FLAG_resize = true;
@@ -754,7 +699,6 @@ function obj = redrawFcn(obj)
     setpixelposition(obj.hmainpanel,ppnl);
     setpixelposition(obj.htabpanel,ptab);
     set(obj.htabpanel,'visible','on');
-%     drawnow
 
     pinvis = [1 2*tabpanelheight];
 
@@ -771,16 +715,7 @@ function obj = redrawFcn(obj)
             p = [pinvis,rpos(k,3:4)];
         end
         setpixelposition(obj.hrefpanels(k),p);
-
     end
-%     drawnow
-%
-%     for k = 1:obj.NumberOfTabs
-%
-%         if isequal(rvis{k},'on')
-%              setpixelposition(obj.hrefpanels(k),rpos(k,:));
-%         end
-%     end
 
     obj.redrawenable = true;
 
@@ -790,11 +725,7 @@ function obj = redrawFcn(obj)
             feval(fcn,obj.hparent,[]);
         end
     end
-
 end
-
-
-
 
 function im = plusimage(clr,bgclr)
     if nargin < 1, clr = [83 101 120]/255; end
@@ -811,7 +742,6 @@ function im = plusimage(clr,bgclr)
         tf*clr(1) + ~tf*bgclr(1),...
         tf*clr(2) + ~tf*bgclr(2),...
         tf*clr(2) + ~tf*bgclr(2));
-
 end
 
 function im = minusimage(clr,bgclr)
@@ -830,10 +760,8 @@ function im = minusimage(clr,bgclr)
         tf*clr(2) + ~tf*bgclr(2));
 end
 
-
 %% SLIDER FUNCTION
 function sliderCallback(obj)
-%     redraw(obj);
     if interruptUIControl(obj.hslider), return; end
 
     pmain = getpixelposition(obj.hmainpanel);
@@ -857,9 +785,6 @@ function tf = interruptUIControl(h)
     pause(eps);
     tf = ~isequal(uid,get(h,'Value'));
 end
-
-
-
 
 %% GENERIC SET FUNCTION
 function setFcn(obj,varargin)
@@ -904,15 +829,11 @@ function setFcn(obj,varargin)
     redraw(obj);
 
     if ~isempty(ERR), rethrow(ERR); end
-
 end
-
-
 
 %% VALIDATION FUNCTIONS
 % these functions validate certain PLAYBAR properties, ensuring
 % that user inputs are as expected.
-
 
 function val = checkColor(val,vals,name)
 % check for a valid color specification (see COLORSPEC)
@@ -926,9 +847,7 @@ function val = checkColor(val,vals,name)
             'Invalid ',name,' specification.');
     end
     val = val(:)';
-
 end
-
 
 function val = checkStringsFcn(val,name,vals)
 % check for a string matching a set of strings
@@ -945,7 +864,6 @@ function val = checkStringsFcn(val,name,vals)
     end
 end
 
-
 function val = checkFontNameFcn(val)
 % check a string against LISTFONTS
     vals = listfonts;
@@ -957,7 +875,6 @@ function val = checkFontNameFcn(val)
     end
 end
 
-
 function val = checkPositiveScalarFcn(val,name)
 % check for a positive scalar value
 
@@ -965,7 +882,6 @@ function val = checkPositiveScalarFcn(val,name)
         error(sprintf('%s:invalid%s',mfilename,name),'%s',...
             '''', name, ''' must a positive numeric value.');
     end
-
 end
 
 function val = checkLeftOffsetFcn(val)
@@ -975,7 +891,6 @@ function val = checkLeftOffsetFcn(val)
         error(sprintf('%s:invalid%s',mfilename,name),'%s',...
             '''LeftOffset'' must a non-negative numeric value.');
     end
-
 end
 
 function strs = checkTabNamesFcn(obj,strs)
@@ -1011,9 +926,7 @@ function val = checkStringArrayFcn(obj,val,name,vals)
     if ~isempty(errstr)
         error(sprintf('%s:invalid%s',mfilename,name),errstr);
     end
-
 end
-
 
 function val = checkEnableFcn(obj,val)
 
@@ -1027,5 +940,4 @@ function val = checkEnableFcn(obj,val)
                 'A tab cannot be enabled without a valid reference panel.');
         end
     end
-
 end

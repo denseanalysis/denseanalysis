@@ -118,7 +118,7 @@ function [Iunwrap,seeds] = unwrap2mov(Iwrap, varargin)
     %% SETUP
 
     % check minimum number of inputs
-    error(nargchk(1,Inf,nargin));
+    narginchk(1, Inf);
 
     % input size
     if ~any(ndims(Iwrap) == [2 3])
