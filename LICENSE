@@ -394,3 +394,4 @@ This Software uses code from other open source projects.
 * Components from jsonlab by Qianqian Fang from https://www.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files-in-matlab-octave
 * overobj2.m by Yair Altman from http://undocumentedmatlab.com/blog/undocumented-mouse-pointer-functions
 * uigetdirs by Jonathan Suever from https://github.com/suever/uigetdirs
+* urlread2 by Jim Hokanson from http://www.mathworks.com/matlabcentral/fileexchange/35693-urlread2
