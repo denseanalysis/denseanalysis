@@ -403,9 +403,9 @@ classdef PluginMenu < hgsetget
             % Ensure that there is always a reload menu on the bottom
             if isempty(self.reloadmenu) || ~ishghandle(self.reloadmenu)
                 self.reloadmenu = uimenu('Parent',      self.Menu,  ...
-                                        'Separator',   'on', ...
-                                        'Callback',    @(s,e)self.reload(), ...
-                                        'Label',       'Reload Plugins');
+                                         'Separator',   'on', ...
+                                         'Callback',    @(s,e)self.reload(), ...
+                                         'Label',       'Reload Plugins');
 
                 setToolTipText(self.reloadmenu, 'Reload all active plugins')
             end
@@ -478,7 +478,17 @@ function setToolTipText(hmenu, txt)
 
     % If we don't yet know the java handle, then get it and cache it
     if isempty(jmenu)
-        jmenu = getJavaMenu(hmenu);
+        try
+            jmenu = getJavaMenu(hmenu);
+        catch ME
+            % If the java menu hasn't been rendered (some operating
+            % systems), then just silently ignore this and try again later
+            if strcmp(ME.identifier, 'getJavaMenu:MenuNotFound')
+                return
+            else
+                rethrow(ME);
+            end
+        end
         setappdata(hmenu, 'java', jmenu);
     end
 

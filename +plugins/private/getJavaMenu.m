@@ -85,7 +85,9 @@ function component = findComponent(components, label)
     nonSeparator = cellfun(@isempty, regexp(classes, 'Separator$'));
     components = components(nonSeparator);
 
-    if numel(components) > 1
+    if numel(components) == 0
+        labels = {};
+    elseif numel(components) > 1
         labels = arrayfun(@(x)char(x.getLabel()), components, 'uniform', false);
     else
         labels = {char(components.getLabel())};
