@@ -79,7 +79,8 @@ classdef Updater < hgsetget
 
             strcheck = @(x)ischar(x) && ~isempty(x);
 
-            ip = inputParser('KeepUnmatched', true);
+            ip = inputParser();
+            ip.KeepUnmatched = true;
             ip.addParamValue('URL', '', strcheck);
             ip.addParamValue('Version', '', strcheck);
             ip.addParamValue('InstallDir', basedir, strcheck);
