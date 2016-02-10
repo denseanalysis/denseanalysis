@@ -375,7 +375,7 @@ classdef Updater < hgsetget
                                    java.io.File(destination));
 
                 % Now clear out the source
-                rmdir(src);
+                rmdir(src, 's');
 
                 bool = true;
             catch
