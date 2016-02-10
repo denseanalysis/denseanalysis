@@ -119,7 +119,7 @@ function menu_new_Callback(hobj, evnt, handles)
 end
 
 function menu_open_Callback(hobj, evnt, handles)
-    loadFcn(handles,'mat');
+    loadFcn(handles,'dns');
 end
 
 function menu_save_Callback(hobj, evnt, handles)
@@ -135,7 +135,7 @@ function tool_new_ClickedCallback(hobj, evnt, handles)
 end
 
 function tool_open_ClickedCallback(hobj, evnt, handles)
-    loadFcn(handles,'mat');
+    loadFcn(handles,'dns');
 end
 
 function tool_save_ClickedCallback(hobj, evnt, handles)

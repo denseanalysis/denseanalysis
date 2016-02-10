@@ -10,7 +10,7 @@
 %
 % Copyright (c) 2016 DENSEanalysis Contributors
 
-classdef DENSEdata < handle
+classdef DENSEdata < hgsetget
 
     % get-only ptoperties
     properties (SetAccess='private')
@@ -27,24 +27,20 @@ classdef DENSEdata < handle
 
         % SPLINE information
         spl = repmat(struct,[0 1]);
-
     end
 
     % private properties
-    properties (SetAccess='private',GetAccess='private')
+    properties (SetAccess='private', GetAccess='private')
 
         % loading flags
         autodensetypes   = {'xy','xyz'};
         manualdensetypes = {'x','y','z','xy','xyz'};
-
     end
-
 
     %
     events
         NewState
     end
-
 
     methods
 
@@ -54,15 +50,14 @@ classdef DENSEdata < handle
         end
 
         % load data from file
-        function [uipath,uifile] = load(obj,varargin)
-            [uipath,uifile] = loadFcn(obj,varargin{:});
+        function [uipath, uifile] = load(obj, varargin)
+            [uipath, uifile] = loadFcn(obj, varargin{:});
         end
 
         % save data to file
         function uifile = save(obj,varargin)
             uifile = saveFcn(obj,varargin{:});
         end
-
 
         % rename objects
         function renameSequence(obj,idx,varargin)
@@ -75,7 +70,6 @@ classdef DENSEdata < handle
             renameFcn(obj,'roi',idx,varargin{:});
         end
 
-
         % locate unique identifiers
         function idx = UIDtoIndexROI(obj,uid)
             idx = UIDtoIndexFcn(obj,'roi',uid);
@@ -84,8 +78,6 @@ classdef DENSEdata < handle
         function idx = UIDtoIndexDENSE(obj,uid)
             idx = UIDtoIndexFcn(obj,'dns',uid);
         end
-
-
 
         % ROI functions
         function roiidx = createROI(obj,seqidx)
@@ -112,7 +104,6 @@ classdef DENSEdata < handle
         function regDENSE(obj,didx)
             regDENSEFcn(obj,didx);
         end
-
 
         function data = getDisplayData(obj)
             data = getDisplayDataFcn(obj);
@@ -143,22 +134,153 @@ classdef DENSEdata < handle
         end
     end
 
-
     methods (Hidden=true)
 
         function tf = isempty(obj)
             tf = isempty(obj.seq);
-
         end
-
     end
-
-
-
 end
 
+function [out, uipath, uifile] = DICOMDirectoryLoader(obj, startpath)
+    % empty workspace file output
+    uifile = [];
+    out = [];
 
+    % load DICOM data
+    [seq, uipath] = DICOMseqinfo(startpath, 'OptionsPanel', true);
+    if isempty(seq)
+        uipath = [];
+        return;
+    end
 
+    % try to locate groups
+    dns = autoDENSEgroups(seq,'Types',obj.autodensetypes,'verbose',false);
+
+    % load slice information & add to seq
+    slcdata = DICOMslice(seq,{seq.NumberInSequence});
+    tags = fieldnames(slcdata);
+    for k = 1:numel(seq)
+        for ti = 1:numel(tags)
+            seq(k).(tags{ti}) = slcdata(k).(tags{ti});
+        end
+    end
+
+    % generate sequence name & program UID
+    for k = 1:numel(seq)
+        sd = seq(k).SeriesDescription;
+        if isempty(sd) || ~ischar(sd)
+            sd = 'unknown';
+        end
+        seq(k).DENSEanalysisName = sd;
+        seq(k).DENSEanalysisUID  = dicomuid;
+        seq(k).TranslationRC = [0 0];
+    end
+
+    % shift new fields to top of structure
+    Nfield = numel(fieldnames(seq));
+    Nnew   = 2;
+    seq = orderfields(seq,[Nfield+(1-Nnew:0),1:Nfield-Nnew]);
+
+    % load imagery
+    cancel = ~[seq.ValidSequence];
+    img = DICOMseqread(seq,'CancelRead',cancel);
+
+    if isempty(img);
+        uipath = [];
+        return;
+    end
+
+    % empty roi
+    roi = repmat(struct,[0 1]);
+
+    out.dns = dns;
+    out.roi = roi;
+    out.seq = seq;
+    out.img = img;
+end
+
+function [out, uipath, uifile] = DNSFileLoader(~, startpath)
+    % If no filename was provided explicitly, then prompt the user
+    out = [];
+
+    if ~exist('startpath', 'var')
+        startpath = pwd;
+    elseif exist(startpath, 'file') == 2
+        filename = startpath;
+        startpath = pwd;
+    end
+
+    if ~exist('filename', 'var')
+        % locate a file to load
+        [uifile,uipath] = uigetfile(...
+            {'*.dns','DENSE workspace (*.dns)'},...
+            'Select DNS file',startpath);
+        if isequal(uipath,0)
+            uipath = [];
+            return;
+        end
+
+        filename = fullfile(uipath, uifile);
+    else
+        [uipath, uifile] = fileparts(filename);
+    end
+
+    % create load waitbar
+    hwait = waitbartimer;
+    cleanupObj = onCleanup(@()delete(hwait(isvalid(hwait))));
+    hwait.WindowStyle = 'modal';
+    hwait.String      = 'Loading workspace...';
+    hwait.start;
+    drawnow
+
+    % load file
+    S = load(filename,'-mat');
+    if ~all(isfield(S,{'seq','img','dns','roi'}))
+        error(sprintf('%s:invalidFile',mfilename),...
+            '".dns" file does not contain appropriate data.');
+    end
+
+    seq = S.seq(:);
+    img = S.img(:);
+    dns = S.dns(:);
+    roi = S.roi(:);
+    clear S
+
+    % run a quick hack error check:
+    % if "autoDENSEgroups" returns without error, we probably have
+    % good valid seq with some sort of DENSE data in it.
+    autoDENSEgroups(seq);
+
+    % re-parse the "ImageComments" field of the first image in
+    % all DENSE sequences to find the Partition information.
+    % this needs to be done for backward compatability.
+    for k = 1:numel(seq)
+        if ~isempty(seq(k).DENSEid)
+            if iscell(seq(k).ImageComments)
+                str = seq(k).ImageComments{1};
+            else
+                str = seq(k).ImageComments;
+            end
+            [~,data] = parseImageCommentsDENSE(str);
+            seq(k).DENSEdata.Partition = data.Partition;
+        end
+    end
+
+    % re-parse the slice identifiers
+    slcdata = DICOMslice(seq,{seq.NumberInSequence});
+    tags = fieldnames(slcdata);
+    for k = 1:numel(seq)
+        for ti = 1:numel(tags)
+            seq(k).(tags{ti}) = slcdata(k).(tags{ti});
+        end
+    end
+
+    out.seq = seq;
+    out.img = img;
+    out.dns = dns;
+    out.roi = roi;
+end
 
 %% LOAD DENSE DATA
 % This function allows the user to load two types of data from file:
@@ -166,22 +288,29 @@ end
 %
 %
 
-function [uipath,uifile] = loadFcn(obj,type,startpath)
+function [uipath,uifile] = loadFcn(obj, loader, startpath)
 
     % default inputs
-    if nargin < 2 || isempty(type),      type = 'dicom';  end
+    if nargin < 2 || isempty(loader),    loader = 'dicom';  end
     if nargin < 3 || isempty(startpath), startpath = pwd; end
 
-    % If the startpath was a full filepath, load that without prompt
-    if exist(startpath, 'file') == 2
-        filename = startpath;
-        startpath = pwd;
-    end
-
-    % test type input
-    if ~ischar(type) || ~any(strcmpi(type,{'dicom','mat'}))
-        error(sprintf('%s:invalidInput',mfilename),...
-            'Valid ''type'' string options are be [dicom|mat].');
+    if ischar(loader)
+        switch lower(loader)
+            case 'dicom'
+                loader = @DICOMDirectoryLoader;
+            case 'dns'
+                loader = @DNSFileLoader;
+            case 'mat'
+                warning(sprintf('%s:DeprecatedType', mfilename), ...
+                    'Usage of "mat" type is deprecated and should be replaced with "dns".')
+                loader = @DNSFileLoader;
+            otherwise
+                error(sprintf('%s:invalidInput', mfilename),...
+                    'Valid ''loader'' string options are be [dicom|mat].');
+        end
+    elseif ~isa(loader, 'function_handle')
+        error(sprintf('%s:invalidInput', mfilename), ...
+            'Loader should be either a string or function handle');
     end
 
     % test startpath
@@ -194,154 +323,41 @@ function [uipath,uifile] = loadFcn(obj,type,startpath)
         startpath = pwd;
     end
 
+    [data, uipath, uifile] = loader(obj, startpath); %#ok
 
-    % DIRECTORY LOAD-------------------------------------------------------
-    if strcmpi(type,'dicom')
-
-        % empty workspace file output
-        uifile = [];
-
-        % load DICOM data
-        [seq,uipath] = DICOMseqinfo(startpath,...
-            'OptionsPanel',true);
-        if isempty(seq)
-            uipath = [];
-            return;
-        end
-
-        % try to locate groups
-        dns = autoDENSEgroups(seq,'Types',obj.autodensetypes,...
-            'verbose',false);
-
-        % load slice information & add to seq
-        slcdata = DICOMslice(seq,{seq.NumberInSequence});
-        tags = fieldnames(slcdata);
-        for k = 1:numel(seq)
-            for ti = 1:numel(tags)
-                seq(k).(tags{ti}) = slcdata(k).(tags{ti});
-            end
-        end
-
-        % generate sequence name & program UID
-        for k = 1:numel(seq)
-            sd = seq(k).SeriesDescription;
-            if isempty(sd) || ~ischar(sd)
-                sd = 'unknown';
-            end
-            seq(k).DENSEanalysisName = sd;
-            seq(k).DENSEanalysisUID  = dicomuid;
-            seq(k).TranslationRC = [0 0];
-        end
-
-        % shift new fields to top of structure
-        Nfield = numel(fieldnames(seq));
-        Nnew   = 2;
-        seq = orderfields(seq,[Nfield+(1-Nnew:0),1:Nfield-Nnew]);
-
-        % load imagery
-        cancel = ~[seq.ValidSequence];
-        img = DICOMseqread(seq,'CancelRead',cancel);
-        if isempty(img);
-            uipath = [];
-            return;
-        end
-
-        % empty roi
-        roi = repmat(struct,[0 1]);
-
-    % MAT FILE LOAD--------------------------------------------------------
-    else
-        % If no filename was provided explicitly, then prompt the user
-        if ~exist('filename', 'var')
-            % locate a file to load
-            [uifile,uipath] = uigetfile(...
-                {'*.dns','DENSE workspace (*.dns)'},...
-                'Select DNS file',startpath);
-            if isequal(uipath,0)
-                uipath = [];
-                return;
-            end
-
-            filename = fullfile(uipath, uifile);
-        else
-            [uipath,uifile] = fileparts(filename);
-        end
-
-        % create load waitbar
-        hwait = waitbartimer;
-        cleanupObj = onCleanup(@()delete(hwait(isvalid(hwait))));
-        hwait.WindowStyle = 'modal';
-        hwait.String      = 'Loading workspace...';
-        hwait.start;
-        drawnow
-
-        % load file
-        S = load(filename,'-mat');
-        if ~all(isfield(S,{'seq','img','dns','roi'}))
-            error(sprintf('%s:invalidFile',mfilename),...
-                '".dns" file does not contain appropriate data.');
-        end
-        seq = S.seq(:);
-        img = S.img(:);
-        dns = S.dns(:);
-        roi = S.roi(:);
-        clear S
-
-        % run a quick hack error check:
-        % if "autoDENSEgroups" returns without error, we probably have
-        % good valid seq with some sort of DENSE data in it.
-        autoDENSEgroups(seq);
-
-        % re-parse the "ImageComments" field of the first image in
-        % all DENSE sequences to find the Partition information.
-        % this needs to be done for backward compatability.
-        for k = 1:numel(seq)
-            if ~isempty(seq(k).DENSEid)
-                if iscell(seq(k).ImageComments)
-                    str = seq(k).ImageComments{1};
-                else
-                    str = seq(k).ImageComments;
-                end
-                [id,data] = parseImageCommentsDENSE(str);
-                seq(k).DENSEdata.Partition = data.Partition;
-            end
-        end
-
-        % re-parse the slice identifiers
-        slcdata = DICOMslice(seq,{seq.NumberInSequence});
-        tags = fieldnames(slcdata);
-        for k = 1:numel(seq)
-            for ti = 1:numel(tags)
-                seq(k).(tags{ti}) = slcdata(k).(tags{ti});
-            end
-        end
-
+    % No data was loaded
+    if isempty(data)
+        return
     end
 
+    requiredfields = {'seq', 'img', 'dns', 'roi'};
+    if ~all(isfield(data, requiredfields))
+        error(sprintf('%s:InvalidDataStructure', mfilename), ...
+            'Loader must return the following fields: seq, img, dns, roi');
+    end
 
     % CLEANUP--------------------------------------------------------------
     % some silly tests
-    if ~isstruct(seq) || isempty(seq) || ~iscell(img) || ...
-       ~isstruct(dns) || ~isstruct(roi)
+    if ~isstruct(data.seq) || isempty(data.seq) || ~iscell(data.img) || ...
+       ~isstruct(data.dns) || ~isstruct(data.roi)
        error(sprintf('%s:invalidData',mfilename),....
             'Some loaded variables were not as expected.');
     end
 
     % backwards-compatability: add TranslationRC field
-    if ~isfield(seq,'TranslationRC')
-        [seq.TranslationRC] = deal([0 0]);
+    if ~isfield(data.seq, 'TranslationRC')
+        [data.seq.TranslationRC] = deal([0 0]);
     end
 
-
     % empty any remaining "invalid" sequences
-    for k = 1:numel(img)
-        if isequal(seq(k).ValidSequence,false)
-            img{k} = [];
+    for k = 1:numel(data.img)
+        if isequal(data.seq(k).ValidSequence, false)
+            data.img{k} = [];
         end
     end
 
     % test for some valid data
-    tf = cellfun(@isempty,img);
+    tf = cellfun(@isempty, data.img);
     if all(tf)
         error(sprintf('%s:invalidData',mfilename),....
             'We were unable to locate valid DICOM data!');
@@ -355,14 +371,14 @@ function [uipath,uifile] = loadFcn(obj,type,startpath)
     end
 
     % eliminate any unsupported dns groups (e.g. single encodings)
-    tf = true(size(dns));
-    for k = 1:numel(dns)
-        tf(k) = any(strcmpi(dns(k).Type,obj.manualdensetypes));
+    tf = true(size(data.dns));
+    for k = 1:numel(data.dns)
+        tf(k) = any(strcmpi(data.dns(k).Type, obj.manualdensetypes));
     end
-    dns = dns(tf);
+    data.dns = data.dns(tf);
 
     % throw a warning dialog if there are no groups
-    if isempty(dns)
+    if isempty(data.dns)
         errstr = sprintf('%s','The program is unable to automatically ',...
             'locate any DENSE groups in the DICOM data, though there ',...
             'is some valid DENSE data available.  You''ll need to ',...
@@ -372,17 +388,12 @@ function [uipath,uifile] = loadFcn(obj,type,startpath)
     end
 
     % save all data to object
-    obj.seq = seq;
-    obj.img = img;
-    obj.dns = dns;
-    obj.roi = roi;
-    obj.spl = repmat(struct,[0 1]);
+    data.spl = repmat(struct,[0 1]);
+    set(obj, data)
 
     % events
     notify(obj,'NewState',DENSEEventData('load',[]));
-
 end
-
 
 function file = saveFcn(obj,uipath,uifile,flag_fileselect)
 
@@ -422,7 +433,6 @@ function file = saveFcn(obj,uipath,uifile,flag_fileselect)
         % gather filename
         if ~strwcmpi(uifile,'*.dns'), uifile = [uifile '.dns']; end
         file = fullfile(uipath,uifile);
-
     end
 
     % waitbar
@@ -457,9 +467,6 @@ function file = saveFcn(obj,uipath,uifile,flag_fileselect)
         rethrow(ERR);
     end
 end
-
-
-
 
 function roiidx = createROIFcn(obj,seqidx)
 
@@ -497,8 +504,6 @@ function roiidx = createROIFcn(obj,seqidx)
     notify(obj,'NewState',DENSEEventData('new','roi'));
 end
 
-
-
 function roiidx = findROIFcn(obj,seqidx)
 
     % check sequence index
@@ -519,9 +524,7 @@ function roiidx = findROIFcn(obj,seqidx)
     tf = cellfun(@(x)~isempty(intersect(seqidx,x)),{obj.roi.SeqIndex});
     roiidx = find(tf);
     roiidx = roiidx(:);
-
 end
-
 
 function idx = UIDtoIndexFcn(obj,tag,uid)
 
@@ -544,17 +547,13 @@ function idx = UIDtoIndexFcn(obj,tag,uid)
                 'Unrecognized field.');
     end
 
-
     for k = 1:numel(uid)
         tf = strcmpi(uid{k},datauid);
         if any(tf)
             idx(k) = find(tf,1,'first');
         end
     end
-
-
 end
-
 
 function updateROIFcn(obj,roiidx,frame,data)
 
@@ -604,11 +603,7 @@ function updateROIFcn(obj,roiidx,frame,data)
     [obj.roi(roiidx).IsClosed{frame,:}] = deal(data.IsClosed{:});
     [obj.roi(roiidx).IsCurved{frame,:}] = deal(data.IsCurved{:});
     [obj.roi(roiidx).IsCorner{frame,:}] = deal(data.IsCorner{:});
-
 end
-
-
-
 
 function data = getDisplayDataFcn(obj)
     mxpha = 2^12-1;
@@ -646,12 +641,8 @@ function data = getDisplayDataFcn(obj)
                 data(k).TranslationRC  = obj.seq(k).TranslationRC;
             end
         end
-
     end
-
 end
-
-
 
 function renameFcn(obj,tag,idx,name)
 
@@ -689,7 +680,6 @@ function renameFcn(obj,tag,idx,name)
 
         name = answer{1};
         if isequal(name,curname), return; end
-
     end
 
     % check name for string
@@ -711,11 +701,7 @@ function renameFcn(obj,tag,idx,name)
 
     % signal event
     notify(obj,'NewState',DENSEEventData('rename',tag));
-
 end
-
-
-
 
 function deleteElementFcn(obj,tag,idx)
 
@@ -743,13 +729,9 @@ function deleteElementFcn(obj,tag,idx)
 
     % notify event
     notify(obj,'NewState',DENSEEventData('delete',tag));
-
 end
 
-
 %% ANALYSIS FUNCTION
-
-
 function spdata = analysisFcn(obj,didx,ridx,seedframe,varargin)
 
     % gather data
@@ -813,7 +795,6 @@ function spdata = analysisFcn(obj,didx,ridx,seedframe,varargin)
     hwait.AllowClose  = false;
     hwait.start;
 
-
     % Perform analysis
     try
         spdata = DENSEspline(imdata,cndata,options,...
@@ -842,9 +823,7 @@ function spdata = analysisFcn(obj,didx,ridx,seedframe,varargin)
         obj.spl = spdata;
         notify(obj,'NewState',DENSEEventData('new','spl'));
     end
-
 end
-
 
 function tf = isAllowAnalysisFcn(obj,didx,ridx,frame)
 
@@ -866,10 +845,7 @@ function tf = isAllowAnalysisFcn(obj,didx,ridx,frame)
 
     % return valid!
     tf = true;
-
 end
-
-
 
 %% MASK FUNCTIONS
 function tf = maskSA(X,Y,C)
@@ -897,12 +873,10 @@ function tf = maskGeneral(X,Y,C)
     end
 end
 
-
 function imdata = ImageData(obj,didx,checkonlyflag)
     if nargin < 3 || isempty(checkonlyflag)
         checkonlyflag = false;
     end
-
 
     % check for empty object
     if isempty(obj.seq) || isempty(obj.dns)
@@ -963,29 +937,24 @@ function imdata = ImageData(obj,didx,checkonlyflag)
             if ~isnan(pidx(k))
                 I{2,k} = 2*pi*(double(I{2,k})/mxpha) - pi;
             end
-
         end
-
 
         % determine multi-type, indicating we should apply swap x/y,
         % and negate phase information if necessary
-%         if any(strcmpi(dns.Type,{'xy','xyz'}));
 
-            % swap imagery & associated parameters
-            if dns.SwapFlag
-                I(:,[1 2]) = I(:,[2 1]);
-                dns.Scale(:,[1 2])   = dns.Scale(:,[2 1]);
-                dns.EncFreq(:,[1 2]) = dns.EncFreq(:,[2 1]);
+        % swap imagery & associated parameters
+        if dns.SwapFlag
+            I(:,[1 2]) = I(:,[2 1]);
+            dns.Scale(:,[1 2])   = dns.Scale(:,[2 1]);
+            dns.EncFreq(:,[1 2]) = dns.EncFreq(:,[2 1]);
+        end
+
+        % negate phase imagery
+        for k = 1:3
+            if dns.NegFlag(k)
+                I{2,k} = -I{2,k};
             end
-
-            % negate phase imagery
-            for k = 1:3
-                if dns.NegFlag(k)
-                    I{2,k} = -I{2,k};
-                end
-            end
-
-%         end
+        end
 
         % gather magnitude information
         % (average of normalized magnitude frames)
@@ -1010,9 +979,7 @@ function imdata = ImageData(obj,didx,checkonlyflag)
         'PixelSpacing', dns.PixelSpacing,...
         'EncFreq',      dns.EncFreq,...
         'Scale',        dns.Scale);
-
 end
-
 
 function cndata = contourData(obj,ridx,frames,checkonlyflag)
     if nargin < 4 || isempty(checkonlyflag)
@@ -1037,7 +1004,6 @@ function cndata = contourData(obj,ridx,frames,checkonlyflag)
     roi  = obj.roi(ridx);
     pos  = obj.roi(ridx).Position;
     Nfr  = size(pos,1);
-    sidx = roi.SeqIndex;
 
     % empty ROI frames positions
     tf = cellfun(@isempty,pos);
@@ -1065,7 +1031,6 @@ function cndata = contourData(obj,ridx,frames,checkonlyflag)
         error(sprintf('%s:invalidFrame',mfilename),...
             'The ROI has not been defined on one or more frames.');
     end
-
 
     if checkonlyflag
         maskfcn = [];
@@ -1104,15 +1069,10 @@ function cndata = contourData(obj,ridx,frames,checkonlyflag)
         'Contour',      {C},...
         'MaskFcn',      maskfcn,...
         'ValidFrames',  frames([1 end]));
-
 end
-
-
 
 %% EDIT DENSE
 function editDENSEFcn(obj)
-
-
     % edit the groups
     newdns = guiDENSEgroups(obj.seq,'Types',obj.manualdensetypes,...
         'InitialGroups',obj.dns);
@@ -1138,39 +1098,12 @@ function editDENSEFcn(obj)
         return
     end
 
-
-%     % ensure ShiftIJ field
-%     if ~isfield(newdns,'ShiftIJ')
-%         newdns(1).ShiftIJ = [];
-%     end
-%
-%     % IJ shift calculation if empty
-%     for k = 1:numel(newdns)
-%         if isempty(newdns(k).ShiftIJ)
-%             midx = newdns(k).MagIndex;
-%             tf = ~isnan(midx);
-%             if numel(unique(midx(tf))) <= 1
-%                 shft       = NaN(2,3);
-%                 shft(tf,:) = 0;
-%             else
-%                 I     = cell(3,1);
-%                 I(tf) = obj.img(midx(tf));
-%                 shft  = registerDENSE(I{:});
-%             end
-%             newdns(k).ShiftIJ = shft;
-%         end
-%     end
-
     % notify anybody waiting
     obj.dns = newdns;
     notify(obj,'NewState',DENSEEventData('new','dns'));
-
 end
 
-
 %% REGISTER DENSE
-
-
 function regDENSEFcn(obj,didx)
 
     % check for empty object
@@ -1195,12 +1128,10 @@ function regDENSEFcn(obj,didx)
     pidx = dns.PhaIndex;
 
     % swap imagery
-%     if any(strcmpi(dns.Type,{'xy','xyz'}));
-        if dns.SwapFlag
-            midx([1 2]) = midx([2 1]);
-            pidx([1 2]) = pidx([2 1]);
-        end
-%     end
+    if dns.SwapFlag
+        midx([1 2]) = midx([2 1]);
+        pidx([1 2]) = pidx([2 1]);
+    end
 
     % application data
     api = struct('shift',NaN(2,3));
@@ -1226,17 +1157,9 @@ function regDENSEFcn(obj,didx)
             obj.seq(pidx(k)).TranslationRC(:) = shft(:,k);
         end
     end
-
-%     % notify anybody waiting
-%     notify(obj,'NewState',DENSEEventData('new','dns'));
-
 end
 
-
-
-
 %% EXPORT ROI
-
 function tf = isAllowExportROIFcn(obj,ridx)
 
     % attempt to gather contour data, testing the indices
@@ -1253,9 +1176,7 @@ function tf = isAllowExportROIFcn(obj,ridx)
     else
         tf = true;
     end
-
 end
-
 
 function exportdata = exportROIFcn(obj,ridx,varargin)
 
@@ -1277,7 +1198,7 @@ function exportdata = exportROIFcn(obj,ridx,varargin)
     % default last name
     try
         lastname = obj.seq(sidx0).PatientName.FamilyName;
-    catch ERR
+    catch
         lastname = 'unknown';
     end
 
@@ -1309,14 +1230,10 @@ function exportdata = exportROIFcn(obj,ridx,varargin)
         end
     end
 
-
-
     % output the contours
     if 1
-
         % directly output contours
         for fr = frames(:)'
-
             xOuterCon = cndata.Contour{fr,1};
             xOuterCon(end+1,:) = xOuterCon(1,:);
 
@@ -1324,9 +1241,7 @@ function exportdata = exportROIFcn(obj,ridx,varargin)
             xInnerCon(end+1,:) = xInnerCon(1,:);
 
             save(exportdata.Filenames{fr},'xInnerCon','xOuterCon');
-
         end
-
     else
 
         % for each frame, perform a linear resampling of both contours with 40
@@ -1343,7 +1258,6 @@ function exportdata = exportROIFcn(obj,ridx,varargin)
             xOuterCon = fnval(si,spepi)';
             xOuterCon(end+1,:) = xOuterCon(1,:);
 
-
             endo = cndata.Contour{fr,2};
             d = cumsum([0; sqrt(sum(diff(endo,[],1).^2,2))]);
             s = d./max(d);
@@ -1353,12 +1267,6 @@ function exportdata = exportROIFcn(obj,ridx,varargin)
             xInnerCon(end+1,:) = xInnerCon(1,:);
 
             save(exportdata.Filenames{fr},'xInnerCon','xOuterCon');
-
         end
     end
-
-
-
-
-
 end
