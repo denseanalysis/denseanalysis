@@ -3,10 +3,10 @@
 %
 %Users are offered a number of different interactive cLINE tools via the
 %IMcLINE object (see INTERACTIVE TOOLS below), including:
-%   • Editing of control point position through click & drag
-%   • Editing of the entire contour position through click & drag
-%   • Context menu options to add/delete control points
-%   • Context menu options to define line segments as straight or curved,
+%   ï¿½ Editing of control point position through click & drag
+%   ï¿½ Editing of the entire contour position through click & drag
+%   ï¿½ Context menu options to add/delete control points
+%   ï¿½ Context menu options to define line segments as straight or curved,
 %     control points as corners or smooth, and cLINE as open or closed
 %
 %IMPORTANT: To start editing, the Pointer Manager must be enabled!
@@ -114,52 +114,52 @@
 %
 %INTERACTIVE TOOL INSTRUCTIONS
 %
-%   • Control point drag and drop
+%   ï¿½ Control point drag and drop
 %     --Single left click mouse while control point is highlighted
 %     --Drag control point to new position
 %     --Release mouse button
 %
-%   • cLINE drag and drop
+%   ï¿½ cLINE drag and drop
 %     --Single left click mouse while line segment is highlighted
 %     --drag cLINE to new position
 %     --Release mouse button
 %
-%   • Add Point
+%   ï¿½ Add Point
 %     --Right click mouse on line segment of interest
 %     --Select "Add Point" from context menu
 %
-%   • Delete Point
+%   ï¿½ Delete Point
 %     --Right click mouse on control point of interest
 %     --Select "Delete Point" from context menu
 %
-%   • Corner or Smooth Control Point
+%   ï¿½ Corner or Smooth Control Point
 %     --Right click mouse on control point of interest
 %     --Select "Corner Point" or "Smooth Point" from context menu
 %
-%   • Curved or Straight Line Segment
+%   ï¿½ Curved or Straight Line Segment
 %     --Right click mouse on line segment of interest
 %     --Select "Curved Segment" or "Straight Segment" from context menu
 %
-%   • Open or Closed cLINE
+%   ï¿½ Open or Closed cLINE
 %     --Right click mouse on any line segment
 %     --Select "Open" or "Closed" from context menu
 %
 %
 %NOTES
 %
-%   • The life-cycle of every IMcLINE object is tied to a cLINE object.
+%   ï¿½ The life-cycle of every IMcLINE object is tied to a cLINE object.
 %     If the cLINE is deleted, all IMcLINEs referencing that object
 %     become invalid and are deleted. Note the opposite is not true, i.e.
 %     deletion of an IMcLINE object does not delete the referenced cLINE.
 %
-%   • Care has been taken to ensure the IMcLINE display is always
+%   ï¿½ Care has been taken to ensure the IMcLINE display is always
 %     representative of the current cLINE object, updating whenever the
 %     cLINE object triggers its 'NewProperty' event.
 %
-%   • The IMcLINE class is written specifically to allow for multiple
+%   ï¿½ The IMcLINE class is written specifically to allow for multiple
 %     IMcLINE objects to edit a single cLINE object.
 %
-%   • The IMcLINE constructor does not initiate the Pointer Manager, to
+%   ï¿½ The IMcLINE constructor does not initiate the Pointer Manager, to
 %     allow the user to completely setup the figure and axes prior to
 %     interactive behavior initialization.
 %
@@ -386,7 +386,7 @@ classdef imcline < handle
         function enter(obj,h)
             enterFcn(obj,h);
         end
-        function exit(obj)
+        function exit_imcline(obj)
             exitFcn(obj);
         end
     end
@@ -756,7 +756,7 @@ function h = createPoints(obj,N)
     pb = struct('enterFcn',[],'traverseFcn',[],'exitFcn',[]);
     for k = 1:N
         pb.enterFcn = @(varargin)enter(obj,h(k));
-        pb.exitFcn  = @(varargin)exit(obj);
+        pb.exitFcn  = @(varargin)exit_imcline(obj);
         iptSetPointerBehavior(h(k), pb);
     end
 
@@ -779,7 +779,7 @@ function h = createLines(obj,N)
     pb = struct('enterFcn',[],'traverseFcn',[],'exitFcn',[]);
     for k = 1:N
         pb.enterFcn = @(varargin)enter(obj,h(k));
-        pb.exitFcn  = @(varargin)exit(obj);
+        pb.exitFcn  = @(varargin)exit_imcline(obj);
         iptSetPointerBehavior(h(k), pb);
     end
 
