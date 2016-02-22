@@ -403,7 +403,7 @@ function handles = initFcn(hfig,callingfile)
 
 
     % default renderers
-    if feature('hgusingmatlabclasses')
+    if ishg2()
         handles.renderer = repmat({'opengl'},[3 1]);
     else
         handles.renderer = repmat({'painters'},[3 1]);
