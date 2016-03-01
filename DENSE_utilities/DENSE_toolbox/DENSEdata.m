@@ -735,7 +735,7 @@ end
 function spdata = analysisFcn(obj,didx,ridx,seedframe,varargin)
 
     % gather data
-    imdata = imageData(obj,didx);
+    imdata = imagedata(obj,didx);
     cndata = contourData(obj,ridx);
 
     % ensure DENSE/ROI indices overlap
@@ -829,7 +829,7 @@ function tf = isAllowAnalysisFcn(obj,didx,ridx,frame)
 
     % attempt to gather data, testing the indices
     try
-        imdata = imageData(obj,didx,true);
+        imdata = imagedata(obj,didx,true);
         cndata = contourData(obj,ridx,frame,true);
     catch
         tf = false;
@@ -1164,7 +1164,7 @@ function tf = isAllowExportROIFcn(obj,ridx)
 
     % attempt to gather contour data, testing the indices
     try
-        cndata = contourData(obj,ridx,[],true);
+        cndata = contourdata(obj,ridx,[],true);
     catch
         tf = false;
         return
@@ -1182,7 +1182,7 @@ function exportdata = exportROIFcn(obj,ridx,varargin)
 
     % gather the contour to check if its available
     try
-        cndata = contourData(obj,ridx);
+        cndata = contourdata(obj,ridx);
     catch
         error(sprintf('%s:ROIExportDisabled',mfilename),...
             'Cannot export requested ROI.');

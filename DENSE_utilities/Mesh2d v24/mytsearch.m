@@ -65,7 +65,7 @@ end
 
 % Do a full search for points that failed
 if any(j)
-   i(j) = tsearch(x,y,t,xi(j),yi(j));
+   i(j) = tsearchn([x,y],t,[xi(j),yi(j)]);
 end
 
 end      % mytsearch()

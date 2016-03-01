@@ -28,28 +28,35 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
     properties (Hidden)
         hwait       % Handle to the waitbartimer object
+        Package     % Package in which the plugin is installed
     end
 
-    properties (SetAccess = 'private')
-        Path        % Path to where the plugin code is located
+    properties (Dependent)
+        PluginDir   % Directory in which all plugins are stored
+        InstallDir  % Directory in which this specific plugin is stored
     end
 
     events
-        Status
+        Status      % Messaging event carrying a status message payload
+    end
+
+    % Get/Set Methods
+    methods
+        function res = get.PluginDir(~)
+            % First figure out where this file is located
+            res = fileparts(mfilename('fullpath'));
+        end
+
+        function res = get.InstallDir(self)
+            res = fileparts(which(class(self)));
+        end
     end
 
     methods
         function self = DENSEanalysisPlugin(varargin)
-            % Relative path of the plugin
-            classpath = which(class(self));
-            plugindir = fileparts(mfilename('fullpath'));
-            pattern = regexptranslate('wildcard', plugindir);
-
-            self.Path = fullfile('.', regexprep(classpath, pattern, '.'));
-
             % Look to see if there is a plugin.json file
-            plugindir = fileparts(classpath);
-            jsonconfig = fullfile(plugindir, 'plugin.json');
+            curdir = fileparts(which(class(self)));
+            jsonconfig = fullfile(curdir, 'plugin.json');
 
             if exist(jsonconfig, 'file')
                 varargin = [{loadjson(jsonconfig)}, varargin];
@@ -63,6 +70,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             ip.addParamValue('Author', '', @ischar);
             ip.addParamValue('Email', '', @ischar);
             ip.addParamValue('URL', '', @ischar);
+            ip.addParamValue('Package', '', @ischar);
             ip.parse(varargin{:})
             set(self, ip.Results);
         end
@@ -126,6 +134,48 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             end
 
             set(hwait, varargin{:})
+        end
+
+        function bool = hasUpdate(self)
+            % hasUpdate - Determines whether an update is available online
+            %
+            % USAGE:
+            %   bool = self.hasUpdate()
+            %
+            % OUTPUTS:
+            %   bool:   Logical, Indicates whether an update is available
+            %           (true) or not (false)
+
+            updater = Updater.create(self);
+            bool = updater.updateAvailable();
+        end
+
+        function bool = update(self, varargin)
+            % update - Performs an in-place update of the plugin
+            %
+            % USAGE:
+            %   bool = self.update(silent)
+            %
+            % INPUTS:
+            %   silent:     Logical, Forces the update to be performed
+            %               without prompting the user.
+            %
+            % OUTPUTS:
+            %   success:    Integer, Indicates whether the update was
+            %               performed (1), whether the current version
+            %               updates should be ignored (-1), or if the
+            %               update failed (0).
+
+            % Always force the update without a prompt for plugins
+            updater = Updater.create(self);
+            [bool, versionNumber] = updater.launch(varargin{:});
+
+            if bool
+                filename = fullfile(self.InstallDir, 'plugin.json');
+                plugin_info = loadjson(filename);
+                plugin_info.version = versionNumber;
+                savejson('', plugin_info, filename);
+            end
         end
     end
 

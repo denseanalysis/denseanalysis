@@ -45,11 +45,6 @@ classdef Updater < hgsetget
     end
 
     methods
-        function set.Version(self, val)
-            % Convert all Versions to VersionNumber instances
-            self.Version = VersionNumber(val);
-        end
-
         function self = Updater(varargin)
             % Updater - Updater constructor
             %
@@ -74,34 +69,20 @@ classdef Updater < hgsetget
             %               be used by the user to actually launch the
             %               updater and perform other actions.
 
-            % The base DENSEanalysis installation directory
-            basedir = fullfile('..', '..', fileparts(mfilename('fullpath')));
-
-            strcheck = @(x)ischar(x) && ~isempty(x);
-
-            ip = inputParser();
-            ip.KeepUnmatched = true;
-            ip.addParamValue('URL', '', strcheck);
-            ip.addParamValue('Version', '', strcheck);
-            ip.addParamValue('InstallDir', basedir, strcheck);
-            ip.parse(varargin{:});
-            set(self, ip.Results)
+            inputs = Updater.parseinputs(varargin{:});
+            set(self, inputs)
 
             % Get the project out of the URL (Assumes Github)
-            pattern = '(?<=github.com\/)[^/]*/[^/]*';
-            self.Repo = regexp(self.URL, pattern, 'match', 'once');
+            self.Repo = regexp(self.URL, self.pattern, 'match', 'once');
 
             if isempty(self.Repo)
                 error(sprintf('%s:UnsupportedHost', mfilename), ...
                     ['Malformed URL. \nNOTE: ', ...
                      'Currently only Github is supported for updates']);
             end
-
-            % TODO: Implement APIs other than Github's
-            self.API = 'https://api.github.com';
         end
 
-        function [bool, versionNumber] = launch(self)
+        function [bool, versionNumber] = launch(self, force)
             % launch - Actually launch the updater
             %
             %   This method uses the information provided to the
@@ -109,7 +90,12 @@ classdef Updater < hgsetget
             %   upgrade, and perform the installation in place.
             %
             % USAGE:
-            %   [success, version] = Updater.launch()
+            %   [success, version] = Updater.launch(force)
+            %
+            % INPUTS:
+            %   force:      Logical, Forces the updater to perform the
+            %               installation (if an update is available).
+            %               Default = false.
             %
             % OUTPUTS:
             %   success:    Integer, Indicates whether the update was
@@ -122,18 +108,23 @@ classdef Updater < hgsetget
 
             bool = false;
             versionNumber = '';
+
             [hasupdate, release] = self.updateAvailable();
 
-            if ~hasupdate
-                return;
-            end
+            % Ignore if there are no available updates
+            if ~hasupdate; return; end
 
-            versionNumber = release.tag_name;
-            proceed = self.prompt(release);
+            versionNumber = release.Version;
+
+            if exist('force', 'var') && force
+                proceed = 'update';
+            else
+                proceed = self.prompt(release);
+            end
 
             switch lower(proceed)
                 case 'update'
-                    folder = self.download(release.zipball_url);
+                    folder = self.download(release);
                     bool = self.install(folder, self.InstallDir);
                 case 'ignore'
                     % Notify the caller that we don't want to check
@@ -144,51 +135,67 @@ classdef Updater < hgsetget
             end
         end
 
-        function data = latestRelease(self)
-            % latestRelease - Retrieve information about the latest release
-            %
-            %   This will return a structure containing information about
-            %   the latest STABLE release. It will not include any draft or
-            %   pre-releases.
-            %
-            % USAGE:
-            %   data = Updater.latestRelease()
-            %
-            % OUTPUTS:
-            %   data:   struct, Structure containing the JSON response from
-            %           the server.
-
-            data = self.request('repos', self.Repo, 'releases', 'latest');
-            if ~isempty(data)
-                data.Version = VersionNumber(data.tag_name);
-            end
-        end
-
-        function [bool, newest] = updateAvailable(self)
-            % updateAvailable - Determines whether there is an update
-            %
-            % USAGE:
-            %   [bool, data] = Updater.updateAvailable()
-            %
-            % OUTPUTS:
-            %   bool:   Logical, Indicates whether an update is available
-            %           (true) or not (false)
-            %
-            %   data:   Struct, JSON response that represents the latest
-            %           version.
-
-            newest = self.latestRelease();
-
-            if isempty(newest)
-                bool = false;
-            else
-                % Now compare to our version
-                bool = newest.Version > self.Version;
-            end
+        function url = getURL(self, varargin)
+            url = [self.API, sprintf('/%s', varargin{:})];
         end
     end
 
-    methods (Access = 'protected')
+    methods (Abstract)
+        % updateAvailable - Determines whether there is an update
+        %
+        % USAGE:
+        %   [bool, data] = Updater.updateAvailable()
+        %
+        % OUTPUTS:
+        %   bool:   Logical, Indicates whether an update is available
+        %           (true) or not (false)
+        %
+        %   data:   Struct, JSON response that represents the latest
+        %           version.
+        [bool, newest] = updateAvailable(self);
+
+        % latestRelease - Retrieve information about the latest release
+        %
+        %   This will return a structure containing information about
+        %   the latest STABLE release. It will not include any draft or
+        %   pre-releases.
+        %
+        % USAGE:
+        %   data = Updater.latestRelease()
+        %
+        % OUTPUTS:
+        %   data:   struct, Structure containing the JSON response from
+        %           the server.
+        data = latestRelease(self);
+
+        % readFile - Read the contents of a specific file
+        %
+        %   By specifying a filepath as well as a version string, it is
+        %   possible to get the file contents at a specific version.
+        %
+        % USAGE:
+        %   contents = Updater.readFile(filepath, reference)
+        %
+        % INPUTS:
+        %   filepath:   String, Path to the file relative to the project
+        %               root directory.
+        %
+        %   reference:  String or VersionNumber, Indicates the version to
+        %               use to retrieve the file. This can be a string
+        %               representation of the version of even a git branch
+        %               specification ('master')
+        %
+        % OUTPUTS:
+        %   contents:   String, Contents of the file.
+        contents = readFile(self, filepath, reference);
+    end
+
+    methods (Static, Abstract)
+        % Function for returning regex pattern
+        res = pattern();
+    end
+
+    methods (Hidden)
         function [data, status] = request(self, varargin)
             % request - Make a request to the API
             %
@@ -213,8 +220,7 @@ classdef Updater < hgsetget
             %   Status: Struct, Contains information regarding the status
             %           of the HTTP request as returned by URLREAD2
 
-            req = sprintf('/%s', varargin{:});
-            [data, status] = urlread2([self.API, req]);
+            [data, status] = urlread2(self.getURL(varargin{:}));
 
             if ~status.isGood
                 error(sprintf('%s:APIError', mfilename), ...
@@ -259,7 +265,7 @@ classdef Updater < hgsetget
 
             message = { ''; ...
                 'An update is available for DENSEanalysis';
-                sprintf('Version %s', char(release.Version)); ''};
+                sprintf('Version %s', char(release.VersionString)); ''};
 
             h = uicontrol( ...
                     'Style',            'text', ...
@@ -283,7 +289,7 @@ classdef Updater < hgsetget
             % Create a scrollable text panel for changelog information
             jtext = javax.swing.JTextPane();
             jtext.setContentType('text/html');
-            jtext.setText(markdown2html(release.body));
+            jtext.setText(markdown2html(release.Notes));
 
             jscroll = javacomponent('javax.swing.JScrollPane', [], container);
             viewport = jscroll.getViewport();
@@ -346,6 +352,8 @@ classdef Updater < hgsetget
             % OUTPUTS:
             %   folder: String, Path to where the zip file was extracted.
 
+            if isstruct(url); url = url.URL; end
+
             files = unzip(url, tempname);
 
             % Downloaded information
@@ -381,6 +389,40 @@ classdef Updater < hgsetget
                 bool = true;
             catch
                 bool = false;
+            end
+        end
+    end
+
+    methods (Static)
+        function inputs = parseinputs(varargin)
+            % The base DENSEanalysis installation directory
+            basedir = fullfile('..', '..', fileparts(mfilename('fullpath')));
+
+            strcheck = @(x)ischar(x) && ~isempty(x);
+
+            ip = inputParser();
+            ip.KeepUnmatched = true;
+            ip.addParamValue('URL', '', strcheck);
+            ip.addParamValue('Version', '', strcheck);
+            ip.addParamValue('InstallDir', basedir, strcheck);
+
+            if nargin && isobject(varargin{1})
+                warning('off', 'MATLAB:structOnObject');
+                varargin{1} = struct(varargin{1});
+                warning('on', 'MATLAB:structOnObject');
+            end
+
+            ip.parse(varargin{:});
+            inputs = ip.Results;
+        end
+
+        function obj = create(varargin)
+            inputs = Updater.parseinputs(varargin{:});
+            if regexp(inputs.URL, GithubUpdater.pattern, 'match', 'once')
+                obj = GithubUpdater(inputs);
+            else
+                error(sprintf('%s:UnsupportedSchema', mfilename), ...
+                    'Unsupported URL Type');
             end
         end
     end

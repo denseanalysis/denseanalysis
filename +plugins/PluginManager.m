@@ -167,23 +167,6 @@ classdef PluginManager < handle
         end
     end
 
-    methods (Access = 'protected')
-        function pluginDestroyed(self, plugin)
-            % pluginDestroyed - callback for when a plugin is deleted
-
-            % Find it in the menu and remove if necessary
-            toremove = arrayfun(@(x)x == plugin, self.Plugins);
-            self.Classes(toremove) = [];
-
-            % Turn off listeners
-            delete(self.listeners(toremove));
-            self.listeners(toremove) = [];
-            self.Plugins(toremove) = [];
-
-            self.notify('PluginRemoved');
-        end
-    end
-
     methods (Static)
         function classes = findAllPlugins(pluginType, package)
             % Search the plugin directory for all third-party plugins
@@ -219,6 +202,84 @@ classdef PluginManager < handle
 
             [~, sortind] = sort({classes.Name});
             classes = classes(sortind);
+        end
+
+        function result = update(plugin, varargin)
+            % update - Checks and performs updates for the requested plugin
+            %
+            % USAGE:
+            %   result = PluginManager.update(plugin, force)
+            %
+            % INPUTS:
+            %   plugin: Object, Instance of the plugin to update
+            %
+            %   force:  Logical, Inicates whether to prompt the user in
+            %           case of an update (false) or not (true)
+            %
+            % OUTPUTS:
+            %   result: Integer, Whether an update was downloaded and
+            %           installed (1), whether the user cancelled the
+            %           update (0), or if the user requested to not be
+            %           notified again for this update (-1)
+
+            result = plugin.update(varargin);
+        end
+
+        function result = import(url)
+            % import - Import a plugin from a remote URL
+            %
+            %   This static method allows the user to download and install
+            %   a plugin from the remote URL.
+            %
+            % USAGE:
+            %   result = PluginManager.import(url)
+            %
+            % INPUTS:
+            %   url:    String, URL provided for the plugin. Typically,
+            %           this will point to a hosted gitlab or github
+            %           project.
+            %
+            % OUTPUTS:
+            %   result: Logical, Indicates whether the import was
+            %           successful (true) or not (false)
+
+            updater = Updater.create('URL', url);
+
+            % Get the latest release
+            newest = updater.latestRelease();
+
+            % Update the installation directory to the package directory
+            folder = updater.download(newest);
+
+            % Determine installation directory using plugin.json config
+            filename = fullfile(folder, 'plugin.json');
+            plugin_info = loadjson(filename);
+            pluginDir = fileparts(mfilename('fullpath'));
+            installDir = fullfile(pluginDir, ['+', plugin_info.package]);
+
+            % Ensure that the plugin versions match up
+            plugin_info.version = newest.Version;
+            savejson('', plugin_info, filename);
+
+            % Install the software in the needed location
+            result = updater.install(folder, installDir);
+        end
+    end
+
+    methods (Access = 'protected')
+        function pluginDestroyed(self, plugin)
+            % pluginDestroyed - callback for when a plugin is deleted
+
+            % Find it in the menu and remove if necessary
+            toremove = arrayfun(@(x)x == plugin, self.Plugins);
+            self.Classes(toremove) = [];
+
+            % Turn off listeners
+            delete(self.listeners(toremove));
+            self.listeners(toremove) = [];
+            self.Plugins(toremove) = [];
+
+            self.notify('PluginRemoved');
         end
     end
 end
