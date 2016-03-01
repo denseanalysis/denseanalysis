@@ -16,6 +16,7 @@ function f = getFigureClient(hfig)
     %
     % Copyright (c) 2016 DENSEanalysis Contributors
 
+    warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
     jFrame = get(handle(hfig), 'JavaFrame');
 
     try
