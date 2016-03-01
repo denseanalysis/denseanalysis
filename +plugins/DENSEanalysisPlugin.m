@@ -55,8 +55,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
     methods
         function self = DENSEanalysisPlugin(varargin)
             % Look to see if there is a plugin.json file
-            curdir = fileparts(which(class(self)));
-            jsonconfig = fullfile(curdir, 'plugin.json');
+            jsonconfig = fullfile(self.InstallDir, 'plugin.json');
 
             if exist(jsonconfig, 'file')
                 varargin = [{loadjson(jsonconfig)}, varargin];
