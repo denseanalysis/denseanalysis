@@ -36,13 +36,13 @@ classdef PluginManager < handle
     properties (Hidden)
         plugins_            % Shadowed version of plugins array
         listeners           % Listeners for destruction of plugins
-        statuslisteners
+        statuslisteners     % Listeners for status events from plugins
     end
 
     events
-        Status
-        PluginRemoved
-        PluginAdded
+        Status              % Event to be fired when a status is received
+        PluginRemoved       % Event when a plugin is removed or invalidated
+        PluginAdded         % Event fired when a plugin is added/imported
     end
 
     methods
