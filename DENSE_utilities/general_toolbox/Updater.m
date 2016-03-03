@@ -44,6 +44,10 @@ classdef Updater < hgsetget
         InstallDir  % Directory in which to install the data
     end
 
+    events
+        Status      % Event fired when there is a status to report
+    end
+
     methods
         function self = Updater(varargin)
             % Updater - Updater constructor
@@ -72,7 +76,7 @@ classdef Updater < hgsetget
             inputs = Updater.parseinputs(varargin{:});
             set(self, inputs)
 
-            % Get the project out of the URL (Assumes Github)
+            % Get the project out of the URL
             self.Repo = regexp(self.URL, self.pattern, 'match', 'once');
 
             if isempty(self.Repo)
@@ -114,6 +118,9 @@ classdef Updater < hgsetget
             % Ignore if there are no available updates
             if ~hasupdate; return; end
 
+            message = sprintf('Update found (%s)', char(release.Version));
+            self.setStatus(message);
+
             versionNumber = release.Version;
 
             if exist('force', 'var') && force
@@ -135,8 +142,82 @@ classdef Updater < hgsetget
             end
         end
 
-        function url = getURL(self, varargin)
-            url = [self.API, sprintf('/%s', varargin{:})];
+        function folder = download(self, url)
+            % download - Downloads the ZIP file to a temporary folder
+            %
+            % USAGE:
+            %   folder = Updater.download(url)
+            %
+            % INPUTS:
+            %   url:    String, URL to a zip file to be downloaded
+            %
+            % OUTPUTS:
+            %   folder: String, Path to where the zip file was extracted.
+
+            if isstruct(url); url = url.URL; end
+
+            self.setStatus(sprintf('Downloading update from %s...', url));
+
+            files = unzip(url, tempname);
+
+            % Downloaded information
+            folder = basepath(files);
+        end
+
+        function bool = install(self, src, destination)
+            % install - Install files from the destination into the source
+            %
+            % USAGE:
+            %   bool = Updater.install(src, dest)
+            %
+            % INPUTS:
+            %   src:    String, Path to where the new files to store
+            %           reside.
+            %
+            %   dest:   String, Path to the location in which to install
+            %           the files.
+            %
+            % OUTPUTS:
+            %   bool:   Logical, Indicates whether the files were
+            %           successfully installed (true) or not (false)
+
+            try
+                message = sprintf('Copying files into place (%s)...', ...
+                                  destination);
+                self.setStatus(message);
+
+                % Now copy all of these to the destination directory
+                util = org.apache.commons.io.FileUtils;
+                util.copyDirectory(java.io.File(src), ...
+                                   java.io.File(destination));
+
+                % Now clear out the source
+                rmdir(src, 's');
+
+                bool = true;
+            catch
+                bool = false;
+            end
+        end
+    end
+
+    methods (Access = 'public')
+        function setStatus(self, message, varargin)
+            % setStatus - Fires `Status` event with the supplied string
+            %
+            % USAGE:
+            %   Updater.setStatus(message, type)
+            %
+            % INPUTS:
+            %   message:    String, Message to set as the status
+            %
+            %   type:       String, Indicates category of status event.
+            %               Typical categories include: INFO, WARN, DEBUG,
+            %               ERROR. (Default = INFO)
+
+            if isempty(varargin); varargin = {'INFO'}; end
+            eventData = StatusEvent('', message, varargin{:});
+            self.notify('Status', eventData);
         end
     end
 
@@ -196,6 +277,26 @@ classdef Updater < hgsetget
     end
 
     methods (Hidden)
+        function url = getURL(self, varargin)
+            % getURL - Helper method for crafting an API URL
+            %
+            %   This method concatenates all of the inputs and appends them
+            %   to the root API URL to generate a valid URL.
+            %
+            % USAGE:
+            %   url = Updater.getURL(part1, part2, ..., partN)
+            %
+            % INPUTS:
+            %   partN:  String, These are the parts of the URL that will
+            %           be joined together to craft the URL (ala fullfile)
+            %
+            % OUTPUTS:
+            %   url:    String, URL formed from the root API URL and the
+            %           input parameters
+
+            url = [self.API, sprintf('/%s', varargin{:})];
+        end
+
         function [data, status] = request(self, varargin)
             % request - Make a request to the API
             %
@@ -336,61 +437,18 @@ classdef Updater < hgsetget
             end
         end
 
-        function folder = download(url)
-            % download - Downloads the ZIP file to a temporary folder
-            %
-            % USAGE:
-            %   folder = Updater.download(url)
-            %
-            % INPUTS:
-            %   url:    String, URL to a zip file to be downloaded
-            %
-            % OUTPUTS:
-            %   folder: String, Path to where the zip file was extracted.
-
-            if isstruct(url); url = url.URL; end
-
-            files = unzip(url, tempname);
-
-            % Downloaded information
-            folder = basepath(files);
-        end
-
-        function bool = install(src, destination)
-            % install - Install files from the destination into the source
-            %
-            % USAGE:
-            %   bool = Updater.install(src, dest)
-            %
-            % INPUTS:
-            %   src:    String, Path to where the new files to store
-            %           reside.
-            %
-            %   dest:   String, Path to the location in which to install
-            %           the files.
-            %
-            % OUTPUTS:
-            %   bool:   Logical, Indicates whether the files were
-            %           successfully installed (true) or not (false)
-
-            try
-                % Now copy all of these to the destination directory
-                util = org.apache.commons.io.FileUtils;
-                util.copyDirectory(java.io.File(src), ...
-                                   java.io.File(destination));
-
-                % Now clear out the source
-                rmdir(src, 's');
-
-                bool = true;
-            catch
-                bool = false;
-            end
-        end
-    end
-
-    methods (Static)
         function inputs = parseinputs(varargin)
+            % parseinputs - Method for dealing with all input arguments
+            %
+            %   Focuses all parsing of inputs and input validation in one
+            %   place that can be called from any subclass easily.
+            %
+            % USAGE:
+            %   inputs = Updater.parseinputs(varargin)
+            %
+            % OUTPUTS:
+            %   inputs: Struct, Structure containing the parsed outputs
+
             % The base DENSEanalysis installation directory
             basedir = fullfile('..', '..', fileparts(mfilename('fullpath')));
 
@@ -399,7 +457,7 @@ classdef Updater < hgsetget
             ip = inputParser();
             ip.KeepUnmatched = true;
             ip.addParamValue('URL', '', strcheck);
-            ip.addParamValue('Version', '', strcheck);
+            ip.addParamValue('Version', '0.0', strcheck);
             ip.addParamValue('InstallDir', basedir, strcheck);
 
             if nargin && isobject(varargin{1})
@@ -413,6 +471,31 @@ classdef Updater < hgsetget
         end
 
         function obj = create(varargin)
+            % create - Static method for creating an updater instance
+            %
+            %   This method accepts the generic updater inputs, figures out
+            %   which subclass is best for handling this data, initializes
+            %   it, and returns a handle to the updater.
+            %
+            % USAGE:
+            %   obj = Updater.create('URL', url, 'Version', version, ...
+            %                        'InstallDir', install)
+            %
+            % INPUTS:
+            %   url:        String, URL pointing to where updates can be
+            %               obtained.
+            %
+            %   version:    String or VersionNumber, Representation of the
+            %               current version to use for comparison to the
+            %               version found at URL
+            %
+            %   install:    String, Path to where updates (if found) should
+            %               be installed.
+            %
+            % OUTPUTS
+            %   obj:        Object, This is a subclass of Updater that is
+            %               specific to the URL provided.
+
             inputs = Updater.parseinputs(varargin{:});
             if regexp(inputs.URL, GithubUpdater.pattern, 'match', 'once')
                 obj = GithubUpdater(inputs);

@@ -245,6 +245,10 @@ classdef PluginManager < handle
 
             updater = Updater.create('URL', url);
 
+            % For an import we'll simply print status to the command line
+            printer = @(s,e)fprintf('%s\n', e.Message);
+            listener = addlistener(updater, 'Status', printer);
+
             % Get the latest release
             newest = updater.latestRelease();
 
@@ -263,6 +267,8 @@ classdef PluginManager < handle
 
             % Install the software in the needed location
             result = updater.install(folder, installDir);
+
+            delete(listener);
         end
     end
 
