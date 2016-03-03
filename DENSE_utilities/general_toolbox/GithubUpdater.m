@@ -66,24 +66,32 @@ classdef GithubUpdater < Updater
 
             % Otherwise we need to compare git commits
             catch
-                % Now do a comparison of the current commit with HEAD
-                comparison = self.request('compare', [current,'...',ref]);
-                bool = comparison.ahead_by > 0;
+                if isempty(current) || isequal(current, '0.0')
+                    % Then we don't CARE about the current version
+                    commit = self.request('commits', ref);
+                    commits = {commit};
+                    bool = true;
+                else
+                    % Now do a comparison of the current commit with HEAD
+                    comparison = self.request('compare', [current,'...',ref]);
+                    commits = comparison.commits;
+                    bool = comparison.ahead_by > 0;
 
-                if ~bool
-                    newest = struct();
-                    return
+                    if ~bool
+                        newest = struct();
+                        return
+                    end
                 end
 
                 % Create a response object
                 newest.URL = self.getURL('zipball', ref);
-                sha_short = comparison.commits{end}.sha(1:10);
-                newest.Version = comparison.commits{end}.sha;
-                newest.VersionString = sprintf('%s (%s)', ref, sha_short);
+                sha = commits{end}.sha;
+                newest.Version = sha;
+                newest.VersionString = sprintf('%s (%s)', ref, sha(1:10));
 
                 % Convert git log to notes
                 func = @(x)commit2markdown(x.commit);
-                comments = cellfun(func, comparison.commits, 'uniform', 0);
+                comments = cellfun(func, commits, 'uniform', 0);
                 comments = [comments{:}];
                 newest.Notes = comments;
             end
