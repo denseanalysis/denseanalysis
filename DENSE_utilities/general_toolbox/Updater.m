@@ -286,14 +286,7 @@ classdef Updater < hgsetget
 
             set(h, 'HeightLimits', [20 20])
 
-            % Create a scrollable text panel for changelog information
-            jtext = javax.swing.JTextPane();
-            jtext.setContentType('text/html');
-            jtext.setText(markdown2html(release.Notes));
-
-            jscroll = javacomponent('javax.swing.JScrollPane', [], container);
-            viewport = jscroll.getViewport();
-            viewport.add(jtext);
+            changelogPanel = MarkdownPanel('Parent', container);
 
             hgroup = uiflowcontainer('v0', ...
                     'Parent',           container, ...
@@ -324,6 +317,9 @@ classdef Updater < hgsetget
 
             % Center the GUI within the user's monitor
             movegui(dlg, 'center');
+
+            % Actually set the release notes content
+            set(changelogPanel, 'Content', release.Notes);
 
             % Set focus to the last button
             uicontrol(update_button);
