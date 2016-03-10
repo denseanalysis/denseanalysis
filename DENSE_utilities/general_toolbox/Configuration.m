@@ -45,14 +45,10 @@ classdef Configuration < structobj
 
             self.filename = filename;
 
-            if ~exist(self.filename, 'file')
-                fclose(fopen(self.filename, 'wb'));
-            else
-                self.load();
-            end
-
             % Write any new settings to the file
             self.listener = addlistener(self, 'Updated', @(s,e)save(s));
+
+            self.load();
         end
 
         function self = reset(self)
@@ -156,7 +152,7 @@ classdef Configuration < structobj
             %   json:   String, JSON-encoded string representing the data
             %           contained within this configuration instance.
 
-            data = savejson('', self.struct());
+            data = savejson('', struct(self));
         end
 
         function load(self)
@@ -173,18 +169,31 @@ classdef Configuration < structobj
             % USAGE
             %   load(conf)
 
-            filedata = cells2structs(loadjson(self.filename));
+            % If the file doesn't exist, "touch" it to create it
+            if ~exist(self.filename, 'file')
+                reset(self);
+                return;
+            end
+
+            try
+                filedata = loadjson(self.filename);
+                if isempty(filedata); filedata = struct(); end
+            catch ME
+                if strcmpi(ME.identifier, 'MATLAB:UndefinedFunction')
+                    filedata = struct();
+                end
+            end
+
+            filedata = cells2structs(filedata);
 
             % Ensure that we turn off file-writing so we don't lose data
-            if ~isempty(self.listener)
-                self.listener.Enabled = false;
-                reset(self);
-                update(self, filedata);
-                self.listener.Enabled = true;
-            else
-                reset(self);
-                update(self, filedata);
-            end
+            if isvalid(self.listener); self.listener.Enabled = false; end
+
+            reset(self);
+
+            if isvalid(self.listener); self.listener.Enabled = true; end
+
+            update(self, filedata);
         end
     end
 end
