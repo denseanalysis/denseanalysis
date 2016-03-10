@@ -17,13 +17,17 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
     %
     % Copyright (c) 2016 DENSEanalysis Contributors
 
-    properties
+    properties (SetAccess = 'protected')
         Name        % Plugin name specified in menus and elsewhere
         Description % Brief, description of the plugin
         Version     % String representing the version
         Author      % Author of the plugin
         Email       % Email of the author
         URL         % Url where the plugin was obtained from
+    end
+
+    properties (SetAccess = 'private')
+        Config      % Configuration object
     end
 
     properties (Hidden)
@@ -72,6 +76,9 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             ip.addParamValue('Package', '', @ischar);
             ip.parse(varargin{:})
             set(self, ip.Results);
+
+            settingfile = fullfile(self.InstallDir, 'settings.json');
+            self.Config = Configuration(settingfile);
         end
 
         function setStatus(self, message, varargin)
