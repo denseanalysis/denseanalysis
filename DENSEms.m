@@ -64,7 +64,6 @@ function varargout = DENSEms(varargin)
 
     % LOAD FIGURE----------------------------------------------------------
     try
-
         % load figure
         hfig = hgload([mfilename '.fig']);
         setappdata(hfig,'WaitForOutput',api.WaitForOutput);
@@ -120,24 +119,25 @@ function output = mainFcn(api)
     % DISPLAY OPTIONS------------------------------------------------------
 
     % colors
-    set(api.hbgcolor,'cdata',colorblock(api.backgroundcolor));
-    set(api.haxcolor,'cdata',colorblock(api.edgecolor));
-    set(api.htxcolor,'cdata',colorblock(api.textcolor));
+    set(api.hbgcolor,'cdata',colorblock(api.config.backgroundcolor));
+    set(api.haxcolor,'cdata',colorblock(api.config.edgecolor));
+    set(api.htxcolor,'cdata',colorblock(api.config.textcolor));
 
-    set(api.hmain,'backgroundcolor',api.backgroundcolor);
+    set(api.hmain,'backgroundcolor',api.config.backgroundcolor);
     set([api.hpanel3d,api.hpaneltime,api.hpanelbullseye],...
-        'backgroundcolor',api.backgroundcolor);
+        'backgroundcolor',api.config.backgroundcolor);
 
     % ranges
-    set(api.htwistmin,'string',api.twistrng(1));
-    set(api.htwistmax,'string',api.twistrng(end));
+    set(api.htwistmin,'string',api.config.twistrng(1));
+    set(api.htwistmax,'string',api.config.twistrng(end));
 
-    set(api.htorsionmin,'string',api.torsionrng(1));
-    set(api.htorsionmax,'string',api.torsionrng(end));
+    set(api.htorsionmin,'string',api.config.torsionrng(1));
+    set(api.htorsionmax,'string',api.config.torsionrng(end));
 
     % colormaps
-    set(api.hlistcmap,'string',{api.colormaps.Name},...
-        'Value',api.colormapidx);
+    colormaps = arrayfun(@(x)x.Name, api.config.colormaps, 'uni', 0);
+    set(api.hlistcmap,'string', colormaps ,...
+        'Value',api.config.colormapidx);
 
     % AXES SETUP-----------------------------------------------------------
 
@@ -167,14 +167,14 @@ function output = mainFcn(api)
     set(api.hlbl,   'fontsize',11,'interpreter','tex');
 
     % colors
-    set([api.hax,api.hcb],'color','none','xcolor',api.edgecolor,...
-        'ycolor',api.edgecolor,'zcolor',api.edgecolor);
-    set(api.hax3d,'color',api.backgroundcolor);
-    set([api.httl,api.hlbl],'color',api.edgecolor);
+    set([api.hax,api.hcb],'color','none','xcolor',api.config.edgecolor,...
+        'ycolor',api.config.edgecolor,'zcolor',api.config.edgecolor);
+    set(api.hax3d,'color',api.config.backgroundcolor);
+    set([api.httl,api.hlbl],'color',api.config.edgecolor);
 
     % axes limits
-    set([api.hcb,api.haxA],'ylim',api.twistrng);
-    set(api.haxB,'ylim',api.torsionrng);
+    set([api.hcb,api.haxA],'ylim',api.config.twistrng);
+    set(api.haxB,'ylim',api.config.torsionrng);
 
     % colormap patchs
     Ncb = numel(api.hcb);
@@ -492,9 +492,6 @@ function figDelete(hfig)
     % application data
     api = guidata(hfig);
 
-    % save program information
-    saveInfo(api);
-
     % eliminate objects
     tags = {'hcameralistener','hplaybarlistener','hplaybar'};
 
@@ -518,7 +515,16 @@ end
 function api = loadInfo(api)
 
     % info file
-    filename = fullfile(userdir(), ['.', mfilename]);
+    folder = fullfile(userdir(), '.denseanalysis');
+    exists = exist(folder, 'file');
+
+    if exists ~= 7
+        if exists; delete(folder); end
+        mkdir(folder);
+    end
+
+    filename = fullfile(folder, [mfilename, '.json']);
+    api.config = Configuration(filename);
 
     % default software options
     definfo = struct(...
@@ -536,70 +542,54 @@ function api = loadInfo(api)
 
     % reset options
     if api.ResetOptions && api.ResetPaths
-        info = definfo;
-
-    % parse options
+        api.config.reset();
     else
+        for k = 1:numel(tags)
+            tag = tags{k};
+            default = definfo.(tag);
+            val = get(api.config, tag, default);
 
-        % try to load file
-        try
-            s = load(filename,'-mat');
-        catch ERR %#ok<*NASGU>
-            s = struct;
-        end
-
-        % parse file options
-        info = parseinputs(definfo,[],s);
-
-        % check paths
-        for ti = 1:numel(tags)
-            tag = tags{ti};
-            val = info.(tag);
-
-            if strwcmpi(tag,'*path')
+            if ~isfield(api.config, tag)
+                set(api.config, tag, default);
+            elseif strwcmpi(tag, '*path')
                 if api.ResetPaths
-                    val = definfo.(tag);
+                    set(api.config, tag, default);
                 else
-                    if iscell(val), val = val{1}; end
-                    if ischar(val)
-                        val = regexprep(val,'[\/\\]',filesep);
-                    end
+                    val = get(api.config, tag, default);
                     if ~ischar(val) || ~isdir(val)
-                        val = definfo.(tag);
+                        val = default;
                     end
                 end
-
-            elseif strwcmpi(tag,'*color')
+            elseif strwcmpi(tag, '*color')
                 if api.ResetOptions || ~iscolor(val)
-                    val = definfo.(tag);
+                    val = default;
                 end
+
                 val = clr2num(val);
-
-            elseif strwcmpi(tag,'*rng')
+            elseif strwcmpi(tag, '*rng')
                 if api.ResetOptions || ...
-                   ~isnumeric(val) || numel(val)~=2 || ...
-                   ~all(isfinite(val)) || val(2)<=val(1)
-                    val = definfo.(tag);
+                        ~isnumeric(val) || numel(val) ~= 2 || ...
+                        ~all(isfinite(val)) || val(2) <= val(1)
+                    val = default;
                 end
-
             else
                 continue
             end
 
-            info.(tag) = val;
+            set(api.config, tag, val);
         end
 
         % check colormaps
         if api.ResetOptions
-            info.colormaps   = definfo.colormaps;
-            info.colormapidx = definfo.colormapidx;
+            set(api.config, 'colormaps', definfo.colormaps)
+            set(api.config, 'colormapidx', definfo.colormapidx)
         end
 
-        N = numel(info.colormaps);
+        N = numel(api.config.colormaps);
         valid = false(N,1);
         for k = 1:N
             try
-                cmap = info.colormaps(k).Value;
+                cmap = api.config.colormaps(k).Value;
                 if ischar(cmap), cmap = eval(cmap); end
             catch ERR
                 continue;
@@ -610,36 +600,16 @@ function api = loadInfo(api)
                 valid(k) = true;
             end
         end
-        info.colormaps = info.colormaps(valid);
+
+        api.config.colormaps(~valid) = [];
         if any(~valid)
-            info.colormapidx = 1;
+            api.config.colormapidx = 1;
         end
     end
 
     % copy to application data
     api.infofile = filename;
     api.infotags = tags;
-    for ti = 1:numel(tags)
-        api.(tags{ti}) = info.(tags{ti});
-    end
-end
-
-% save program information
-function saveInfo(api)
-
-    % gather program information
-    svdata = struct;
-    tags   = api.infotags;
-    for ti = 1:numel(tags)
-        if isfield(api,tags{ti})
-            svdata.(tags{ti}) = api.(tags{ti});
-        end
-    end
-
-    % save
-    if ~isempty(fieldnames(svdata))
-        save(api.infofile,'-struct','svdata');
-    end
 end
 
 function cmapstruct = defaultcolormaps()
@@ -675,7 +645,7 @@ function loadFile(hfig)
     uniqueparallel = {};
 
     % get file(s)
-    startpath = api.matpath;
+    startpath = get(api.config, 'matpath', userdir());
     [uifile,uipath] = uigetfile(...
         {ext,['Analysis File (' ext ')']; ...
          '*.*',  'All Files (*.*)'},...
@@ -684,8 +654,7 @@ function loadFile(hfig)
     if isequal(uipath,0), return; end
 
     % save new path
-    api.matpath = uipath;
-    guidata(api.hfig,api);
+    set(api.config, 'matpath', uipath);
 
     % files to load
     if ~iscell(uifile), uifile = {uifile}; end
@@ -1121,25 +1090,25 @@ function api = redrawDisplay(api)
     api.htwistlegendtext = findall(api.htwistlegend,'type','text');
 
     set(api.htwistlegend, ...
-        'Color', api.backgroundcolor, ...
+        'Color', api.config.backgroundcolor, ...
         'Interpreter', 'none');
 
     if isprop(api.htwistlegend, 'EdgeColor')
-        set(api.htwistlegend, 'EdgeColor', api.edgecolor)
+        set(api.htwistlegend, 'EdgeColor', api.config.edgecolor)
     else
         set(api.htwistlegend, ...
-            'XColor', api.edgecolor, ...
-            'YColor', api.edgecolor)
+            'XColor', api.config.edgecolor, ...
+            'YColor', api.config.edgecolor)
     end
 
-    set(api.htwistlegendtext,'fontsize',8,'color',api.edgecolor);
+    set(api.htwistlegendtext,'fontsize',8,'color',api.config.edgecolor);
 
     tf = isfinite(api.Torsion);
     api.htorsion = line(...
         'parent',api.haxB,...
         'xdata',api.Frames(tf),...
         'ydata',api.Torsion(tf),...
-        'color',api.edgecolor,...
+        'color',api.config.edgecolor,...
         'marker','.');
 
     % list slices
@@ -1232,8 +1201,8 @@ function displayOptions(h,hfig)
 
     switch h
         case api.hbgcolor
-            clr = uisetcolor(api.backgroundcolor,'Background');
-            api.backgroundcolor = clr;
+            clr = uisetcolor(api.config.backgroundcolor, 'Background');
+            set(api.config, 'backgroundcolor', clr)
 
             set(h,'cdata',colorblock(clr));
             set(api.hmain,'backgroundcolor',clr);
@@ -1246,8 +1215,8 @@ function displayOptions(h,hfig)
             end
 
         case api.haxcolor
-            clr = uisetcolor(api.edgecolor,'Axes');
-            api.edgecolor = clr;
+            clr = uisetcolor(api.config.edgecolor,'Axes');
+            api.config.edgecolor = clr;
 
             set(h,'cdata',colorblock(clr));
             set([api.hax,api.hcb],'xcolor',clr,'ycolor',clr,'zcolor',clr);
@@ -1268,8 +1237,8 @@ function displayOptions(h,hfig)
             end
 
         case api.htxcolor
-            clr = uisetcolor(api.textcolor,'Text');
-            api.textcolor = clr;
+            clr = uisetcolor(api.config.textcolor,'Text');
+            api.config.textcolor = clr;
 
             set(h,'cdata',colorblock(clr));
 
@@ -1280,27 +1249,27 @@ function displayOptions(h,hfig)
         case api.htwistmin
             tag = 'twistrng';
             setrng(h,tag,false);
-            set([api.haxA,api.hcb],'ylim',api.(tag));
+            set([api.haxA,api.hcb],'ylim',api.config.(tag));
             updateColormap(api);
 
         case api.htwistmax
             tag = 'twistrng';
             setrng(h,tag,true);
-            set([api.haxA,api.hcb],'ylim',api.(tag));
+            set([api.haxA,api.hcb],'ylim',api.config.(tag));
             updateColormap(api);
 
         case api.htorsionmin
             tag = 'torsionrng';
             setrng(h,tag,false);
-            set(api.haxB,'ylim',api.(tag));
+            set(api.haxB,'ylim',api.config.(tag));
 
         case api.htorsionmax
             tag = 'torsionrng';
             setrng(h,tag,true);
-            set(api.haxB,'ylim',api.(tag));
+            set(api.haxB,'ylim',api.config.(tag));
 
         case api.hlistcmap
-            api.colormapidx = get(api.hlistcmap,'Value');
+            api.config.colormapidx = get(api.hlistcmap,'Value');
             updateColormap(api);
 
         case api.hcheckreversez
@@ -1331,15 +1300,15 @@ function displayOptions(h,hfig)
     function setrng(h,tag,flagmax)
         nbr = str2double(get(h,'string'));
         if flagmax
-            if ~isfinite(nbr) || nbr <= api.(tag)(1)
-                nbr = api.(tag)(end);
+            if ~isfinite(nbr) || nbr <= api.config.(tag)(1)
+                nbr = api.config.(tag)(end);
             end
-            api.(tag)(end) = nbr;
+            api.config.(tag)(end) = nbr;
         else
-            if ~isfinite(nbr) || nbr >= api.(tag)(end)
-                nbr = api.(tag)(1);
+            if ~isfinite(nbr) || nbr >= api.config.(tag)(end)
+                nbr = api.config.(tag)(1);
             end
-            api.(tag)(1) = nbr;
+            api.config.(tag)(1) = nbr;
         end
         set(h,'string',nbr);
     end
@@ -1378,7 +1347,7 @@ function fvcd = slicefvcd(api,idx,mode)
             cdata = get(api.hcmap(1),'userdata');
 
             fvcd = val2fvcd(api.data(idx).Twist(:,fridx),cdata.colorval,...
-                cdata.colormap,api.backgroundcolor);
+                cdata.colormap, api.config.backgroundcolor);
     end
 end
 
@@ -1443,10 +1412,10 @@ function updateColormap(api,flag_runplaybar)
     flag_runplaybar = isequal(true,flag_runplaybar);
 
     % twist range
-    rng = api.twistrng;
+    rng = api.config.twistrng;
 
     % colormap
-    cmap = api.colormaps(api.colormapidx).Value;
+    cmap = api.config.colormaps(api.config.colormapidx).Value;
     if ischar(cmap), cmap = eval(cmap); end
 
     % color values
@@ -1483,10 +1452,10 @@ function addColormap(hfig)
         end
 
         api = guidata(hfig);
-        newidx = numel(api.colormaps)+1;
-        api.colormaps(newidx).Name  = name;
-        api.colormaps(newidx).Value = cmap;
-        api.colormapidx = newidx;
+        newidx = numel(api.config.colormaps)+1;
+        api.config.colormaps(newidx).Name  = name;
+        api.config.colormaps(newidx).Value = cmap;
+        api.config.colormapidx = newidx;
     catch ERR
         error(sprintf('%s:invalidColormap',mfilename),'%s',...
             'Unrecognized colormap.  Colormap command must ',...
@@ -1494,7 +1463,8 @@ function addColormap(hfig)
     end
 
     % update display
-    set(api.hlistcmap,'string',{api.colormaps.Name},'value',newidx);
+    colormaps = arrayfun(@(x)x.Name, api.config.colormaps, 'uni', 0);
+    set(api.hlistcmap,'string', colormaps, 'value', newidx);
     updateColormap(api);
 
     % save application data
@@ -1504,23 +1474,24 @@ end
 function deleteColormap(hfig)
     api = guidata(hfig);
 
-    if numel(api.colormaps)==1
+    if numel(api.config.colormaps)==1
         errordlg('Cannot delete all colormaps','Delete Colormap','modal');
         return
     else
         str = sprintf(['Are you sure you would like ',...
             'to delete the "%s" colormap?'],...
-            api.colormaps(api.colormapidx).Name);
+            api.config.colormaps(api.config.colormapidx).Name);
         answer = questdlg(str,'Delete Colormap','Yes','Cancel','Cancel');
         if ~isequal(answer,'Yes'), return; end
     end
 
     % delete colormap
-    api.colormaps(api.colormapidx) = [];
-    api.colormapidx = 1;
+    api.config.colormaps(api.config.colormapidx) = [];
+    api.config.colormapidx = 1;
 
     % update display
-    set(api.hlistcmap,'string',{api.colormaps.Name},'value',api.colormapidx);
+    cmaps = arrayfun(@(x)x.Name, api.config.colormaps, 'uni', 0);
+    set(api.hlistcmap,'string', cmaps, 'value',api.config.colormapidx);
     updateColormap(api);
 
     % save application data
@@ -1612,7 +1583,7 @@ function update3d(api,fridx,opt)
             case 3
                 cdata = get(api.hcmap(1),'userdata');
                 fvcd = val2fvcd(api.data(k).Twist(:,fridx),cdata.colorval,...
-                    cdata.colormap,api.backgroundcolor);
+                    cdata.colormap, api.config.backgroundcolor);
         end
 
         % update display
@@ -1673,7 +1644,7 @@ function api = initBullseye(api,fridx)
     end
     [api.hbullseye,api.hbface,api.hbedge,api.hbtext] = ...
         dense_bullseye(api.haxbullseye,bdata,...
-        'SegmentEdgeColor',api.edgecolor,'FontColor',api.textcolor);
+        'SegmentEdgeColor',api.config.edgecolor,'FontColor',api.config.textcolor);
 
     % add context menu
     set(api.hbface,'uicontextmenu',api.hmenu_bullseye);
@@ -1692,8 +1663,9 @@ function updateBullseye(api,fridx)
         vals = api.data(k).RegionalTwistValue(:,fridx);
         strs = cellfun(@(nbr)sprintf('%.1f',nbr),num2cell(vals),...
                 'uniformoutput',0);
+
         fvcd = val2fvcd(vals,cdata.colorval,...
-                cdata.colormap,api.backgroundcolor);
+                cdata.colormap, api.config.backgroundcolor);
 
         set(api.hbtext{k}(:),{'String'},strs(:));
         set(api.hbface(k),'facecolor','flat',...
@@ -1764,6 +1736,8 @@ function exportMultimedia(hfig)
         return;
     end
 
+    bgcolor = api.config.backgroundcolor;
+
     % allowable export formats & colormaps
     switch api.mode
         case api.hradiotime
@@ -1798,24 +1772,19 @@ function exportMultimedia(hfig)
     end
 
     % full colormap
-    cmap = [api.backgroundcolor;api.edgecolor;api.textcolor;cmapmode];
+    cmap = [bgcolor; api.config.edgecolor; api.config.textcolor; cmapmode];
     cmap = unique(cmap,'rows');
-    tf   = ~ismember(cmap,api.backgroundcolor,'rows');
-    cmap = [api.backgroundcolor;cmap(tf,:)];
+    tf   = ~ismember(cmap,api.config.backgroundcolor,'rows');
+    cmap = [api.config.backgroundcolor;cmap(tf,:)];
 
     formats = api.formats;
     tf = cellfun(@(f)any(strcmpi(export,f)),{formats.Type});
     formats = formats(tf);
 
-    % last export options
-    if ~isfield(api,'exportopts') || isempty(api.exportopts)
-        opts = struct('File','');
-    else
-        opts = api.exportopts;
-    end
+    opts = get(api.config, 'exportoptions', struct('File', ''));
 
     % export path
-    p = api.exportpath;
+    p = get(api.config, 'exportpath', userdir());
     if ~isdir(p), p = pwd; end
 
     % export file
@@ -1850,13 +1819,9 @@ function exportMultimedia(hfig)
 
     % file & path
     exportfile = opts.File;
-    [p,~,e] = fileparts(exportfile);
-    exportpath = p;
-
-    % write new application data
-    api.exportopts = opts;
-    api.exportpath = exportpath;
-    guidata(hfig,api);
+    p = fileparts(exportfile);
+    set(api.config, 'exportoptions', opts);
+    set(api.config, 'exportpath', p);
 
     % EXPORT FIGURE SETUP--------------------------------------------------
 
@@ -1897,7 +1862,7 @@ function exportMultimedia(hfig)
     % invisible figure for export
     vis = 'off';
     hexfig = figure('units','inches','position',[0 0 rect(3:4)],...
-        'color',api.backgroundcolor,...
+        'color',api.config.backgroundcolor,...
         'renderer','zbuffer','visible',vis,...
         'menubar','none','toolbar','none','resize','off',...
         'paperunits','inches','papersize',figsz);
@@ -1910,7 +1875,7 @@ function exportMultimedia(hfig)
     hframe = textfig(hexfig,'units','pixels','units','normalized',...
         'position',[1 0],'horizontalalignment','right',...
         'verticalalignment','bottom','string','0 ',...
-        'FontSize',fontsz,'Color',api.edgecolor,...
+        'FontSize',fontsz,'Color',api.config.edgecolor,...
         'fontweight','bold','fontname','calibri',...
         'visible',api.hplaybar.Visible);
 
@@ -1919,7 +1884,7 @@ function exportMultimedia(hfig)
 
     % figure export options on figure
     hgoptions = struct(...
-        'Background',   api.backgroundcolor,...
+        'Background',   api.config.backgroundcolor,...
         'Format',       format.HGExportFormat,...
         'LockAxes',     'on',...
         'LineMode',     'none',...
@@ -2006,10 +1971,8 @@ function exportMultimedia(hfig)
                 if ~isempty(aviobj), close(aviobj); end
                 if isfile(exportfile), delete(exportfile); end
 
-                api.exportopts.AVICodec = 'None';
-                guidata(hfig,api);
-
-                api.hplaybar.Value = curframe;
+                api.config.exportopts.AVICodec = 'None';
+                api.config.hplaybar.Value = curframe;
                 rethrow(ERR);
             end
 
@@ -2145,17 +2108,13 @@ function exportExcel(hfig)
     if ~api.ExcelAvailable, filter(1,:) = []; end
 
     % last export options
-    if ~isfield(api,'excelfile') || isempty(api.excelfile)
-        file = '';
-    else
-        file = api.excelfile;
-    end
+    file = get(api.config, 'excelfile', '');
 
     % export path
-    p = api.excelpath;
+    p = get(api.config, 'excelpath', userdir());
     if ~isdir(p), p = pwd; end
 
-    % export file
+    % expor tfile
     [~,f,e] = fileparts(file);
     if isempty(f), f = 'untitled'; end
     idx = regexp(f,'\(\d+\)');
@@ -2193,9 +2152,8 @@ function exportExcel(hfig)
     if ~strcmpi(e,uiext), uifile = [uifile,uiext]; end
     file = fullfile(uipath,uifile);
 
-    api.excelpath = uipath;
-    api.excelfile = file;
-    guidata(hfig,api);
+    set(api.config, 'excelpath', uipath);
+    set(api.config, 'excelfile', file);
 
     % AVERAGE TWIST-----------
     Ctwist = cell(Nsl+2,Nfr+1);

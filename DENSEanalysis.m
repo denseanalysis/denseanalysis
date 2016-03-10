@@ -55,10 +55,10 @@ end
 
 
 %% OPENING FUNCTION
-function DENSEanalysis_OpeningFcn(hobj, evnt, handles, varargin)
+function DENSEanalysis_OpeningFcn(~, ~, handles, varargin)
     if ~isappdata(handles.hfig,'GUIInitializationComplete')
         DENSEsetup;
-        handles = initFcn(handles.hfig,mfilename);
+        handles = initFcn(handles.hfig);
     end
 
     % update the figure
@@ -67,13 +67,7 @@ function DENSEanalysis_OpeningFcn(hobj, evnt, handles, varargin)
 
     % start pointer manager
     iptPointerManager(handles.hfig,'enable')
-
-
-    % UIWAIT makes DENSEanalysis_v2 wait for user response (see UIRESUME)
-    % uiwait(handles.hfig);
-
 end
-
 
 
 %% OUTPUT FUNCTION
@@ -101,16 +95,7 @@ function hfig_DeleteFcn(hobj, evnt, handles)
             fprintf('could not delete handles.%s...\n',tags{ti});
         end
     end
-
-    % save some GUI information to disk
-    filename = fullfile(userdir(), ['.' mfilename]);
-    tags = {'dicompath','matpath','exportpath','roipath'};
-    if all(isfield(handles,tags))
-        save(filename,'-struct','handles',tags{:});
-    end
 end
-
-
 
 %% LOAD/SAVE
 
@@ -146,8 +131,10 @@ function loadFcn(handles,type)
 
     % proper startpath
     switch type
-        case 'dicom', startpath = handles.dicompath;
-        otherwise,    startpath = handles.matpath;
+        case 'dicom'
+            startpath = get(handles.config, 'locations.dicomfolder', userdir());
+        otherwise,
+            startpath = get(handles.config, 'locations.matpath', userdir());
     end
 
     % try to load new data
@@ -165,12 +152,12 @@ function loadFcn(handles,type)
     % save path to figure
     switch type
         case 'dicom',
-            handles.dicompath = uipath;
-            handles.matfile = '';
+            set(handles.config, 'locations.dicomfolder', uipath)
+            set(handles.config, 'locations.matfile', '')
             f = 'new';
         otherwise,
-            handles.matpath = uipath;
-            handles.matfile = uifile;
+            set(handles.config, 'locations.matpath', uipath)
+            set(handles.config, 'locations.matfile', uifile)
             [~,f,~] = fileparts(uifile);
     end
     guidata(handles.hfig,handles);
@@ -248,20 +235,21 @@ function windowkeypress(src, evnt)
 end
 
 function saveFcn(handles,flag_saveas)
-    file = save(handles.hdata,handles.matpath,handles.matfile,flag_saveas);
+    defaultpath = get(handles.config, 'locations.matpath', '');
+    defaultfile = get(handles.config, 'locations.matfile', '');
+    file = save(handles.hdata, defaultpath, defaultfile, flag_saveas);
     if ~isempty(file)
         [p,f,e] = fileparts(file);
-        handles.matpath = p;
-        handles.matfile = [f e];
-        guidata(handles.hfig,handles);
-        set(handles.hfig,'Name',['DENSEanalysis: ' f]);
+        set(handles.config, 'locations.matpath', p);
+        set(handles.config, 'locations.matfile', [f, e]);
+        set(handles.hfig, 'Name', ['DENSEanalysis: ' f]);
     end
 end
 
 
 
 %% INITIALIZE GUI
-function handles = initFcn(hfig,callingfile)
+function handles = initFcn(hfig)
 % The majority of the operations here are concerned with the creation of
 % support objects (tabs, playbars, images, etc.) and the setting of
 % permanent display parameters (colors, axes properties, listeners).
@@ -296,31 +284,18 @@ function handles = initFcn(hfig,callingfile)
     % file.  Note if this doesn't work, we ensure that the variables
     % contain some default information.
 
-    % try to load some guiinformation from file
-    filename = fullfile(userdir(), ['.' callingfile]);
-    tags = {'dicompath','matpath','exportpath','roipath'};
+    % Initialize configuration object
+    folder = fullfile(userdir(), '.denseanalysis');
+    exists = exist(folder, 'file');
 
-    try
-        s = load(filename,'-mat');
-    catch
-        s = struct;
+    % This is just a file lingering around
+    if exists ~= 7;
+        if exists; delete(folder); end
+        mkdir(folder)
     end
 
-    for ti = 1:numel(tags)
-        if isfield(s,tags{ti})
-            val = s.(tags{ti});
-        else
-            val = [];
-        end
-        if ~ischar(val) || exist(val,'dir')~=7
-            val = pwd;
-        end
-        handles.(tags{ti}) = val;
-    end
-
-    % last accessed file
-    handles.matfile = '';
-
+    filename = fullfile(folder, [mfilename, '.json']);
+    handles.config = Configuration(filename);
 
     % CREATE DENSE DATA OBJECT---------------------------------------------
     hdata = DENSEdata;
@@ -673,13 +648,12 @@ function menu_exportimage_Callback(hObject, eventdata, handles)
         case 3, h = handles.hanalysis;
     end
 
-    file = h.exportImage(handles.exportpath);
+    exportpath = get(handles.config, 'export.image.location', '');
+
+    file = h.exportImage(exportpath);
     if isempty(file), return; end
 
-    [p,f,e] = fileparts(file);
-    handles.exportpath = p;
-    guidata(handles.hfig,handles);
-
+    set(handles.config, 'export.image.location', fileparts(file));
 end
 
 function menu_exportvideo_Callback(hObject, eventdata, handles)
@@ -689,41 +663,41 @@ function menu_exportvideo_Callback(hObject, eventdata, handles)
         case 3, h = handles.hanalysis;
     end
 
-    file = h.exportVideo(handles.exportpath);
+    exportpath = get(handles.config, 'export.video.location', '');
+
+    file = h.exportVideo(exportpath);
     if isempty(file), return; end
 
-    [p,f,e] = fileparts(file);
-    handles.exportpath = p;
-    guidata(handles.hfig,handles);
-
+    set(handles.config, 'export.video.location', fileparts(file));
 end
 
 
 %% MENU: EXPORT MAT/EXCEL/ROI
 function menu_exportmat_Callback(hObject, eventdata, handles)
-    file = handles.hanalysis.exportMat(handles.exportpath);
+
+    exportpath = get(handles.config, 'export.mat.location', '');
+
+    file = handles.hanalysis.exportMat(exportpath);
     if isempty(file), return; end
 
-    [p,f,e] = fileparts(file);
-    handles.exportpath = p;
-    guidata(handles.hfig,handles);
+    set(handles.config, 'export.mat.location', fileparts(file))
 end
 
 function menu_exportexcel_Callback(hObject, eventdata, handles)
-    file = handles.hanalysis.exportExcel(handles.exportpath);
+
+    exportpath = get(handles.config, 'export.excel.location', '');
+
+    file = handles.hanalysis.exportExcel(exportpath);
     if isempty(file), return; end
 
-    [p,f,e] = fileparts(file);
-    handles.exportpath = p;
-    guidata(handles.hfig,handles);
+    set(handles.config, 'export.excel.location', fileparts(file));
 end
 
 function menu_exportroi_Callback(hObject, eventdata, handles)
-    path = handles.hdense.exportROI(handles.roipath);
+    exportpath = get(handles.config, 'export.roi.location', '');
+    path = handles.hdense.exportROI(exportpath);
     if isempty(path), return; end
-
-    handles.roipath = path;
-    guidata(handles.hfig,handles);
+    set(handles.config, 'export.roi.location', path);
 end
 
 

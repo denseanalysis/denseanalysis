@@ -101,8 +101,8 @@ classdef Configuration < structobj
             try
                 res = subsref(self, getSubStruct(field));
             catch ME
-                if strcmp(ME.identifier, 'MATLAB:nonExistentField') && ...
-                    numel(varargin)
+                if any(strcmp(ME.identifier, {'MATLAB:nonExistentField', ...
+                        'MATLAB:cellRefFromNonCell'})) && numel(varargin)
                     res = varargin{1};
                 else
                     rethrow(ME);
@@ -173,17 +173,62 @@ classdef Configuration < structobj
             % USAGE
             %   load(conf)
 
+            filedata = cells2structs(loadjson(self.filename));
+
             % Ensure that we turn off file-writing so we don't lose data
             if ~isempty(self.listener)
                 self.listener.Enabled = false;
                 reset(self);
-                update(self, loadjson(self.filename));
+                update(self, filedata);
                 self.listener.Enabled = true;
             else
                 reset(self);
-                update(self, loadjson(self.filename));
+                update(self, filedata);
             end
         end
+    end
+end
+
+function S = cells2structs(S)
+    % cells2structs - Flatten cell arrays of structs into arrays of structs
+    %
+    %   This flattens them as much as possible. Similar to a `squeeze` for
+    %   cell arrays of structures.
+    %
+    % USAGE:
+    %   S = cell2structs(S)
+    %
+    % INPUTS:
+    %   S:  struct, structure containing fields to convert
+    %
+    % OUTPUTS:
+    %   S:  struct, structure with cell of struct fields converted to array
+    %       of struct fields when possible.
+
+    fields = fieldnames(S);
+
+    for k = 1:numel(fields)
+        value = S.(fields{k});
+
+        if iscell(value) && numel(value)
+            % Flatten this if possible into an array
+            try
+                while iscell(value)
+                    value = [value{:}];
+                end
+            catch
+            end
+        end
+
+        % Perform same processing on all nested structures
+        if isstruct(value)
+
+            for m = 1:numel(value)
+                value(m) = cells2structs(value(m));
+            end
+        end
+
+        S.(fields{k}) = value;
     end
 end
 
