@@ -243,7 +243,9 @@ classdef PluginManager < handle
             %   result: Logical, Indicates whether the import was
             %           successful (true) or not (false)
 
-            updater = Updater.create('URL', url);
+            configobj = structobj();
+
+            updater = Updater.create('URL', url, 'Config', configobj);
 
             % For an import we'll simply print status to the command line
             printer = @(s,e)fprintf('%s\n', e.Message);
@@ -261,14 +263,14 @@ classdef PluginManager < handle
             pluginDir = fileparts(mfilename('fullpath'));
             installDir = fullfile(pluginDir, ['+', info.package]);
 
-            % Ensure that we aren't overwriting an installation
-            if exist(installDir, 'dir')
-                error(sprintf('%s:AlreadyInstalled', mfilename), ...
-                    'A plugin is already installed in %s', installDir);
+            settings = Configuration(fullfile(folder, 'settings.json'));
+
+            if ~isfield(settings, 'updater')
+                settings.updater = configobj;
             end
 
-            % Ensure that the plugin versions match up
-            info.updater.version = newest.Version;
+            % Store information about the update
+            settings.updater.version = newest.Version;
 
             % Install the software in the needed location
             result = updater.install(folder, installDir);

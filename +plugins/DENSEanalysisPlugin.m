@@ -79,6 +79,13 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
             settingfile = fullfile(self.InstallDir, 'settings.json');
             self.Config = Configuration(settingfile);
+
+            % Ensure that we have an updater config obj
+            if ~isfield(self.Config, 'updater')
+                self.Config.updater = structobj();
+            elseif ~isa(self.Config.updater, 'structobj')
+                self.Config.updater = structobj(self.Config.updater);
+            end
         end
 
         function setStatus(self, message, varargin)
@@ -152,7 +159,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             %   bool:   Logical, Indicates whether an update is available
             %           (true) or not (false)
 
-            updater = Updater.create(self);
+            updater = Updater.create(self, 'Config', self.Config.updater);
             bool = updater.updateAvailable();
         end
 
@@ -173,12 +180,12 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             %               update failed (0).
 
             % Always force the update without a prompt for plugins
-            updater = Updater.create(self);
+            updater = Updater.create(self, 'Config', self.Config.updater);
             [bool, versionNumber] = updater.launch(varargin{:});
 
             if bool
-                % Load configuration from plugin.json
-                self.Config.load()
+                % Refresh configuration from plugin.json
+                load(self.Config)
 
                 % Keep track of the "internal" version number
                 self.Config.updater.version = versionNumber;
