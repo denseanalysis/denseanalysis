@@ -21,6 +21,8 @@ classdef GithubUpdater < Updater
                                  'VersionString', {latest.tag_name}, ...
                                  'Notes', {latest.body});
 
+                self.Config.type = 'releases';
+
             % If there was no release (at all), then simply use master
             catch
                 ref = 'master';
@@ -32,7 +34,12 @@ classdef GithubUpdater < Updater
                     'Version',       {sha1.sha}, ...
                     'VersionString', {sprintf('%s (%s)', ref, sha1.sha)}, ...
                     'Notes',         {sha1.commit.message});
+
+                self.Config.type = 'commit';
+                self.Config.branch = ref;
             end
+
+            self.Config.checked = now;
         end
 
         function str = readFile(self, filepath, ref)
@@ -51,8 +58,13 @@ classdef GithubUpdater < Updater
 
         function [bool, newest] = updateAvailable(self, current, ref)
 
-            if ~exist('current', 'var'); current = self.Version; end
-            if ~exist('ref', 'var'); ref = 'master'; end
+            if ~exist('current', 'var');
+                current = self.Config.version;
+            end
+
+            if ~exist('ref', 'var');
+                ref = getfield(self.Config, 'branch', 'master');
+            end
 
             % First try to grab the latest release
             try
