@@ -256,14 +256,19 @@ classdef PluginManager < handle
             folder = updater.download(newest);
 
             % Determine installation directory using plugin.json config
-            filename = fullfile(folder, 'plugin.json');
-            plugin_info = loadjson(filename);
+            info = Configuration(fullfile(folder, 'plugin.json'));
+
             pluginDir = fileparts(mfilename('fullpath'));
-            installDir = fullfile(pluginDir, ['+', plugin_info.package]);
+            installDir = fullfile(pluginDir, ['+', info.package]);
+
+            % Ensure that we aren't overwriting an installation
+            if exist(installDir, 'dir')
+                error(sprintf('%s:AlreadyInstalled', mfilename), ...
+                    'A plugin is already installed in %s', installDir);
+            end
 
             % Ensure that the plugin versions match up
-            plugin_info.version = newest.Version;
-            savejson('', plugin_info, filename);
+            info.updater.version = newest.Version;
 
             % Install the software in the needed location
             result = updater.install(folder, installDir);

@@ -42,6 +42,7 @@ classdef Updater < hgsetget
         Repo        % Repository name of the form: {username}/{reponame}
         API         % URL of the RESTful API for updates
         InstallDir  % Directory in which to install the data
+        Config      % Configuration object to store update info
     end
 
     events
@@ -459,6 +460,7 @@ classdef Updater < hgsetget
             ip.addParamValue('URL', '', strcheck);
             ip.addParamValue('Version', '0.0', strcheck);
             ip.addParamValue('InstallDir', basedir, strcheck);
+            ip.addParamValue('Config', struct(), @isstruct);
 
             if nargin && isobject(varargin{1})
                 warning('off', 'MATLAB:structOnObject');

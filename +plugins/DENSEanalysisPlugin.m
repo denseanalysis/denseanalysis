@@ -177,10 +177,11 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             [bool, versionNumber] = updater.launch(varargin{:});
 
             if bool
-                filename = fullfile(self.InstallDir, 'plugin.json');
-                plugin_info = loadjson(filename);
-                plugin_info.version = versionNumber;
-                savejson('', plugin_info, filename);
+                % Load configuration from plugin.json
+                self.Config.load()
+
+                % Keep track of the "internal" version number
+                self.Config.updater.version = versionNumber;
             end
         end
     end
