@@ -81,7 +81,9 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             self.Config = Configuration(settingfile);
 
             % Ensure that we have an updater config obj
-            if ~isfield(self.Config, 'updater')
+            if ~isfield(self.Config, 'updater') || ...
+                (iscell(self.Config.updater) && ...
+                isempty(self.Config.updater))
                 self.Config.updater = structobj();
             elseif ~isa(self.Config.updater, 'structobj')
                 self.Config.updater = structobj(self.Config.updater);
