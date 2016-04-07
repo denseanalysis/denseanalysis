@@ -52,7 +52,7 @@ function jmenu = getJavaMenu(parent, varargin)
         hmenu = parent;
         hfig = ancestor(hmenu, 'figure');
         parents = hierarchy(hmenu, 'figure');
-        parents = parents(parents ~= hfig);
+        parents = parents(ishghandle(parents, 'uimenu'));
 
         labels = flipud(get(parents, 'Label'));
         if ischar(labels); labels = {labels}; end
