@@ -456,7 +456,7 @@ function bool = isDebug()
     %   bool:   Boolean, 0 if debug status is off and 1 if it is on.
 
     db = dbstatus();
-    bool = ~isempty(db) && strcmpi(db.cond, 'error');
+    bool = ~isempty(db) && any(strcmpi({db.cond}, 'error'));
 end
 
 function setToolTipText(hmenu, txt)
