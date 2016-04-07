@@ -48,6 +48,7 @@ classdef roitool < handle
 
         % internal objects
         hmenu
+        hmenuitems
         hcline
         himcline
         himcardiac
@@ -248,6 +249,7 @@ function obj = roitoolFcn(obj,hdata,hax)
     obj.hmenu = uicontextmenu(...
         'parent',   obj.hfig,...
         'tag',      'ContextROI',...
+        'UserData', obj, ...
         'Callback', @(varargin)contextMenuFcn(obj));
 
     % empty cline object
@@ -729,7 +731,7 @@ function contextMenuFcn(obj)
     hax = gco;
 
     % clear context menu
-    delete(allchild(obj.hmenu));
+    %delete(allchild(obj.hmenu));
 
     roiidx = obj.roiidx;
     frame  = obj.frame;
@@ -756,33 +758,56 @@ function contextMenuFcn(obj)
     nextempty = (frame == Nfr) || ...
                 isempty(obj.hdata.roi(roiidx).Position{frame+1,1});
 
-    % menu options
+    if isempty(obj.hmenuitems)
+        obj.hmenuitems = [ ...
+            uimenu(obj.hmenu,'Tag','Delete', ...
+                    'Label',['Delete ' lbl], ...
+                    'Callback',@(varargin)saveROI());
+            uimenu(obj.hmenu,'Tag','Redraw',...
+                    'Label',['Redraw ' lbl],...
+                    'Callback',@(varargin)drawROI());
+            uimenu(obj.hmenu,'Tag','Draw',...
+                    'Label',['Draw ' lbl],...
+                    'Callback',@(varargin)drawROI());
+            uimenu(obj.hmenu,...
+                    'Tag',      'CopyPrev',...
+                    'Label',    sprintf('Copy Frame %d %s',frame-1,lbl),...
+                    'Callback', @(varargin)saveROI(frame-1));
+            uimenu(obj.hmenu,...
+                    'Tag',      'CopyNext',...
+                    'Label',    sprintf('Copy Frame %d %s',frame+1,lbl),...
+                    'Callback', @(varargin)saveROI(frame+1))];
+
+        P = (1:numel(obj.hmenuitems)) * 10;
+        arrayfun(@(x,y)setappdata(x,'Priority',y), obj.hmenuitems(:), P(:));
+    end
+
+    % Sort the menu items
+    items = findall(obj.hmenu, 'type', 'uimenu');
+    priority = arrayfun(@(x)getappdata(x, 'Priority'), items, 'uni', 0);
+    priority(cellfun(@isempty, priority)) = {Inf};
+    [~, sortind] = sort([priority{:}], 'descend');
+    set(obj.hmenu, 'Children', items(sortind));
+
+    % Figure out which menu items to display or hide
     if ~curempty
-       uimenu(obj.hmenu,'Tag','Delete',...
-            'Label',['Delete ' lbl],...
-            'Callback',@(varargin)saveROI());
-       uimenu(obj.hmenu,'Tag','Redraw',...
-            'Label',['Redraw ' lbl],...
-            'Callback',@(varargin)drawROI());
+        visible = {'Delete', 'Redraw'};
     else
-       uimenu(obj.hmenu,'Tag','Draw',...
-            'Label',['Draw ' lbl],...
-            'Callback',@(varargin)drawROI());
+        visible = {'Draw'};
     end
 
     if ~prevempty
-        uimenu(obj.hmenu,...
-            'Tag',      'CopyPrev',...
-            'Label',    sprintf('Copy Frame %d %s',frame-1,lbl),...
-            'Callback', @(varargin)saveROI(frame-1));
+        visible = cat(2, visible, {'CopyPrev'});
     end
 
     if ~nextempty
-        uimenu(obj.hmenu,...
-            'Tag',      'CopyNext',...
-            'Label',    sprintf('Copy Frame %d %s',frame+1,lbl),...
-            'Callback', @(varargin)saveROI(frame+1));
+        visible = cat(2, visible, {'CopyNext'});
     end
+
+    % Make all invisible
+    set(obj.hmenuitems, 'Visible', 'off')
+    tags = get(obj.hmenuitems, 'tag');
+    set(obj.hmenuitems(ismember(tags, visible)), 'Visible', 'on')
 
     function drawROI()
 
