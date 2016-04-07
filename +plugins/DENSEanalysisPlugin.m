@@ -193,10 +193,17 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
                 self.Config.updater.version = versionNumber;
             end
         end
+
+        function h = uimenu(self, parent, callback, varargin)
+            h = uimenu('Parent', parent, ...
+                       'Callback', callback, ...
+                       'Label', self.Name, ...
+                       'Tag', class(self), varargin{:});
+        end
     end
 
     methods (Sealed)
-        function [available, msg] = isAvailable(self, data)
+        function [available, msg] = isAvailable(self, data, varargin)
             % isAvailable - Indicates whether the plugin can run
             %
             %   If the plugin can run, this function will return true. If
@@ -221,7 +228,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             available = false;
 
             try
-                self.validate(data)
+                self.validate(data, varargin{:})
                 available = true;
             catch ME
                 msg = ME.message;
@@ -231,6 +238,6 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
     % Abstract methods that must be overloaded by each plugin
     methods (Abstract)
-        run(self, data);
+        run(self, data, varargin);
     end
 end

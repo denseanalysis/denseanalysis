@@ -290,20 +290,25 @@ classdef PluginMenu < hgsetget
                     end
                 end
 
+                fcn = @(s,e,varargin)self.callback(plugin, varargin{:});
+                menu = uimenu(plugin, parent, fcn);
+
+                %{
                 % Create the menu item for the plugin itself and set the
                 % necessary callback, label, and tag
                 menu = uimenu('Parent',    parent, ...
                               'Label',     plugin.Name, ...
                               'Callback',  @(s,e)self.callback(plugin), ...
                               'Tag',       classname);
+                %}
 
-                self.Menus = cat(1, self.Menus(:), menu);
+                self.Menus = cat(1, self.Menus(:), menu(:));
             end
             drawnow
             self.reorder();
         end
 
-        function callback(self, plugin)
+        function callback(self, plugin, varargin)
             % callback - To be executed when a plugin is selected
             %
             % USAGE:
@@ -313,17 +318,17 @@ classdef PluginMenu < hgsetget
             %   plugin: Handle, Handle to the CorrecterBordersPlugin
             %           subclass instance
 
-            data = self.Manager.Data;
+            inputs = cat(2, {self.Manager.Data}, varargin);
 
             % If we are debugging, we want any errors to be caught inside
             % of the function where the error actually was
             if isDebug()
-                plugin.validate(data);
-                plugin.run(data);
+                plugin.validate(inputs{:});
+                plugin.run(inputs{:});
             else
                 try
-                    plugin.validate(data);
-                    plugin.run(data);
+                    plugin.validate(inputs{:});
+                    plugin.run(inputs{:});
                 catch ME
                     % All errors should be thrown as an error dialog
                     plugin.setStatus('');
@@ -341,7 +346,7 @@ classdef PluginMenu < hgsetget
             end
         end
 
-        function checkAvailability(self)
+        function checkAvailability(self, varargin)
             % checkAvailability - Determine if a plugin is viable
             %
             %   Looks at all plugins and determines if they are available
@@ -354,10 +359,12 @@ classdef PluginMenu < hgsetget
                 return;
             end
 
+            inputs = cat(2, {self.Manager.Data}, varargin);
+
             for k = 1:numel(self.Plugins)
                 plugin = self.Plugins(k);
 
-                [isavailable, msg] = plugin.isAvailable(self.Manager.Data);
+                [isavailable, msg] = plugin.isAvailable(inputs{:});
 
                 if isavailable
                     set(self.Menus(k), 'Enable',    'on', ...
