@@ -213,7 +213,7 @@ classdef test_structobj < matlab.unittest.TestCase
 
             info1 = structobj(inputs1);
 
-            info1.update(inputs2);
+            update(info1, inputs2);
 
             for field = fieldnames(info1)'
                 for k = 1:numel(info1)
@@ -232,7 +232,7 @@ classdef test_structobj < matlab.unittest.TestCase
             info1 = structobj(inputs1);
             info2 = structobj(inputs2);
 
-            info1.update(info2);
+            update(info1, info2);
 
             for field = fieldnames(info1)'
                 for k = 1:numel(info1)
@@ -250,7 +250,7 @@ classdef test_structobj < matlab.unittest.TestCase
 
             info1 = structobj(inputs1);
 
-            info1.update(inputs2);
+            update(info1, inputs2);
 
             for field = fieldnames(info1)'
                 testCase.assertEqual(inputs2.(field{1}), info1.(field{1}));
@@ -267,7 +267,7 @@ classdef test_structobj < matlab.unittest.TestCase
 
             fields = cat(1, fieldnames(info1), fieldnames(inputs2));
 
-            info1.update(inputs2);
+            update(info1, inputs2);
 
             testCase.assertEqual(sort(fieldnames(info1)), sort(fields));
 
@@ -289,7 +289,7 @@ classdef test_structobj < matlab.unittest.TestCase
             info1 = structobj(inputs1);
             info2 = structobj(inputs2);
 
-            info1.update(info2);
+            update(info1, info2);
 
             for field = fieldnames(info1)'
                 testCase.assertEqual(info2.(field{1}), info1.(field{1}));
@@ -307,7 +307,7 @@ classdef test_structobj < matlab.unittest.TestCase
 
             fields = cat(1, fieldnames(info1), fieldnames(info2));
 
-            info1.update(info2);
+            update(info1, info2);
 
             testCase.assertEqual(sort(fieldnames(info1)), sort(fields));
 
@@ -506,6 +506,78 @@ classdef test_structobj < matlab.unittest.TestCase
             % Non-existent field no default
             errorFunc = @()getfield(S, 'c');  %#ok
             testCase.assertError(errorFunc, ME.identifier)
+        end
+
+        function testNestedObjectsReferencing(testCase)
+            % Nest a structobj inside of a structobj
+            S = structobj('a',{structobj('b',2,'c',{structobj('d',4)})});
+
+            testCase.assertEqual(fieldnames(S), {'a'});
+            testCase.assertClass(S.a, 'structobj');
+            testCase.assertClass(S.a.c, 'structobj');
+
+            % Make sure we can use subsref appropriately
+            testCase.assertEqual(S.a.b, 2);
+            testCase.assertEqual(S.a.c.d, 4);
+        end
+
+        function testNestedObjectsAssignment(testCase)
+            % Assignment to nested substruct objects
+            S = structobj('a', {structobj('b', 2)});
+
+            % Check out subsasgn
+            S.a.b = 4;
+            testCase.assertEqual(S.a.b, 4);
+
+            % Assign yet another nested amount
+            newval = structobj('c', 3);
+            S.a.b = newval;
+
+            testCase.assertSameHandle(S.a.b, newval);
+            testCase.assertEqual(S.a.b.c, 3);
+        end
+
+        function subscriptedAssignment(testCase)
+            s = structobj('a', 1);
+
+            % Constructor worked as expected
+            testCase.assertEqual(s.a, 1);
+
+            % Can assign using () and .
+            s(1).a = 2;
+            testCase.assertEqual(s.a, 2);
+
+            % Add another structobj to create an array
+            s = cat(2, s, structobj('a', 1));
+
+            % Assign using () and .
+            s(1).a = 3;
+            testCase.assertEqual(s(1).a, 3);
+            testCase.assertEqual(s(2).a, 1);
+
+            % Assign to the other element using () and .
+            s(2).a = 4;
+            testCase.assertEqual(s(1).a, 3);
+            testCase.assertEqual(s(2).a, 4);
+        end
+
+        function subscriptedAssignmentIdentical(testCase)
+            s = structobj('a', 1);
+            s = [s, s];
+
+            testCase.assertSize(s, [1 2]);
+
+            testCase.assertEqual(s(1).a, 1)
+            testCase.assertEqual(s(2).a, 1)
+
+            origs = s;
+
+            s(1).a = 2;
+
+            testCase.assertSameHandle(origs, s);
+
+            testCase.assertEqual(s(1).a, 2)
+            testCase.assertEqual(s(2).a, 2)
         end
     end
 end
