@@ -293,15 +293,6 @@ classdef PluginMenu < hgsetget
                 fcn = @(s,e,varargin)self.callback(plugin, varargin{:});
                 menu = uimenu(plugin, parent, fcn);
 
-                %{
-                % Create the menu item for the plugin itself and set the
-                % necessary callback, label, and tag
-                menu = uimenu('Parent',    parent, ...
-                              'Label',     plugin.Name, ...
-                              'Callback',  @(s,e)self.callback(plugin), ...
-                              'Tag',       classname);
-                %}
-
                 self.Menus = cat(1, self.Menus(:), menu(:));
             end
             drawnow

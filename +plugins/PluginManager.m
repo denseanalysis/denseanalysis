@@ -21,20 +21,21 @@ classdef PluginManager < handle
 
     properties (Dependent)
         Plugins     % List of handles to all plugin instances
+        BaseClass   % Class that is used as the base plugin class
     end
 
     properties (SetAccess = 'private')
         Classes     % List of all meta.class objects pertaining to plugins
         Menu        % Handle to the generated uimenu (if any)
-        BaseClass   % Class that is used as the base plugin class
     end
 
     properties
         Data        % Data object to pass to plugins
     end
 
-    properties (Hidden)
+    properties (Hidden, SetAccess = 'private')
         plugins_            % Shadowed version of plugins array
+        baseclass_          % Shadowed (char) version of baseclass
         listeners           % Listeners for destruction of plugins
         statuslisteners     % Listeners for status events from plugins
     end
@@ -65,18 +66,16 @@ classdef PluginManager < handle
                     'Base class must be a metaclass or string');
             end
 
-            if ~isa(base, 'meta.class')
+            if ischar(base)
                 baseclass = meta.class.fromName(base);
 
                 if isempty(baseclass)
                     error(sprintf('%s:InvalidClassName', mfilename), ...
                         '%s is an invalid class', base)
                 end
-
-                self.BaseClass = baseclass;
-            else
-                self.BaseClass = base;
             end
+
+            self.BaseClass = base;
 
             if exist('data', 'var')
                 self.Data = data;
@@ -91,6 +90,7 @@ classdef PluginManager < handle
             % USAGE:
             %   self.initializePlugins()
 
+            
             self.Classes = self.findAllPlugins(self.BaseClass);
 
             % Now actually construct them all
@@ -165,6 +165,18 @@ classdef PluginManager < handle
         function res = get.Plugins(self)
             res = self.plugins_;
         end
+
+        function set.BaseClass(self, value)
+            if isa(value, 'meta.class')
+                value = value.Name;
+            end
+    
+            self.baseclass_ = value;
+        end
+
+        function res = get.BaseClass(self)
+            res = meta.class.fromName(self.baseclass_);
+        end
     end
 
     methods (Static)
@@ -184,12 +196,14 @@ classdef PluginManager < handle
                 package = meta.package.fromName('plugins');
             end
 
-            classes = package.ClassList;
-
             % Now find the classes derived from base plugin
             if ischar(pluginType)
                 pluginType = meta.class.fromName(pluginType);
+            else
+                pluginType = meta.class.fromName(pluginType.Name);
             end
+
+            classes = package.ClassList;
 
             valid = arrayfun(@(x)issubclass(x, pluginType), classes);
 
