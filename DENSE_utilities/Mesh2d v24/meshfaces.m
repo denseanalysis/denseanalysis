@@ -123,7 +123,6 @@ try
    [node,edge,face,hdata] = checkgeometry(node,edge,face,hdata);
 
 catch ME
-   % Close waitbar on error
    rethrow(ME);
 end
 
