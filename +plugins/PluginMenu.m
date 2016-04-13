@@ -197,7 +197,7 @@ classdef PluginMenu < hgsetget
             catch ME
                 if strcmpi(ME.identifier, 'MATLAB:badsubscript')
                     error(sprintf('%s:InvalidSubscript', mfilename), ...
-                        'Index must be between 1 and %d', numel(self.Menus));
+                        'Index must be between 1 and %d', numel(self.Plugins));
                 else
                     rethrow(ME);
                 end
@@ -356,20 +356,18 @@ classdef PluginMenu < hgsetget
 
                 [isavailable, msg] = plugin.isAvailable(inputs{:});
 
-                if isavailable
-                    set(self.Menus(k), 'Enable',    'on', ...
-                                       'UserData',  '');
+                menus = findobj(self.Menus, 'tag', class(plugin));
 
+                if isavailable
+                    set(menus, 'Enable', 'on', 'UserData', '');
                     tooltip = plugin.Description;
                 else
-                    set(self.Menus(k), 'Enable',    'off', ...
-                                       'UserData',  msg)
-
+                    set(menus, 'Enable', 'off', 'UserData', msg);
                     tooltip = msg;
                 end
 
                 % Update the tooltip to display help information
-                setToolTipText(self.Menus(k), tooltip);
+                arrayfun(@(x)setToolTipText(x, tooltip), menus);
             end
         end
 

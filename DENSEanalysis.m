@@ -426,6 +426,9 @@ function handles = initFcn(hfig)
     % Load plugins
     base = 'plugins.DENSEanalysisPlugin';
     handles.hmanager = plugins.PluginManager(base, hdata);
+    
+    guidata(handles.hfig, handles);
+    
     handles.hpluginmenu = plugins.PluginMenu(handles.hmanager, hfig);
 
     % save all data to the figure

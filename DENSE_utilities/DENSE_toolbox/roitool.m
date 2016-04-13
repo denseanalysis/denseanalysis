@@ -34,6 +34,10 @@ classdef roitool < handle
         PositionConstraintFcn
     end
 
+    properties (Hidden)
+        hmenu
+    end
+
     % private properties
     properties (SetAccess='private',GetAccess='private')
 
@@ -47,7 +51,6 @@ classdef roitool < handle
         ignore
 
         % internal objects
-        hmenu
         hmenuitems
         hcline
         himcline
