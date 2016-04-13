@@ -208,23 +208,23 @@ function windowkeypress(src, evnt)
                 playbar.Value = mod((playbar.Value - 2), playbar.Max) + 1;
             end
         case {'control-z', 'command-z'}
-            if isa(viewer, 'DENSEviewer')
-                cLine = handles.hdense.hroi.cLine;
+            if isa(viewer, 'DENSEviewer') || isa(viewer, 'DICOMviewer')
+                cLine = viewer.hroi.cLine;
                 if cLine.UndoEnable
                     cLine.undo();
                 end
             end
         case {'control-c', 'command-c'}
-            if isa(viewer, 'DENSEviewer')
-                handles.hdense.hroi.copy();
+            if isa(viewer, 'DENSEviewer') || isa(viewer, 'DICOMviewer')
+                viewer.hroi.copy();
             end
         case {'control-x', 'command-x'}
-            if isa(viewer, 'DENSEviewer')
-                handles.hdense.hroi.cut();
+            if isa(viewer, 'DENSEviewer') || isa(viewer, 'DICOMviewer')
+                viewer.hroi.cut();
             end
         case {'control-v', 'command-v'}
-            if isa(viewer, 'DENSEviewer')
-                handles.hdense.hroi.paste();
+            if isa(viewer, 'DENSEviewer') || isa(viewer, 'DICOMviewer')
+                viewer.hroi.paste();
             end
         case 'equal'
             ax = get(handles.hfig, 'CurrentAxes');
