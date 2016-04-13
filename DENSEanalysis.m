@@ -186,7 +186,9 @@ end
 function windowkeypress(src, evnt)
     if ~isempty(evnt.Modifier)
         modifiers = sort(evnt.Modifier);
-        evnt.Key = strcat(sprintf('%s-', modifiers{:}), evnt.Key);
+        key = strcat(sprintf('%s-', modifiers{:}), evnt.Key);
+    else
+        key = evnt.Key;
     end
 
     handles = guidata(src);
@@ -196,7 +198,7 @@ function windowkeypress(src, evnt)
     viewer      = handles.(viewertypes{tab});
     playbar     = viewer.hplaybar;
 
-    switch evnt.Key
+    switch key
         case {'n', 'rightarrow', 'd'}
             if ~playbar.IsPlaying
                 playbar.Value = mod(playbar.Value, playbar.Max) + 1;
