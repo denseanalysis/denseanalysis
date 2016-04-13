@@ -296,7 +296,6 @@ classdef PluginMenu < hgsetget
                 self.Menus = cat(1, self.Menus(:), menu(:));
             end
             drawnow
-            self.reorder();
         end
 
         function callback(self, plugin, varargin)
@@ -421,25 +420,6 @@ classdef PluginMenu < hgsetget
 
             % Enable the menu now that we have created everything
             self.Loading = false;
-        end
-
-        function reorder(self)
-            % reorder - Ensure that all of the data structures match up
-            %
-            %   It is possible that the input classes entries will not
-            %   correspond with the menu entries, etc. because they were
-            %   created at different times. This method simply makes sure
-            %   that all of the indices across these properties correspond
-            %   with one another
-            %
-            % USAGE:
-            %   pm.reorder()
-
-            classes = {self.Classes.Name};
-            tags = get(self.Menus, 'tag');
-
-            [~, inds] = ismember(tags, classes);
-            self.Menus = self.Menus(inds);
         end
     end
 end
