@@ -24,6 +24,9 @@ classdef DICOMviewer < DataViewer
         ROIEdit = 'off';
     end
 
+    properties (Hidden)
+        hroi
+    end
 
     properties (SetAccess='private',GetAccess='private')
 
@@ -40,7 +43,6 @@ classdef DICOMviewer < DataViewer
         hsubpanel
         hax
         him
-        hroi
 
         % DICOM header display
         htable
@@ -851,15 +853,11 @@ function val = checkROIEdit(obj,val)
 
     if ~ischar(val) || ~any(strcmpi(val,{'on','off'}))
         errstr = 'Invalid ROIEdit; valid strings are [on|off]';
-%     elseif strcmpi(val,'on') && ...
-%        (isempty(obj.ROIIndex) || strcmpi(obj.hroi.Visible,'off'))
-%         errstr = 'No valid visible ROI to edit.';
     end
 
     if exist('errstr','var')
         error(sprintf('%s:invalidROIEdit',mfilename),errstr);
     end
-
 end
 
 
