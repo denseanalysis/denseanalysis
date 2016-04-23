@@ -4,6 +4,16 @@ classdef GithubUpdater < Updater
     %   This class provides a Updater implementation that interfaces with
     %   the public Github API.
 
+    % This Source Code Form is subject to the terms of the Mozilla Public
+    % License, v. 2.0. If a copy of the MPL was not distributed with this
+    % file, You can obtain one at http://mozilla.org/MPL/2.0/.
+    %
+    % Copyright (c) 2016 DENSEanalysis Contributors
+
+    properties (Constant)
+        PATTERN = '(?<=github.com\/)[^/]*/[^/]*';
+    end
+
     methods
         function self = GithubUpdater(varargin)
             self@Updater(varargin{:});
@@ -107,13 +117,6 @@ classdef GithubUpdater < Updater
                 comments = [comments{:}];
                 newest.Notes = comments;
             end
-        end
-    end
-
-    methods (Static)
-        function res = pattern()
-            % Should match the format: *github.com/owner/repo/*
-            res = '(?<=github.com\/)[^/]*/[^/]*';
         end
     end
 end

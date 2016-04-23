@@ -45,6 +45,10 @@ classdef Updater < hgsetget
         Config      % Configuration object to store update info
     end
 
+    properties (Constant, Abstract)
+        PATTERN     % Regex pattern used for determining updater
+    end
+
     events
         Status      % Event fired when there is a status to report
     end
@@ -78,7 +82,7 @@ classdef Updater < hgsetget
             set(self, inputs)
 
             % Get the project out of the URL
-            self.Repo = regexp(self.URL, self.pattern, 'match', 'once');
+            self.Repo = regexp(self.URL, self.PATTERN, 'match', 'once');
 
             if isempty(self.Repo)
                 error(sprintf('%s:UnsupportedHost', mfilename), ...
@@ -270,11 +274,6 @@ classdef Updater < hgsetget
         % OUTPUTS:
         %   contents:   String, Contents of the file.
         contents = readFile(self, filepath, reference);
-    end
-
-    methods (Static, Abstract)
-        % Function for returning regex pattern
-        res = pattern();
     end
 
     methods (Hidden)
@@ -499,8 +498,10 @@ classdef Updater < hgsetget
             %               specific to the URL provided.
 
             inputs = Updater.parseinputs(varargin{:});
-            if regexp(inputs.URL, GithubUpdater.pattern, 'match', 'once')
+            if regexp(inputs.URL, GithubUpdater.PATTERN, 'match', 'once')
                 obj = GithubUpdater(inputs);
+            elseif regexp(inputs.URL, FileUpdater.PATTERN, 'match', 'once')
+                obj = FileUpdater(inputs);
             else
                 error(sprintf('%s:UnsupportedSchema', mfilename), ...
                     'Unsupported URL Type');

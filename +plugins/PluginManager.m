@@ -90,7 +90,7 @@ classdef PluginManager < handle
             % USAGE:
             %   self.initializePlugins()
 
-            
+
             self.Classes = self.findAllPlugins(self.BaseClass);
 
             % Now actually construct them all
@@ -170,7 +170,7 @@ classdef PluginManager < handle
             if isa(value, 'meta.class')
                 value = value.Name;
             end
-    
+
             self.baseclass_ = value;
         end
 
@@ -258,6 +258,21 @@ classdef PluginManager < handle
             %           successful (true) or not (false)
 
             configobj = structobj();
+
+            % If no plugin was specified, then open a load dialog
+            if ~exist('url', 'var')
+                [fname, pname] = uigetfile({'*.zip'}, 'Select a plugin');
+                if isequal(pname, 0) || isequal(fname, 0)
+                    return;
+                end
+
+                url = fullfile(pname, fname);
+            end
+
+            % If this is a file, we need a specific prefix
+            if exist(url, 'file')
+                url = sprintf('file:%s', url);
+            end
 
             updater = Updater.create('URL', url, 'Config', configobj);
 
