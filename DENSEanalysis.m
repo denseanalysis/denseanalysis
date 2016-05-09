@@ -426,15 +426,95 @@ function handles = initFcn(hfig)
     % Load plugins
     base = 'plugins.DENSEanalysisPlugin';
     handles.hmanager = plugins.PluginManager(base, hdata);
-    
+
     guidata(handles.hfig, handles);
-    
+
     handles.hpluginmenu = plugins.PluginMenu(handles.hmanager, hfig);
 
     % save all data to the figure
     guidata(handles.hfig,handles);
 
     set(handles.hfig, 'ResizeFcn', @(s,e)resizeFcn(s));
+
+    config = handles.config;
+
+    % Make sure that we have an updater field in the configuration
+    if ~isfield(config, 'updater')
+        config.updater = structobj();
+    end
+
+    % If auto updates are disabled
+    if getfield(config.updater, 'auto', true);
+        checkForUpdate(handles);
+    end
+    
+    % Add a menu item that allows us to check for updates manually and also
+    % a toggle for turning automatic update off / on
+    hmenu = get(findall(handles.hfig, 'tag', 'menu_about'), 'Parent');
+        
+    handles.hautoupdate = uimenu('Parent', hmenu, ...
+                                 'Label', 'Automatically Check for Updates', ...
+                                 'Callback', @(s,e)toggleAutoUpdate(handles));
+                             
+    handles.hupdateCheck = uimenu('Parent', hmenu, ...
+                                  'Label', 'Check for Updates', ...
+                                  'Callback', @(s,e)checkForUpdate(handles, 1));
+    
+    % Add a callback to this menu to fix the toggle
+    set(hmenu, 'Callback', @(s,e)refreshAutoUpdateMenu(handles));
+end
+
+function refreshAutoUpdateMenu(handles)
+    if getfield(handles.config.updater, 'auto', true)
+        set(handles.hautoupdate, 'checked', 'on')
+    else
+        set(handles.hautoupdate, 'checked', 'off')
+    end
+end
+
+function toggleAutoUpdate(handles)
+    status = getfield(handles.config.updater, 'auto', true);
+    handles.config.updater.auto = ~status;
+end
+
+function checkForUpdate(handles, force)
+
+    % Force a check despite the time of the last check
+    if ~exist('force', 'var')
+        force = false;
+    end
+
+    config = handles.config;
+
+    % If automatic updates are enabled, go ahead and check for them.
+    thisdir = fileparts(mfilename('fullpath'));
+    info = loadjson(fullfile(thisdir, 'info.json'));
+    u = Updater.create(info, 'Config', config.updater);
+
+    % If it hasn't been at least this 15 minutes since the last check, skip
+    lastcheck = getfield(config.updater, 'lastcheck', 0);
+    maxCheckInterval = [0 0 0 0 15 Inf];
+    if ~any(datevec(now - lastcheck) > maxCheckInterval) && ~force
+        return;
+    end
+
+    % Record the time that we check for an update
+    config.updater.lastcheck = now;
+
+    % Check if the user wants to perform the update.
+    % If the user previously selected to ignore a specific version, we use
+    % THAT version as the reference at this point so that only new version
+    % trigger an update.
+    refVersion = getfield(config.updater, 'ignoreVersion', u.Version);
+    [doupdate, version] = u.launch(false, refVersion);
+
+    % User asked to not be reminded again for this version
+    if doupdate == -1
+        % User doesn't want any more updates for this version
+        config.updater.ignoreVersion = version;
+    elseif doupdate == 1
+        config.updater.version = version;
+    end
 end
 
 function resizeFcn(hfig)

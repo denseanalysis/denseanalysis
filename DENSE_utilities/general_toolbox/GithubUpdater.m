@@ -68,8 +68,8 @@ classdef GithubUpdater < Updater
 
         function [bool, newest] = updateAvailable(self, current, ref)
 
-            if ~exist('current', 'var');
-                current = getfield(self.Config, 'version', '');
+            if ~exist('current', 'var') || isempty(current);
+                current = getfield(self.Config, 'version', self.Version);
             end
 
             if ~exist('ref', 'var');

@@ -91,7 +91,7 @@ classdef Updater < hgsetget
             end
         end
 
-        function [bool, versionNumber] = launch(self, force)
+        function [bool, versionNumber] = launch(self, force, varargin)
             % launch - Actually launch the updater
             %
             %   This method uses the information provided to the
@@ -118,7 +118,7 @@ classdef Updater < hgsetget
             bool = false;
             versionNumber = '';
 
-            [hasupdate, release] = self.updateAvailable();
+            [hasupdate, release] = self.updateAvailable(varargin{:});
 
             % Ignore if there are no available updates
             if ~hasupdate; return; end
@@ -459,7 +459,7 @@ classdef Updater < hgsetget
             ip.addParamValue('URL', '', strcheck);
             ip.addParamValue('Version', '0.0', strcheck);
             ip.addParamValue('InstallDir', basedir, strcheck);
-            ip.addParamValue('Config', struct(), @isstruct);
+            ip.addParamValue('Config', structobj(), @isstruct);
 
             if nargin && isobject(varargin{1})
                 warning('off', 'MATLAB:structOnObject');
