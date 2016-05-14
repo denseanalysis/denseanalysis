@@ -239,7 +239,7 @@ classdef PluginManager < handle
             result = plugin.update(varargin);
         end
 
-        function result = import(url)
+        function [result, info] = import(url, callback)
             % import - Import a plugin from a remote URL
             %
             %   This static method allows the user to download and install
@@ -256,11 +256,14 @@ classdef PluginManager < handle
             % OUTPUTS:
             %   result: Logical, Indicates whether the import was
             %           successful (true) or not (false)
+            %
+            %   info:   Struct, Information about the plugin that was
+            %           installed (or not)
 
             configobj = structobj();
 
             % If no plugin was specified, then open a load dialog
-            if ~exist('url', 'var')
+            if ~exist('url', 'var') || isempty(url)
                 [fname, pname] = uigetfile({'*.zip'}, 'Select a plugin');
                 if isequal(pname, 0) || isequal(fname, 0)
                     return;
@@ -277,8 +280,11 @@ classdef PluginManager < handle
             updater = Updater.create('URL', url, 'Config', configobj);
 
             % For an import we'll simply print status to the command line
-            printer = @(s,e)fprintf('%s\n', e.Message);
-            listener = addlistener(updater, 'Status', printer);
+            if ~exist('callback', 'var')
+                callback = @(s,e)fprintf('%s\n', e.Message);
+            end
+
+            listener = addlistener(updater, 'Status', callback);
 
             % Get the latest release
             newest = updater.latestRelease();
