@@ -530,6 +530,8 @@ classdef Updater < hgsetget
             inputs = Updater.parseinputs(varargin{:});
             if regexp(inputs.URL, GithubUpdater.PATTERN, 'match', 'once')
                 obj = GithubUpdater(inputs);
+            elseif regexp(inputs.URL, GitlabUpdater.PATTERN, 'match', 'once')
+                obj = GitlabUpdater(inputs);
             elseif regexp(inputs.URL, FileUpdater.PATTERN, 'match', 'once')
                 obj = FileUpdater(inputs);
             else
