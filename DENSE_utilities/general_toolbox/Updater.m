@@ -162,11 +162,41 @@ classdef Updater < hgsetget
             if isstruct(url); url = url.URL; end
 
             self.setStatus(sprintf('Downloading update from %s...', url));
-
-            files = unzip(url, tempname);
-
+            
+            % Download the file           
+            filename = urlwrite(url, tempname);
+            
+            try  % First try to unzip it
+                files = unzip(filename);
+            catch ME
+                if ~strcmp(ME.identifier, 'MATLAB:unzip:invalidZipFile')
+                    rethrow(ME);
+                end
+                
+                % If that failed, then assume it is a gzipped tarfile.
+                files = gunzip(filename, tempname);
+                
+                % It is only going to contain one file
+                tarfile = files{1};
+                folder = fileparts(tarfile);
+                
+                % Untar everything to this folder
+                files = untar(tarfile, folder);
+                
+                % Remove the tarfile
+                delete(tarfile);
+                
+                % Remove the pax_global_header if present
+                pgh = fullfile(folder, 'pax_global_header');
+                if exist(pgh, 'file'); delete(pgh); end
+                
+                % Remove any invalid files from the list of extracted files
+                files = files(cellfun(@(x)exist(x, 'file'), files) ~= 0);
+            end
+            
             % Downloaded information
-            folder = basepath(files);
+            folder = basepath(files);            
+            delete(filename);
         end
 
         function bool = install(self, src, destination)
@@ -459,7 +489,7 @@ classdef Updater < hgsetget
             ip.addParamValue('URL', '', strcheck);
             ip.addParamValue('Version', '0.0', strcheck);
             ip.addParamValue('InstallDir', basedir, strcheck);
-            ip.addParamValue('Config', struct(), @isstruct);
+            ip.addParamValue('Config', structobj(), @isstruct);
 
             if nargin && isobject(varargin{1})
                 warning('off', 'MATLAB:structOnObject');
@@ -500,6 +530,8 @@ classdef Updater < hgsetget
             inputs = Updater.parseinputs(varargin{:});
             if regexp(inputs.URL, GithubUpdater.PATTERN, 'match', 'once')
                 obj = GithubUpdater(inputs);
+            elseif regexp(inputs.URL, GitlabUpdater.PATTERN, 'match', 'once')
+                obj = GitlabUpdater(inputs);
             elseif regexp(inputs.URL, FileUpdater.PATTERN, 'match', 'once')
                 obj = FileUpdater(inputs);
             else
