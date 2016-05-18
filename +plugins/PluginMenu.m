@@ -442,10 +442,12 @@ classdef PluginMenu < hgsetget
         function importPlugin(self)
             % importPlugin - Callback for importing a plugin using the menu
 
-            u = waitbartimer();
-            u.start();
+            u = [];
             [status, info] = self.Manager.import('', @(s,e)callback(e));
             delete(u);
+
+            % The user hit cancel and no plugin was imported
+            if isempty(info); return; end
 
             name = getfield(info, 'name', 'UNKNOWN');
 
@@ -461,6 +463,11 @@ classdef PluginMenu < hgsetget
             end
 
             function callback(evnt)
+                if isempty(u)
+                    u = waitbartimer();
+                    start(u)
+                end
+
                 u.String = evnt.Message;
                 pause(0.5);
             end

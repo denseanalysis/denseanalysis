@@ -267,7 +267,7 @@ classdef PluginManager < handle
                 [fname, pname] = uigetfile({'*.zip'}, 'Select a plugin');
                 if isequal(pname, 0) || isequal(fname, 0)
                     result = false;
-                    info = struct();
+                    info = [];
                     return;
                 end
 
