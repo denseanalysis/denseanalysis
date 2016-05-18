@@ -266,6 +266,8 @@ classdef PluginManager < handle
             if ~exist('url', 'var') || isempty(url)
                 [fname, pname] = uigetfile({'*.zip'}, 'Select a plugin');
                 if isequal(pname, 0) || isequal(fname, 0)
+                    result = false;
+                    info = struct();
                     return;
                 end
 
