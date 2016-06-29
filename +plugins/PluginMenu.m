@@ -402,7 +402,7 @@ classdef PluginMenu < hgsetget
 
             self.menulistener = addlistener(self.Menu, ...
                                             'ObjectBeingDestroyed', ...
-                                            @(s,e)delete(self));
+                                            @(s,e)delete(self(isvalid(self))));
 
             % Ensure that there is always a reload and import menu item
             % on the bottom
