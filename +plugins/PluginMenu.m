@@ -1,5 +1,5 @@
 classdef PluginMenu < hgsetget
-    % PluginMenu - Heirarchical menu for all CorrecterBorders plugins
+    % PluginMenu - Heirarchical menu for all DENSEanalysis plugins
     %
     %   This class provides a menu which displays all plugins in a
     %   heirarchy and also provides basic menu interaction including
@@ -259,7 +259,7 @@ classdef PluginMenu < hgsetget
             %
             % INPUTS:
             %   plugins:    [M x 1] Handle, Handles to an array of
-            %               subclasses of plugin.CorrecterBordersPlugin.
+            %               subclasses of plugin.DENSEAnalysisPlugin.
             %               These plugins will be added to the menu based
             %               upon the package and subpackage that they are
             %               contained within.
@@ -314,7 +314,7 @@ classdef PluginMenu < hgsetget
             %   pm.callback(plugin)
             %
             % INPUTS:
-            %   plugin: Handle, Handle to the CorrecterBordersPlugin
+            %   plugin: Handle, Handle to the DENSEAnalysisPlugin
             %           subclass instance
 
             inputs = cat(2, {self.Manager.Data}, varargin);
