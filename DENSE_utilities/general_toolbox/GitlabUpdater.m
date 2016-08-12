@@ -175,8 +175,8 @@ classdef GitlabUpdater < Updater
             javacomponent(jLabel, [100,100,40,20],f);
 
             % Hyperlink to account page
-            import java.awt.Cursor.*
-            jLabel.setCursor(getPredefinedCursor(HAND_CURSOR));
+            import java.awt.*
+            jLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             set(jLabel, 'MouseClickedCallback', @(h,e)web(url, '-browser'))
 
             jLabel = javaObjectEDT('javax.swing.JLabel', msg3);
