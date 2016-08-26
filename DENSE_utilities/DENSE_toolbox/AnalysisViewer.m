@@ -1538,8 +1538,16 @@ end
 function [file, out] = exportMatFcn(obj,startpath)
 
     % check for startpath
-    if nargin < 2 || isempty(startpath) || ~exist(startpath,'dir')
+    if nargin < 2 || isempty(startpath)
         startpath = pwd;
+    end
+
+    if ~exist(startpath, 'dir')
+        [origstartpath,~,ext] = fileparts(startpath);
+        if strcmpi(ext,'.mat')
+            file = startpath;
+            startpath = origstartpath;
+        end
     end
 
     % DENSE & ROI indices
@@ -1549,33 +1557,36 @@ function [file, out] = exportMatFcn(obj,startpath)
     ruid = obj.hdata.spl.ROIUID;
     ridx = obj.hdata.UIDtoIndexROI(ruid);
 
-    % file name
-    header = sprintf('%s_%s',...
-        obj.hdata.dns(didx).Name,...
-        obj.hdata.roi(ridx).Name);
+    % If the startpath is not a mat file then make one
+    if ~exist('file', 'var')
+        % file name
+        header = sprintf('%s_%s',...
+                         obj.hdata.dns(didx).Name,...
+                         obj.hdata.roi(ridx).Name);
 
-    expr = '[\\\/\?\%\:\*\"\<\>\|]';
-    header = regexprep(header,expr,'_');
+        expr = '[\\\/\?\%\:\*\"\<\>\|]';
+        header = regexprep(header,expr,'_');
 
-    file = fullfile(startpath,[header '.mat']);
-    cnt = 0;
-    while isfile(file)
-        cnt = cnt+1;
-        file = fullfile(startpath,sprintf('%s (%d).mat',header,cnt));
-    end
+        file = fullfile(startpath,[header '.mat']);
+        cnt = 0;
+        while isfile(file)
+            cnt = cnt+1;
+            file = fullfile(startpath,sprintf('%s (%d).mat',header,cnt));
+        end
 
-    % allow user to change file name
-    [uifile,uipath] = uiputfile('*.mat',[],file);
-    if isequal(uifile,0)
-        file = [];
-        return;
-    end
+        % allow user to change file name
+        [uifile,uipath] = uiputfile('*.mat',[],file);
+        if isequal(uifile,0)
+            file = [];
+            return;
+        end
 
-    % check extension
-    file = fullfile(uipath,uifile);
-    [~,~,e] = fileparts(file);
-    if ~isequal(e,'.mat')
-        file = [file, '.mat'];
+        % check extension
+        file = fullfile(uipath,uifile);
+        [~,~,e] = fileparts(file);
+        if ~isequal(e,'.mat')
+            file = [file, '.mat'];
+        end
     end
 
     % determine strain object
