@@ -1544,9 +1544,13 @@ function [file, out] = exportMatFcn(obj,startpath)
 
     if ~exist(startpath, 'dir')
         [origstartpath,~,ext] = fileparts(startpath);
-        if strcmpi(ext,'.mat')
-            file = startpath;
-            startpath = origstartpath;
+        file = startpath;
+        startpath = origstartpath;
+        if empty(ext)
+            % If there is no extension then MATLAB save will add
+            % '.mat'. This will allow us to return the correct
+            % filename to the user.
+            file = [file '.mat'];
         end
     end
 
