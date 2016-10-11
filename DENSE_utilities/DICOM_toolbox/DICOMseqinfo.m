@@ -561,10 +561,6 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
         end
     end
 
-    keyboard
-
-
-
     %% SORT FILES
     % After gathering all header information, we order the files by
     % Subject, Series, DENSE ID, and Instance. This is accomplished using
