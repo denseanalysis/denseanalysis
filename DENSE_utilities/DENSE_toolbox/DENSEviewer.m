@@ -292,7 +292,11 @@ function obj = DENSEviewerFcn(obj)
         'Fontsize',             8,...
         'units',                'pixels',...
         'BackgroundColor',      'w',...
-        {'Position'},           pos(:));
+        {'Position'},           pos(:),...
+        {'Callback'},           {@(s,e)swapFcn(obj,s);
+                                 @(s,e)negateDisplacementFcn(obj,s,'x');
+                                 @(s,e)negateDisplacementFcn(obj,s,'y');
+                                 @(s,e)negateDisplacementFcn(obj,s,'z')});
 
     h = [obj.hdns_menu,obj.hroi_menu];
     set(h(:),...
@@ -329,6 +333,16 @@ function obj = DENSEviewerFcn(obj)
 
     % ready the object
     loaddnsFcn(obj);
+end
+
+function swapFcn(obj, src)
+    obj.hdata.swapXY(obj.dnsidx, get(src, 'value'));
+    obj.redraw();
+end
+
+function negateDisplacementFcn(obj, src, direction)
+    obj.hdata.negateDisplacement(obj.dnsidx,direction,get(src, 'value'));
+    obj.redraw();
 end
 
 function setZoomPanRotFcn(obj)
@@ -759,9 +773,15 @@ function redrawFcn(obj)
     % flag display
     swap = obj.hdata.dns(didx).SwapFlag;
     neg  = obj.hdata.dns(didx).NegFlag;
-    set(obj.hflag_swap,'value',swap);
-    set([obj.hflag_negx,obj.hflag_negy,obj.hflag_negz]',...
-        {'value'},num2cell(neg)');
+    set(obj.hflag_swap, 'value', swap, 'Enable', 'on');
+
+    neg_controls = [obj.hflag_negx, obj.hflag_negy, obj.hflag_negz]';
+    set(neg_controls, {'Value'}, num2cell(neg)')
+
+    % Only enable the relevant displacement directions
+    disabled = isnan(obj.hdata.dns(didx).MagIndex);
+    set(neg_controls(disabled), 'Enable', 'off')
+    set(neg_controls(~disabled), 'Enable', 'on')
 
     % enable playbar
     obj.hplaybar.Max = obj.displaydata(didx).NumberOfFrames;
