@@ -1,5 +1,5 @@
 classdef PluginMenu < hgsetget
-    % PluginMenu - Heirarchical menu for all CorrecterBorders plugins
+    % PluginMenu - Heirarchical menu for all DENSEanalysis plugins
     %
     %   This class provides a menu which displays all plugins in a
     %   heirarchy and also provides basic menu interaction including
@@ -38,9 +38,14 @@ classdef PluginMenu < hgsetget
 
     properties (Hidden)
         reloadmenu = []     % Handle to the 'Reload Plugins' menu item
+        importmenu = []     % Handle to the 'Import Plugin' menu item
         loading = false;    % Shadow loading property
         dellistener         % Listener for when a plugin is removed
         menulistener        % Listener for when the menu is destroyed
+    end
+
+    properties (Dependent, Hidden)
+        internalmenus       % Array of menu items that we manage
     end
 
     events
@@ -123,8 +128,8 @@ classdef PluginMenu < hgsetget
             if ~isempty(tags)
                 exists = ismember(tags, classes);
 
-                % Ignore the reload menu
-                exists = exists | ismember(self.Menus, self.reloadmenu);
+                % Ignore the internal menu items
+                exists = exists | ismember(self.Menus, self.internalmenus);
 
                 % Any classes that were removed will show up as FALSE in tf
                 delete(self.Menus(~exists));
@@ -143,7 +148,7 @@ classdef PluginMenu < hgsetget
 
             % Get rid of empty menus
             allmenus = findall(self.Menu, 'type', 'uimenu');
-            menuitems = cat(1, self.reloadmenu, self.Menus(:));
+            menuitems = cat(1, self.internalmenus, self.Menus(:));
             parents = allmenus(~ismember(allmenus, menuitems));
 
             kids = get(parents, 'children');
@@ -169,7 +174,7 @@ classdef PluginMenu < hgsetget
 
             % Remove the reload itself
             self.reset();
-            delete(self.reloadmenu);
+            delete(self.internalmenus);
 
             self.Manager.initializePlugins();
 
@@ -236,6 +241,10 @@ classdef PluginMenu < hgsetget
             res = self.Manager.Plugins;
         end
 
+        function res = get.internalmenus(self)
+            res = [self.importmenu; self.reloadmenu];
+        end
+
         function set.Loading(self, val)
             self.loading = val;
         end
@@ -250,7 +259,7 @@ classdef PluginMenu < hgsetget
             %
             % INPUTS:
             %   plugins:    [M x 1] Handle, Handles to an array of
-            %               subclasses of plugin.CorrecterBordersPlugin.
+            %               subclasses of plugin.DENSEAnalysisPlugin.
             %               These plugins will be added to the menu based
             %               upon the package and subpackage that they are
             %               contained within.
@@ -305,7 +314,7 @@ classdef PluginMenu < hgsetget
             %   pm.callback(plugin)
             %
             % INPUTS:
-            %   plugin: Handle, Handle to the CorrecterBordersPlugin
+            %   plugin: Handle, Handle to the DENSEAnalysisPlugin
             %           subclass instance
 
             inputs = cat(2, {self.Manager.Data}, varargin);
@@ -393,9 +402,19 @@ classdef PluginMenu < hgsetget
 
             self.menulistener = addlistener(self.Menu, ...
                                             'ObjectBeingDestroyed', ...
-                                            @(s,e)delete(self));
+                                            @(s,e)delete(self(isvalid(self))));
 
-            % Ensure that there is always a reload menu on the bottom
+            % Ensure that there is always a reload and import menu item
+            % on the bottom
+            if isempty(self.importmenu) || ~ishghandle(self.importmenu)
+                self.importmenu = uimenu('Parent',      self.Menu, ...
+                                         'Separator',   'off', ...
+                                         'Callback',    @(s,e)self.importPlugin(), ...
+                                         'Label',       'Import Plugin');
+
+                setToolTipText(self.importmenu, 'Import plugin from URL or file')
+            end
+
             if isempty(self.reloadmenu) || ~ishghandle(self.reloadmenu)
                 self.reloadmenu = uimenu('Parent',      self.Menu,  ...
                                          'Separator',   'on', ...
@@ -412,12 +431,46 @@ classdef PluginMenu < hgsetget
             % Re-order the menu to ensure that the reload option is
             % always the last menu item
             kids = get(self.Menu, 'children');
-            isreload = kids == self.reloadmenu;
-            newkids = cat(1, self.reloadmenu, kids(~isreload));
+            isinternal = ismember(kids, self.internalmenus);
+            newkids = cat(1, self.internalmenus, kids(~isinternal));
             set(self.Menu, 'children', newkids);
 
             % Enable the menu now that we have created everything
             self.Loading = false;
+        end
+
+        function importPlugin(self)
+            % importPlugin - Callback for importing a plugin using the menu
+
+            u = [];
+            [status, info] = self.Manager.import('', @(s,e)callback(e));
+            delete(u);
+
+            % The user hit cancel and no plugin was imported
+            if isempty(info); return; end
+
+            name = getfield(info, 'name', 'UNKNOWN');
+
+            if status
+                msg = sprintf('%s Plugin Installed Successfully', name);
+                msgbox(msg);
+
+                % Now reload the plugin menu
+                self.reload();
+            else
+                msg = sprintf('%s Plugin Installation Failed!', name);
+                errordlg(msg);
+            end
+
+            function callback(evnt)
+                if isempty(u)
+                    u = waitbartimer();
+                    start(u)
+                end
+
+                u.String = evnt.Message;
+                pause(0.5);
+            end
         end
     end
 end

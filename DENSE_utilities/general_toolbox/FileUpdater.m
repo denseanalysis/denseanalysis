@@ -91,7 +91,7 @@ classdef FileUpdater < Updater
                 folder = self.extractdir;
             else
                 % Remove the file: from the filename
-                filenames = unzip(self.URL, tempdir);
+                filenames = unzip(self.URL, tempname);
 
                 % Determine common basepath and rename to remove subfolder
                 folder = basepath(filenames);

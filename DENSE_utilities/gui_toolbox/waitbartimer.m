@@ -173,7 +173,7 @@ classdef waitbartimer < hgsetget
             h = findall(0,'type','figure','-and','tag','WaitbarTimer');
             if numel(h) > 0
                 for k = 1:numel(h)
-                    o = getappdata(h,'waitbartimerObjectReference');
+                    o = getappdata(h(k),'waitbartimerObjectReference');
                     obj = cat(2, obj, o);
                 end
             else

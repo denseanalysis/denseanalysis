@@ -77,7 +77,7 @@ function zprPointerBehavior(haxes,behavior)
 
     if ~all(tf)
         str = sprintf('%s|',tags{:});
-        error(sprintf('%s:invalidBehvaior',mfilename),'%s',...
+        error(sprintf('%s:invalidBehavior',mfilename),'%s',...
             'Valid ''behavior'' strings are: [',str(1:end-1),'].');
     end
 
@@ -100,7 +100,7 @@ function zprPointerBehavior(haxes,behavior)
             case 'rotate3d',   err = ~rtf(k);
         end
         if err
-            error(sprintf('%s:invalidBehvaior',mfilename),'%s',...
+            error(sprintf('%s:invalidBehavior',mfilename),'%s',...
                 'One or more of the specified behaviors are not ',...
                 'allowed in the corresponding axes.');
         end
