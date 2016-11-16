@@ -132,6 +132,37 @@ classdef DENSEdata < hgsetget
         function condata = contourdata(varargin)
             condata = contourData(varargin{:});
         end
+
+        function value = swapXY(obj, didx, value)
+
+            dnsobj = obj.dns(didx);
+
+            if ~exist('value', 'var')
+                value = ~dnsobj.SwapFlag;
+            end
+
+            obj.dns(didx).SwapFlag = logical(value);
+        end
+
+        function value = negateDisplacement(obj, didx, direction, value)
+
+            dnsobj = obj.dns(didx);
+
+            directions = {'x', 'y', 'z'};
+
+            [tf, ind] = ismember(lower(direction), directions);
+
+            if ~tf
+                error(sprintf('%s:InvalidDirection', mfilename), ...
+                    'You have provided an unsupported direction parameter');
+            end
+
+            if ~exist('value', 'var')
+                value = ~dnsobj.NegFlag(ind);
+            end
+
+            obj.dns(didx).NegFlag(ind) = logical(value);
+        end
     end
 
     methods (Hidden=true)
