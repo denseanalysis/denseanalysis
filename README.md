@@ -83,9 +83,9 @@ Additional information, including screenshots and examples, can be found at the
 following locations
 
 
-* [DENSEanalysis manual]({{ site.baseurl }}docs/DENSEanalysis_manual.pdf)
-* [DENSEms manual]({{ site.baseurl }}docs/DENSEms_manual.pdf)
-* [RV features manual]({{ site.baseurl }}/docs/RV_manual.pdf)
+* [DENSEanalysis manual](http://www.denseanalysis.com/docs/DENSEanalysis_manual.pdf)
+* [DENSEms manual](http://www.denseanalysis.com/docs/DENSEms_manual.pdf)
+* [RV features manual](http://www.denseanalysis.com/docs/RV_manual.pdf)
 
 
 ### Attribution
