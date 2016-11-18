@@ -447,19 +447,19 @@ function handles = initFcn(hfig)
     if getfield(config.updater, 'auto', true);
         checkForUpdate(handles);
     end
-    
+
     % Add a menu item that allows us to check for updates manually and also
     % a toggle for turning automatic update off / on
     hmenu = get(findall(handles.hfig, 'tag', 'menu_about'), 'Parent');
-        
+
     handles.hautoupdate = uimenu('Parent', hmenu, ...
                                  'Label', 'Automatically Check for Updates', ...
                                  'Callback', @(s,e)toggleAutoUpdate(handles));
-                             
+
     handles.hupdateCheck = uimenu('Parent', hmenu, ...
                                   'Label', 'Check for Updates', ...
                                   'Callback', @(s,e)checkForUpdate(handles, 1));
-    
+
     % Add a callback to this menu to fix the toggle
     set(hmenu, 'Callback', @(s,e)refreshAutoUpdateMenu(handles));
 end
@@ -489,7 +489,9 @@ function checkForUpdate(handles, force)
     % If automatic updates are enabled, go ahead and check for them.
     thisdir = fileparts(mfilename('fullpath'));
     info = loadjson(fullfile(thisdir, 'info.json'));
-    u = Updater.create(info, 'Config', config.updater);
+
+    u = Updater.create(info, 'Config', config.updater, ...
+                             'InstallDir', thisdir);
 
     % If it hasn't been at least this 15 minutes since the last check, skip
     lastcheck = getfield(config.updater, 'lastcheck', 0);
