@@ -87,6 +87,10 @@ following locations
 * [DENSEms manual](http://www.denseanalysis.com/docs/DENSEms_manual.pdf)
 * [RV features manual](http://www.denseanalysis.com/docs/RV_manual.pdf)
 
+#### A Note on "Motion-Guided Segmentation" ####
+
+If you are used to running *DENSEanalysis*, you will notice that the context menu for performing motion-guided segmentation is no longer in the application. This was necessary to release this software as an open-source application. We have created a custom plugin that restores this functionality. If you are interested in obtaining this plugin, please contact [Jonathan Suever](mailto:suever@gmail.com).
+
 
 ### Attribution
 
