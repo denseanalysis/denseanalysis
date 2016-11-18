@@ -503,19 +503,32 @@ function checkForUpdate(handles, force)
     % Record the time that we check for an update
     config.updater.lastcheck = now;
 
-    % Check if the user wants to perform the update.
-    % If the user previously selected to ignore a specific version, we use
-    % THAT version as the reference at this point so that only new version
-    % trigger an update.
+    % Check if the user wants to perform the update.  If the user
+    % previously selected to ignore a specific version, we use THAT version
+    % as the reference at this point so that only new version trigger an
+    % update.
     refVersion = getfield(config.updater, 'ignoreVersion', u.Version);
-    [doupdate, version] = u.launch(false, refVersion);
 
-    % User asked to not be reminded again for this version
-    if doupdate == -1
-        % User doesn't want any more updates for this version
-        config.updater.ignoreVersion = version;
-    elseif doupdate == 1
-        config.updater.version = version;
+    try
+        [doupdate, version] = u.launch(false, refVersion);
+
+        if doupdate == -1
+            % User doesn't want any more updates for this version
+            config.updater.ignoreVersion = version;
+        elseif doupdate == 1
+            % User applied the update successfully so we want to update the
+            % version number that we saved.
+            config.updater.version = version;
+        end
+    catch ME
+        % If the update was not done through the menu option, just print
+        % the status out.
+        if isempty(gcbo)
+            fprintf('Unable to fetch updates. %s\n', ME.message);
+        % Otherwise provide an error dialog with more information
+        else
+            errordlg({'Unable to fetch updates.'; ME.message});
+        end
     end
 end
 
