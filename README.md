@@ -17,6 +17,12 @@ The current stable version (0.4.0) of *DENSEanalysis* requires:
 * MATLAB Curve Fitting Toolbox (Spline Toolbox in later versions)
 * MATLAB C-Compiler
 
+If you are running a newer version of MATLAB (R2014b or newer), you will want
+to use the [master
+branch](https://github.com/denseanalysis/denseanalysis/tree/master) of the
+project which is the development version which includes support for all recent
+versions of MATLAB.
+
 #### Configuration of Mex Compiler
 
 If you have never compiled a MATLAB mex file on your current machine, you will
@@ -89,7 +95,12 @@ following locations
 
 #### A Note on "Motion-Guided Segmentation" ####
 
-If you are used to running *DENSEanalysis*, you will notice that the context menu for performing motion-guided segmentation is no longer in the application. This was necessary to release this software as an open-source application. We have created a custom plugin that restores this functionality. If you are interested in obtaining this plugin, please contact [Jonathan Suever](mailto:suever@gmail.com).
+If you are used to running *DENSEanalysis*, you will notice that the context
+menu for performing motion-guided segmentation is no longer in the application.
+This was necessary to release this software as an open-source application. We
+have created a custom plugin that restores this functionality. If you are
+interested in obtaining this plugin, please contact [Jonathan
+Suever](mailto:suever@gmail.com).
 
 
 ### Attribution
