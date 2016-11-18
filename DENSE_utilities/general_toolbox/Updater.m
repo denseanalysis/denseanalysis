@@ -86,8 +86,7 @@ classdef Updater < hgsetget
 
             if isempty(self.Repo)
                 error(sprintf('%s:UnsupportedHost', mfilename), ...
-                    ['Malformed URL. \nNOTE: ', ...
-                     'Currently only Github is supported for updates']);
+                    'URL not recognized by any registered updater');
             end
         end
 
@@ -162,40 +161,40 @@ classdef Updater < hgsetget
             if isstruct(url); url = url.URL; end
 
             self.setStatus(sprintf('Downloading update from %s...', url));
-            
-            % Download the file           
+
+            % Download the file
             filename = urlwrite(url, tempname);
-            
+
             try  % First try to unzip it
                 files = unzip(filename);
             catch ME
                 if ~strcmp(ME.identifier, 'MATLAB:unzip:invalidZipFile')
                     rethrow(ME);
                 end
-                
+
                 % If that failed, then assume it is a gzipped tarfile.
                 files = gunzip(filename, tempname);
-                
+
                 % It is only going to contain one file
                 tarfile = files{1};
                 folder = fileparts(tarfile);
-                
+
                 % Untar everything to this folder
                 files = untar(tarfile, folder);
-                
+
                 % Remove the tarfile
                 delete(tarfile);
-                
+
                 % Remove the pax_global_header if present
                 pgh = fullfile(folder, 'pax_global_header');
                 if exist(pgh, 'file'); delete(pgh); end
-                
+
                 % Remove any invalid files from the list of extracted files
                 files = files(cellfun(@(x)exist(x, 'file'), files) ~= 0);
             end
-            
+
             % Downloaded information
-            folder = basepath(files);            
+            folder = basepath(files);
             delete(filename);
         end
 
