@@ -177,6 +177,16 @@ function [out, uipath, uifile] = DICOMDirectoryLoader(obj, startpath)
     % empty workspace file output
     uifile = [];
     out = [];
+    
+    % test startpath
+    if ~ischar(startpath)
+        error(sprintf('%s:invalidInput',mfilename),...
+            '"startpath" must be a valid directory string.');
+    elseif exist(startpath, 'dir') ~= 7
+        warning(sprintf('%s:invalidInput',mfilename),'%s',...
+            'The directory <', startpath, '> could not be located.')
+        startpath = pwd;
+    end
 
     % load DICOM data
     [seq, uipath] = DICOMseqinfo(startpath, 'OptionsPanel', true);
@@ -237,8 +247,18 @@ function [out, uipath, uifile] = DNSFileLoader(~, startpath)
 
     if ~exist('startpath', 'var')
         startpath = pwd;
+    end
+    
+    % test startpath
+    if ~ischar(startpath)
+        error(sprintf('%s:invalidInput',mfilename),...
+            '"startpath" must be a valid directory string.');
     elseif exist(startpath, 'file') == 2
-        filename = startpath;
+        filename = which(startpath);
+        startpath = fileparts(filename);
+    elseif ~exist(startpath, 'dir')
+        warning(sprintf('%s:invalidInput',mfilename),'%s',...
+            'The directory <', startpath, '> could not be located.')
         startpath = pwd;
     end
 
@@ -337,21 +357,11 @@ function [uipath,uifile] = loadFcn(obj, loader, startpath)
                 loader = @DNSFileLoader;
             otherwise
                 error(sprintf('%s:invalidInput', mfilename),...
-                    'Valid ''loader'' string options are be [dicom|mat].');
+                    'Valid ''loader'' string options are be [dicom|dns].');
         end
     elseif ~isa(loader, 'function_handle')
         error(sprintf('%s:invalidInput', mfilename), ...
             'Loader should be either a string or function handle');
-    end
-
-    % test startpath
-    if ~ischar(startpath)
-        error(sprintf('%s:invalidInput',mfilename),...
-            '"startpath" must be a valid directory string.');
-    elseif exist(startpath,'dir')~=7
-        warning(sprintf('%s:invalidInput',mfilename),'%s',...
-            'The directory <', startpath, '> could not be located.')
-        startpath = pwd;
     end
 
     [data, uipath, uifile] = loader(obj, startpath); %#ok
