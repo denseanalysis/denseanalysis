@@ -6,6 +6,7 @@ function [out, uipath, uifile] = DNSFileLoader(startpath)
     %
     % USAGE:
     %   [out, uipath, uifile] = DNSFileLoader(startpath)
+    %   [out, uipath, uifile] = DNSFileLoader(dnsdata)
     %
     % INPUTS:
     %   startpath:  String, Directory in which to initially look for DNS
@@ -14,6 +15,9 @@ function [out, uipath, uifile] = DNSFileLoader(startpath)
     %               complete file path to a .dns file is provided, that
     %               file will be loaded directly WITHOUT launching a file
     %               load dialog.
+    %
+    %   dnsdata:    Struct, Structure which would have ordinarily been
+    %               saved in a DNS file.
     %
     % OUTPUTS:
     %   out:        Struct, DENSEdata structure that will be used to
@@ -38,44 +42,51 @@ function [out, uipath, uifile] = DNSFileLoader(startpath)
         startpath = pwd;
     end
 
-    % test startpath
-    if ~ischar(startpath)
-        error(sprintf('%s:invalidInput',mfilename),...
-            '"startpath" must be a valid directory string.');
-    elseif exist(startpath, 'file') == 2
-        filename = which(startpath);
-        startpath = fileparts(filename);
-    elseif ~exist(startpath, 'dir')
-        warning(sprintf('%s:invalidInput',mfilename),'%s',...
-            'The directory <', startpath, '> could not be located.')
-        startpath = pwd;
-    end
-
-    if ~exist('filename', 'var')
-        % locate a file to load
-        [uifile,uipath] = uigetfile(...
-            {'*.dns','DENSE workspace (*.dns)'},...
-            'Select DNS file',startpath);
-        if isequal(uipath,0)
-            uipath = [];
-            return;
+    if isstruct(startpath)
+        S = startpath;
+        uifile = [];
+        uipath = [];
+    else
+        % test startpath
+        if ~ischar(startpath)
+            error(sprintf('%s:invalidInput',mfilename),...
+                '"startpath" must be a valid directory string.');
+        elseif exist(startpath, 'file') == 2
+            filename = which(startpath);
+            startpath = fileparts(filename);
+        elseif ~exist(startpath, 'dir')
+            warning(sprintf('%s:invalidInput',mfilename),'%s',...
+                'The directory <', startpath, '> could not be located.')
+            startpath = pwd;
         end
 
-        filename = fullfile(uipath, uifile);
-    else
-        [uipath, uifile] = fileparts(filename);
+        if ~exist('filename', 'var')
+            % locate a file to load
+            [uifile,uipath] = uigetfile(...
+                {'*.dns','DENSE workspace (*.dns)'},...
+                'Select DNS file',startpath);
+            if isequal(uipath,0)
+                uipath = [];
+                return;
+            end
+
+            filename = fullfile(uipath, uifile);
+        else
+            [uipath, uifile] = fileparts(filename);
+        end
+
+        % create load waitbar
+        hwait = waitbartimer;
+        cleanupObj = onCleanup(@()delete(hwait(isvalid(hwait))));
+        hwait.WindowStyle = 'modal';
+        hwait.String      = 'Loading workspace...';
+        hwait.start;
+        drawnow
+
+        % load file
+        S = load(filename,'-mat');
     end
 
-    % create load waitbar
-    hwait = waitbartimer;
-    cleanupObj = onCleanup(@()delete(hwait(isvalid(hwait))));
-    hwait.WindowStyle = 'modal';
-    hwait.String      = 'Loading workspace...';
-    hwait.start;
-    drawnow
-
-    % load file
-    S = load(filename,'-mat');
     if ~all(isfield(S,{'seq','img','dns','roi'}))
         error(sprintf('%s:invalidFile',mfilename),...
             '".dns" file does not contain appropriate data.');
@@ -95,6 +106,7 @@ function [out, uipath, uifile] = DNSFileLoader(startpath)
     % re-parse the "ImageComments" field of the first image in
     % all DENSE sequences to find the Partition information.
     % this needs to be done for backward compatability.
+
     for k = 1:numel(seq)
         if ~isempty(seq(k).DENSEid)
             if iscell(seq(k).ImageComments)
