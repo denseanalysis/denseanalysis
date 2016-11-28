@@ -840,6 +840,18 @@ end
 
 %% MENU: RUN ANALYSIS
 function menu_runanalysis_Callback(hObject, eventdata, handles)
+
+    % First check to make sure that we've already accepted the RUO
+    % statement
+    if ~getfield(handles.config, 'AcceptedRUO', false)
+        accept = ruodialog();
+
+        % Don't allow analysis to run until this is accepted
+        if ~accept; return; end
+
+        handles.config.AcceptedRUO = accept;
+    end
+
     didx = handles.hdense.DENSEIndex;
     ridx = handles.hdense.ROIIndex;
     frame = handles.hdense.Frame;
