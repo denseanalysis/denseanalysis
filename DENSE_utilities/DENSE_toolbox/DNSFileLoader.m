@@ -52,7 +52,7 @@ function [out, uipath, uifile] = DNSFileLoader(startpath)
             error(sprintf('%s:invalidInput',mfilename),...
                 '"startpath" must be a valid directory string.');
         elseif exist(startpath, 'file') == 2
-            filename = which(startpath);
+            filename = startpath;
             startpath = fileparts(filename);
         elseif ~exist(startpath, 'dir')
             warning(sprintf('%s:invalidInput',mfilename),'%s',...
