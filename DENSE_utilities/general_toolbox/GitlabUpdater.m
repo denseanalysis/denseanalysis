@@ -31,32 +31,17 @@ classdef GitlabUpdater < Updater
         function self = GitlabUpdater(varargin)
             self@Updater(varargin{:});
 
+            % Create a configuration file where we will store the token and
+            % other gitlab-specific information
             confile = fullfile(userdir(), '.denseanalysis', 'gitlab.json');
             self.config = Configuration(confile);
 
             self.Token = getfield(self.config, 'token', '');
 
-            % The repo name needs to be URL encoded
+            % The / in the repo name needs to be URL encoded
             repo = regexprep(self.Repo, '/', '%2F');
 
-            id = [];
-
-            while isempty(id)
-                % The base API address
-                try
-                    self.API = ['https://gitlab.com/api/v3/projects/', repo];
-                    id = self.request('');
-                catch ME
-                    if ~strcmpi(ME.identifier, 'Updater:APIError')
-                        rethrow(ME);
-                    end
-
-                    self.fetchToken()
-                end
-            end
-
-            % Make a request to get the real ID
-            self.API = sprintf('https://gitlab.com/api/v3/projects/%d/repository', id.id);
+            self.API = sprintf('https://gitlab.com/api/v3/projects/%s/repository', repo);
         end
 
         function release = latestRelease(self)
