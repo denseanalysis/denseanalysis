@@ -527,16 +527,39 @@ classdef Updater < hgsetget
             %               specific to the URL provided.
 
             inputs = Updater.parseinputs(varargin{:});
-            if regexp(inputs.URL, GithubUpdater.PATTERN, 'match', 'once')
-                obj = GithubUpdater(inputs);
-            elseif regexp(inputs.URL, GitlabUpdater.PATTERN, 'match', 'once')
-                obj = GitlabUpdater(inputs);
-            elseif regexp(inputs.URL, FileUpdater.PATTERN, 'match', 'once')
-                obj = FileUpdater(inputs);
-            else
-                error(sprintf('%s:UnsupportedSchema', mfilename), ...
-                    'Unsupported URL Type');
+
+            % Gather all possible updaters
+            thisdir = fileparts(mfilename('fullpath'));
+
+            files = what(thisdir);
+            [~, filenames] = cellfun(@fileparts, files.m, 'UniformOutput', 0);
+
+            func = @meta.class.fromName;
+            metaclasses = cellfun(func, filenames, 'UniformOutput', 0);
+            metaclasses = cat(1, metaclasses{:});
+
+            bool = arrayfun(@(x)issubclass(x, 'Updater'), metaclasses);
+
+            updaters = metaclasses(bool);
+
+            for k = 1:numel(updaters)
+                % Check to see if this updater works. We will just try to
+                % construct it and if the construction succeeds, we will
+                % use it.
+
+                props = updaters(k).PropertyList;
+                [~, loc] = ismember('PATTERN', {props.Name});
+
+                pattern = props(loc).DefaultValue;
+
+                if regexp(inputs.URL, pattern, 'match', 'once')
+                    obj = feval(updaters(k).Name, inputs);
+                    return;
+                end
             end
+
+            error(sprintf('%s:UnsupportedSchema', mfilename), ...
+                'Unsupported URL Type');
         end
     end
 end
