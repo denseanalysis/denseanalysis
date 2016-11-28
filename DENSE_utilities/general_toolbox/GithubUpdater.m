@@ -14,12 +14,20 @@ classdef GithubUpdater < Updater
         PATTERN = '(?<=github.com\/)[^/]*/[^/]*';
     end
 
+    properties (Access = 'protected')
+        Cache
+    end
+
     methods
         function self = GithubUpdater(varargin)
             self@Updater(varargin{:});
 
             % The base API address
             self.API = ['https://api.github.com/repos/', self.Repo];
+
+            % Create or retrieve the github cache
+            cachefile = fullfile(userdir(), '.denseanalysis', 'github.cache');
+            self.Cache = Configuration(cachefile);
         end
 
         function release = latestRelease(self)
@@ -116,6 +124,57 @@ classdef GithubUpdater < Updater
                 comments = cellfun(func, commits, 'uniform', 0);
                 comments = [comments{:}];
                 newest.Notes = comments;
+            end
+        end
+    end
+
+    methods (Hidden)
+        function [data, status] = request(self, varargin)
+            % Overloaded request method so we can cache results
+
+            url = self.getURL(varargin{:});
+
+            % Determine the key that we used to store this in the cache
+            fieldname = sprintf('sha1%s', sha1(url));
+
+            % Now look to see if this is in the cache
+            cache = getfield(self.Cache, fieldname, struct);
+
+            % By default we don't use any headers
+            headers = repmat(struct('name', {}, 'value', {}), [0 1]);
+
+
+            % If there was a cached value, pass the ETag with the request
+            hasCache = isfield(cache, 'ETag') && isfield(cache, 'data');
+            if hasCache
+                % Create the new header
+                headers(end+1) = struct('name', 'If-None-Match', ...
+                                        'value', cache.ETag);
+            end
+
+            [data, status] = urlread2(url, 'GET', '', headers);
+
+            % Check if the status was a 304 (Not Modified) and we have a
+            % cached response to send
+            if status.status.value == 304 && hasCache && ~isempty(cache.data)
+                data = cache.data;
+            elseif isfield(status.firstHeaders, 'ETag')
+                % Otherwise we cache the current value
+                cache = struct('ETag', status.firstHeaders.ETag, ...
+                                'data', data);
+
+                self.Cache.(fieldname) = cache;
+            end
+
+            if ~status.isGood
+                error(sprintf('%s:APIError', mfilename), ...
+                    'Message from server: "%s"', status.status.msg);
+            end
+
+            if strcmp(data, '[]') || isempty(data)
+                data = [];
+            else
+                data = loadjson(data);
             end
         end
     end
