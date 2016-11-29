@@ -1,36 +1,40 @@
 function varargout = run(package, coverage)
     % tests.run - Runs all tests in the specified package
     %
-    %   Often we want to run a whole suite of tests that are enclosed within a
-    %   package. To keep things orderly these packages may contain subpackages
-    %   of tests. This funciton allows tsets located within nested packages to
-    %   be run properly.
+    %   Often we want to run a whole suite of tests that are enclosed
+    %   within a package. To keep things orderly these packages may contain
+    %   sub-packages of tests. This function allows tests located within
+    %   nested packages to be run properly.
     %
-    %   Typically, we packages all tests in a +tests MATLAB package so if no
-    %   input package is specified, TESTS is used by default.
+    %   Typically, we packages all tests in a +tests MATLAB package so if
+    %   no input package is specified, TESTS is used by default.
     %
     % USAGE:
     %   res = tests.run(package)
     %
     % INPUTS:
-    %   package:    String, Name of the package that contains all the tests to
-    %               be run.
+    %   package:    String, Name of the package that contains all the tests
+    %               to be run.
     %   coverage:   Boolean, Indicates whether to run a coverage report or
-    %               not.
+    %               not (default = False).
     %
     % OUTPUTS:
-    %   res:        Object, An array of matlab.unittest.TestResult objects that
-    %               contain information about the test run. This information
-    %               can be used to determine what went wrong, etc.
-    %
-    % Last Modified: 12-05-2013
-    % Modified By: Jonathan Suever (suever@gmail.com)
+    %   res:        Object, An array of matlab.unittest.TestResult objects
+    %               that contain information about the test run. This
+    %               information can be used to determine what went wrong,
+    %               etc.
 
-    % Before we do anything check the release
-    rel = version('-release');
-    if str2double(rel(1:4)) < 2013
+    % This Source Code Form is subject to the terms of the Mozilla Public
+    % License, v. 2.0. If a copy of the MPL was not distributed with this
+    % file, You can obtain one at http://mozilla.org/MPL/2.0/.
+    %
+    % Copyright (c) 2016 DENSEanalysis Contributors
+
+    % Before we do anything check the version to make sure that we support
+    % MATLAB's unittest framework
+    if verLessThan('matlab', '8.1')
         error(sprintf('%s:incompatibleVersion', mfilename),...
-            'You are running %s but 2013a is required', rel)
+            'MATLAB Version R2013a or newer is required');
     end
 
     % By default we want to use the "tests" package
