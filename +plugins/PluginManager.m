@@ -42,8 +42,9 @@ classdef PluginManager < handle
 
     events
         Status              % Event to be fired when a status is received
-        PluginRemoved       % Event when a plugin is removed or invalidated
         PluginAdded         % Event fired when a plugin is added/imported
+        PluginRemoved       % Event when a plugin is removed or invalidated
+        PluginUpdated       % Event when a plugin is updated
     end
 
     methods
@@ -236,7 +237,7 @@ classdef PluginManager < handle
             %           update (0), or if the user requested to not be
             %           notified again for this update (-1)
 
-            result = plugin.update(varargin);
+            result = plugin.update(varargin{:});
         end
 
         function [result, info] = import(url, callback)
