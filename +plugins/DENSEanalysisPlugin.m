@@ -152,18 +152,24 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             set(hwait, varargin{:})
         end
 
-        function bool = hasUpdate(self)
+        function varargout = hasUpdate(self)
             % hasUpdate - Determines whether an update is available online
             %
             % USAGE:
-            %   bool = self.hasUpdate()
+            %   [bool, latest] = self.hasUpdate()
             %
             % OUTPUTS:
             %   bool:   Logical, Indicates whether an update is available
             %           (true) or not (false)
+            %
+            %   latest: Struct, Information about the latest available
+            %           release.
 
             updater = Updater.create(self, 'Config', self.Config.updater);
-            bool = updater.updateAvailable();
+
+            [varargout{1:max(nargout, 1)}] = updater.updateAvailable();
+
+            self.Config.updater.hasUpdate = varargout{1};
         end
 
         function bool = update(self, varargin)
