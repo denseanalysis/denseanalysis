@@ -176,7 +176,7 @@ classdef PluginMenu < hgsetget
             self.reset();
             delete(self.internalmenus);
 
-            self.Manager.initializePlugins();
+            self.Manager.refresh();
 
             % If there was a menu before, be sure to keep it there
             if ishghandle(self.Menu)

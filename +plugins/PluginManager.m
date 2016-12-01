@@ -82,21 +82,34 @@ classdef PluginManager < handle
                 self.Data = data;
             end
 
-            self.initializePlugins();
+            self.refresh();
         end
 
-        function initializePlugins(self)
-            % initializePlugins - Locates all plugins
+        function refresh(self)
+            % refresh - Looks for any new plugins and manages them
             %
             % USAGE:
-            %   self.initializePlugins()
+            %   self.refresh()
 
+            classes = self.findAllPlugins(self.BaseClass);
 
-            self.Classes = self.findAllPlugins(self.BaseClass);
+            % Compare this list of classes with the ones that we already
+            % have loaded
+            existing = arrayfun(@class, self.Plugins, 'UniformOutput', 0);
 
-            % Now actually construct them all
-            plugs = arrayfun(@(x)feval(x.Name), self.Classes, 'uni', 0);
-            self.Plugins = cat(1, plugs{:});
+            classes = classes(~ismember({classes.Name}, existing));
+
+            % Append them to the list of classes
+            self.Classes = cat(1, self.Classes(:), classes);
+
+            newplugins = arrayfun(@(x)feval(x.Name), classes, 'Uniform', 0);
+
+            self.Plugins = cat(1, self.Plugins, newplugins{:});
+
+            % Now fire an event that some plugins were added
+            if numel(newplugins)
+                notify(self, 'PluginAdded');
+            end
         end
 
         function clear(self)
@@ -105,12 +118,19 @@ classdef PluginManager < handle
             % USAGE:
             %   self.clear()
 
+            nPlugins = numel(self.Plugins);
+
             delete(self.listeners);
             delete(self.Plugins);
             self.Plugins(1:end) = [];
             self.Classes(1:end) = [];
             self.listeners = [];
             self.statuslisteners = [];
+
+            % If there were plugins, go ahead and fire a removed event
+            if nPlugins
+                notify(self, 'PluginRemoved');
+            end
         end
 
         function h = uimenu(self, varargin)
