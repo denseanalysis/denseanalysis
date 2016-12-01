@@ -38,6 +38,7 @@ classdef PluginManager < handle
         baseclass_          % Shadowed (char) version of baseclass
         listeners           % Listeners for destruction of plugins
         statuslisteners     % Listeners for status events from plugins
+        updatelisteners     % Listeners for update events from plugins
     end
 
     events
@@ -126,6 +127,7 @@ classdef PluginManager < handle
             self.Classes(1:end) = [];
             self.listeners = [];
             self.statuslisteners = [];
+            self.updatelisteners = [];
 
             % If there were plugins, go ahead and fire a removed event
             if nPlugins
@@ -158,6 +160,7 @@ classdef PluginManager < handle
         function delete(self)
             delete(self.listeners);
             delete(self.statuslisteners);
+            delete(self.updatelisteners);
             delete@handle(self);
         end
     end
@@ -167,6 +170,7 @@ classdef PluginManager < handle
         function set.Plugins(self, val)
             delete(self.listeners)
             delete(self.statuslisteners)
+            delete(self.updatelisteners)
 
             self.plugins_ = val;
 
@@ -181,6 +185,12 @@ classdef PluginManager < handle
             func = @(x)addlistener(x, 'Status', cback);
             listens = arrayfun(func, val, 'uni', 0);
             self.statuslisteners = cat(1, listens{:});
+
+            % Add listeners to the update event
+            cback = @(s,e)self.pluginUpdated(s);
+            func = @(x)addlistener(x, 'Updated', cback);
+            listens = arrayfun(func, val, 'uni', 0);
+            self.updatelisteners = cat(1, listens{:});
         end
 
         function res = get.Plugins(self)
@@ -338,10 +348,24 @@ classdef PluginManager < handle
     end
 
     methods (Access = 'protected')
+
+        function pluginUpdated(self, plugin)
+            % pluginUpdated - Callback when a plugin is updated
+
+            % Since there was an update we need to first remove and then
+            % re-add the plugin
+            cls = class(plugin);
+            delete(plugin);
+
+            self.Classes(end+1) = meta.class.fromName(cls);
+            self.Plugins(end+1) = feval(cls);
+
+            self.notify('PluginUpdated');
+        end
+
         function pluginDestroyed(self, plugin)
             % pluginDestroyed - callback for when a plugin is deleted
 
-            % Find it in the menu and remove if necessary
             toremove = arrayfun(@(x)x == plugin, self.Plugins);
             self.Classes(toremove) = [];
 

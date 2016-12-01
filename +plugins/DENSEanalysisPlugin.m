@@ -41,6 +41,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
     end
 
     events
+        Updated     % Event to be fired when this plugin is updated
         Status      % Messaging event carrying a status message payload
     end
 
@@ -191,7 +192,10 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
                 % Keep track of the "internal" version number
                 self.Config.updater.version = versionNumber;
+
+                % Fire the update event
             end
+            notify(self, 'Updated');
         end
 
         function h = uimenu(self, parent, callback, varargin)
