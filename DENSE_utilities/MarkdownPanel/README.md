@@ -17,12 +17,28 @@ Or after object creation using the returned handle
     h.Parent = gcf;
     set(h, 'Position', [0, 0, 0.5, 0.5])
  
-To set the actual Markdown content, use the 'Content' property. You
+To set the actual Markdown content, use the `Content` property. You
 can provide *either* a string, or a cell array of strings which will
 automatically create a multi-line entry
- 
+    
     set(h, 'Content', '#Hello World')
     set(h, 'Content', {'#Hello World', 'This is a test...'})
+  
+You can use the `Options` property to modify options that are
+specific to how Showdown renders the markdown. By default, we use all
+of the default settings except that we enable support for tables.
+  
+    h.Options.tables = true;
+  
+The `Options` property is simply a struct where the fieldnames are
+the option names and the value is the option value. You can modify
+this struct to adjust an option.
+  
+    % Enable support for tasklists
+    h.Options.taskslists = true
+   
+A complete list of options can be found in the [Showdown
+documentation][1]
  
 ------
 **Usage**

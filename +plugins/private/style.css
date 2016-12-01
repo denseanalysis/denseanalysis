@@ -1,0 +1,32 @@
+body {
+    margin-top: 0px;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+}
+
+blockquote {
+    padding: 5px;
+    background-color: #EEE;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table td {
+    padding: 5px;
+    border: 1px solid #CCC;
+}
+
+pre {
+    background-color: #EEE;
+    margin-left: 15px;
+}
+
+a {
+    color: #777;
+}
+
+h3 {
+    padding: 0px;
+}
