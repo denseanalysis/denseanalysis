@@ -199,9 +199,13 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
                 % Keep track of the "internal" version number
                 self.Config.updater.version = versionNumber;
 
+                % Since we just updated we can indicate that we do not have
+                % available updates
+                self.Config.updater.hasUpdate = false;
+
                 % Fire the update event
+                notify(self, 'Updated');
             end
-            notify(self, 'Updated');
         end
 
         function h = uimenu(self, parent, callback, varargin)
