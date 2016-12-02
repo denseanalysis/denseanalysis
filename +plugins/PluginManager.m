@@ -347,6 +347,7 @@ classdef PluginManager < handle
             end
 
             listener = addlistener(updater, 'Status', callback);
+            cleanupobj = onCleanup(@()delete(listener));
 
             % Get the latest release
             newest = updater.latestRelease();
@@ -371,8 +372,6 @@ classdef PluginManager < handle
 
             % Install the software in the needed location
             result = updater.install(folder, installDir);
-
-            delete(listener);
         end
     end
 
