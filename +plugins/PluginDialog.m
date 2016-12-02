@@ -66,10 +66,11 @@ classdef PluginDialog < hgsetget
             % Make sure that if a plugin is removed, it disappears from the
             % list on the left
             self.Listeners = [ ...
-                addlistener(manager, 'PluginRemoved', @(s,e)self.refresh())
-                addlistener(manager, 'PluginAdded', @(s,e)self.refresh())
-                addlistener(manager, 'PluginUpdated', @(s,e)self.refresh())
-                addlistener(manager, 'Status', @(s,e)self.setStatus(e))
+                addlistener(manager, 'PluginRemoved', @(s,e)refresh(self))
+                addlistener(manager, 'PluginAdded', @(s,e)refresh(self))
+                addlistener(manager, 'PluginUpdated', @(s,e)refresh(self))
+                addlistener(manager, 'Status', @(s,e)setStatus(self, e))
+                addlistener(manager, 'ObjectBeingDestroyed', @(s,e)delete(self))
             ];
         end
 
