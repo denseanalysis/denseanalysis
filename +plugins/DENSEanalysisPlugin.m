@@ -204,8 +204,21 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             [bool, versionNumber] = updater.launch(varargin{:});
 
             if bool
-                % Refresh configuration from plugin.json
-                load(self.Config)
+                % Update the configuration based upon the new values
+
+                % Make a copy of the current configuration
+                oldconfig = copy(self.Config);
+
+                % Now load in the settings that were downloaded with the
+                % new version of the plugin
+                load(self.Config);
+
+                % Now update the downloaded settings.json with the old
+                % values so that we don't forget the user's settings. If
+                % the user wants to change this behavior (i.e. force old
+                % values to be deleted) they will need to overload this
+                % method.
+                update(self.Config, oldconfig);
 
                 % Keep track of the "internal" version number
                 self.Config.updater.version = versionNumber;
