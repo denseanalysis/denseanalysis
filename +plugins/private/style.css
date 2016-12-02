@@ -1,16 +1,19 @@
 body {
     margin-top: 0px;
-    font-size: 12px;
+    font-size: 10pt;
     font-family: Arial, sans-serif;
 }
 
 blockquote {
-    padding: 5px;
-    background-color: #EEE;
+    padding: 10px;
+    background-color: #EFEFEF;
+    border-radius: 5px;
+    border: 1px solid #CCCCCC;
 }
 
 table {
     border-collapse: collapse;
+    font-size: inherit;
 }
 
 table td {
@@ -18,8 +21,8 @@ table td {
     border: 1px solid #CCC;
 }
 
-pre {
-    background-color: #EEE;
+pre  {
+    background-color: #EFEFEF;
     margin-left: 15px;
 }
 
