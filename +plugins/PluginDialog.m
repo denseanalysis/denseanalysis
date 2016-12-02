@@ -52,8 +52,12 @@ classdef PluginDialog < hgsetget
             dlg = dialog('Name', 'Plugin Manager', 'Visible', 'on');
             set(dlg, 'Position', [100 100 850 425])
             set(dlg, 'Resize', 'on')
+            
+            % Necessary to place the object within a struct on some
+            % versions of MATLAB
+            ud.dialog = self;
 
-            set(dlg, 'tag', self.UUID, 'UserData', self);
+            set(dlg, 'tag', self.UUID, 'UserData', ud);
 
             self.Handles.fig = dlg;
 
@@ -255,7 +259,11 @@ classdef PluginDialog < hgsetget
                 return;
             end
 
-            dlg = get(hfig, 'UserData');
+            userdata = get(hfig, 'UserData');
+            
+            if isstruct(userdata) && isfield(userdata, 'dialog')
+                dlg = userdata.dialog;
+            end
         end
 
         function performUpdate(key)
