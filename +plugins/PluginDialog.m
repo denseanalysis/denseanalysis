@@ -66,10 +66,10 @@ classdef PluginDialog < hgsetget
             % Make sure that if a plugin is removed, it disappears from the
             % list on the left
             self.Listeners = [ ...
-                addlistener(self.Manager, 'PluginRemoved', @(s,e)self.refresh())
-                addlistener(self.Manager, 'PluginAdded', @(s,e)self.refresh())
-                addlistener(self.Manager, 'PluginUpdated', @(s,e)self.refresh())
-                addlistener(self.Manager, 'Status', @(s,e)self.setStatus(e.Message))
+                addlistener(manager, 'PluginRemoved', @(s,e)self.refresh())
+                addlistener(manager, 'PluginAdded', @(s,e)self.refresh())
+                addlistener(manager, 'PluginUpdated', @(s,e)self.refresh())
+                addlistener(manager, 'Status', @(s,e)self.setStatus(e))
             ];
         end
 
@@ -161,7 +161,7 @@ classdef PluginDialog < hgsetget
             %   method: String, Indicates the source of the import. It
             %           should either be 'url' or 'file'.
 
-            callback = @(s,e)self.setStatus(e.Message);
+            callback = @(s,e)self.setStatus(e);
 
             switch lower(method)
                 case 'url'
@@ -429,6 +429,10 @@ classdef PluginDialog < hgsetget
                 color = [0 0 0];
             end
 
+            if isa(message, 'StatusEvent')
+                message = message.Message;
+            end
+
             set(self.Handles.hstatus, ...
                 'String',           message, ...
                 'ForegroundColor',  color);
@@ -542,7 +546,7 @@ classdef PluginDialog < hgsetget
             end
 
             % Make sure that we get status updates from the plugin
-            func = @(s,e)self.setStatus(e.Message);
+            func = @(s,e)self.setStatus(e);
             listener = addlistener(plugin , 'Status', func);
             cleanupobj = onCleanup(@()delete(listener));
 
@@ -593,7 +597,7 @@ classdef PluginDialog < hgsetget
             end
 
             try
-                plugin.hasUpdate(@(s,e)self.setStatus(e.Message));
+                plugin.hasUpdate(@(s,e)self.setStatus(e));
             catch ME
                 message = {'Unable to check for updates.', ME.message};
                 self.setStatus(message, 'red')
