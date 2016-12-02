@@ -214,6 +214,9 @@ classdef PluginDialog < hgsetget
                 'DockControls', 'off', ...
                 'Visible',      'on');
 
+            % If the figure is removed, then delete the object
+            addlistener(dlg, 'ObjectBeingDestroyed', @(s,e)delete(self));
+
             % Custom menu at the top of the figure
             filemenu = uimenu( ...
                 'Parent',   dlg, ...
