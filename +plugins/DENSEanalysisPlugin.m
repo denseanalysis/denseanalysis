@@ -208,6 +208,53 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             end
         end
 
+        function success = uninstall(self, force)
+            % uninstall - Uninstalls the plugin and removes configurations
+            %
+            % USAGE:
+            %   success = self.uninstall(force)
+            %
+            % INPUTS:
+            %   force:      Boolean, Indicates whether to confirm with the
+            %               user or not whether to completely remove the
+            %               plugin (default = false).
+            %
+            % OUTPUTS:
+            %   success:    Boolean, Signals whether the uninstall was
+            %               completed successfully.
+
+            if ~exist('force', 'var')
+                force = false;
+            end
+
+            success = false;
+
+            if ~force
+
+                message = [
+                    'Are you sure that you want to completely remove ', ...
+                    'the plugin "', self.Name, '" and all associated ', ...
+                    'settings?'
+                ];
+
+                titlestr = 'Confirm Plugin Removal';
+
+                selection = questdlg(message, titlestr, 'Yes', 'No', 'No');
+
+                if strcmpi(selection, 'No')
+                    return
+                end
+            end
+
+            % Just blow away the install dir
+            if exist(self.InstallDir, 'dir')
+                success = rmdir(self.InstallDir, 's');
+            end
+
+            % Go ahead and delete myself here
+            delete(self);
+        end
+
         function h = uimenu(self, parent, callback, varargin)
             h = uimenu('Parent', parent, ...
                        'Callback', callback, ...
