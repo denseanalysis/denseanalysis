@@ -86,6 +86,8 @@ classdef GithubUpdater < Updater
 
             % First try to grab the latest release
             try
+                self.setStatus('Looking for updates...');
+
                 release = self.request('releases', 'latest');
                 bool = VersionNumber(release.tag_name) > current;
 
@@ -96,6 +98,7 @@ classdef GithubUpdater < Updater
 
             % Otherwise we need to compare git commits
             catch
+                self.setStatus('Using commit hashes as a backup...');
                 if isempty(current) || isequal(current, '0.0')
                     % Then we don't CARE about the current version
                     commit = self.request('commits', ref);
@@ -108,6 +111,7 @@ classdef GithubUpdater < Updater
                     bool = comparison.ahead_by > 0;
 
                     if ~bool
+                        self.setStatus('Everything is up-to-date.')
                         newest = struct();
                         return
                     end
@@ -124,6 +128,13 @@ classdef GithubUpdater < Updater
                 comments = cellfun(func, commits, 'uniform', 0);
                 comments = [comments{:}];
                 newest.Notes = comments;
+            end
+
+            if bool
+                self.setStatus( ...
+                    sprintf('Latest version is %s.', newest.VersionString));
+            else
+                self.setStatus('Everything is up-to-date.')
             end
         end
     end
