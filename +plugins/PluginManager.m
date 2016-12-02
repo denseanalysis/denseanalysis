@@ -105,7 +105,7 @@ classdef PluginManager < handle
 
             newplugins = arrayfun(@(x)feval(x.Name), classes, 'Uniform', 0);
 
-            self.Plugins = cat(1, self.Plugins, newplugins{:});
+            self.Plugins = cat(1, self.Plugins(:), newplugins{:});
 
             % Now fire an event that some plugins were added
             if numel(newplugins)
