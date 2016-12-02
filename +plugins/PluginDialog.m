@@ -30,12 +30,11 @@ classdef PluginDialog < hgsetget
 
             % Make sure that if a plugin is removed, it disappears from the
             % list on the left
-            addlistener(self.Manager, 'PluginRemoved', @(s,e)self.refresh());
-
-            % Update the menu when a new item is added
-            addlistener(self.Manager, 'PluginAdded', @(s,e)self.refresh());
-
-            addlistener(self.Manager, 'PluginUpdated', @(s,e)self.refresh());
+            self.listeners = [ ...
+                addlistener(self.Manager, 'PluginRemoved', @(s,e)self.refresh())
+                addlistener(self.Manager, 'PluginAdded', @(s,e)self.refresh())
+                addlistener(self.Manager, 'PluginUpdated', @(s,e)self.refresh())
+            ];
         end
 
         function res = get.CurrentPlugin(self)
@@ -187,6 +186,10 @@ classdef PluginDialog < hgsetget
         end
 
         function delete(self)
+            
+            % First remove all of the listeners
+            delete(self.listeners)
+            
             % Close the dialog
             if isfield(self.Handles, 'fig') && ishghandle(self.Handles.fig)
                 delete(self.Handles.fig);
