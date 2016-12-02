@@ -113,6 +113,35 @@ classdef PluginManager < handle
             end
         end
 
+        function plugin = getPlugin(self, cls)
+            % getPlugin - Retrieve a plugin based upon it's class
+            %
+            % USAGE:
+            %   plugin = self.getPlugin(cls)
+            %
+            % INPUTS:
+            %   cls:    String or meta.class, Specifies the class of plugin
+            %           that we would like to retrieve.
+            %
+            % OUTPUTS:
+            %   plugin: Object, Instance of the requested plugin. If there
+            %           were multiple instances of the same class, then all
+            %           instances will be returned.
+
+            if isa(cls, 'meta.class')
+                cls = cls.Name;
+            end
+
+            [tf, ind] = ismember(cls, {self.Classes.Name});
+
+            if tf
+                plugin = self.Plugins(ind);
+            else
+                error(sprintf('%s:PluginNotFound', mfilename), ...
+                    'Unable to find a plugin of class %s', cls);
+            end
+        end
+
         function clear(self)
             % clear - Clears all plugins from the manager
             %
