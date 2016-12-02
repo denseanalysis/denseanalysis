@@ -152,7 +152,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             set(hwait, varargin{:})
         end
 
-        function varargout = hasUpdate(self)
+        function varargout = hasUpdate(self, callback)
             % hasUpdate - Determines whether an update is available online
             %
             % USAGE:
@@ -166,6 +166,13 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             %           release.
 
             updater = Updater.create(self, 'Config', self.Config.updater);
+
+            if ~exist('callback', 'var')
+                callback = @(s,e)fprintf('%s\n', e.Message);
+            end
+
+            listener = addlistener(updater, 'Status', callback);
+            cleanupobj = onCleanup(@()delete(listener));
 
             [varargout{1:max(nargout, 1)}] = updater.updateAvailable();
 
@@ -190,6 +197,10 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
             % Always force the update without a prompt for plugins
             updater = Updater.create(self, 'Config', self.Config.updater);
+
+            listener = addlistener(updater, 'Status', @(s,e)notify(self, 'Status', e));
+            cleanupobj = onCleanup(@()delete(listener));
+
             [bool, versionNumber] = updater.launch(varargin{:});
 
             if bool
