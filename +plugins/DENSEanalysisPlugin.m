@@ -15,7 +15,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
     % License, v. 2.0. If a copy of the MPL was not distributed with this
     % file, You can obtain one at http://mozilla.org/MPL/2.0/.
     %
-    % Copyright (c) 2016 DENSEanalysis Contributors
+    % Copyright (c) 2016 Jonathan Suever
 
     properties (SetAccess = 'protected')
         Name        % Plugin name specified in menus and elsewhere
