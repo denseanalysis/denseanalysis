@@ -30,7 +30,7 @@ classdef DENSEdata < hgsetget
     end
 
     % private properties
-    properties (SetAccess='private', GetAccess='private')
+    properties (Hidden, SetAccess='private')
 
         % loading flags
         autodensetypes   = {'xy','xyz'};
