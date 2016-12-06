@@ -801,10 +801,21 @@ function contextMenuFcn(obj)
 
     if ~prevempty
         visible = cat(2, visible, {'CopyPrev'});
+
+        % Update the label as well as the callback
+        menuitem = findall(obj.hmenuitems, 'Tag', 'CopyPrev');
+        set(menuitem, ...
+            'Label',    sprintf('Copy Frame %d %s',frame-1,lbl),...
+            'Callback', @(varargin)saveROI(frame-1));
     end
 
     if ~nextempty
         visible = cat(2, visible, {'CopyNext'});
+
+        menuitem = findall(obj.hmenuitems, 'Tag', 'CopyNext');
+        set(menuitem, ...
+            'Label',    sprintf('Copy Frame %d %s',frame+1,lbl),...
+            'Callback', @(varargin)saveROI(frame+1));
     end
 
     % Make all invisible
