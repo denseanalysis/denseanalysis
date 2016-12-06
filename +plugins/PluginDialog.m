@@ -488,8 +488,13 @@ classdef PluginDialog < hgsetget
         function res = get.Plugins(self)
             % Retrieve the plugins from the PluginManager but alphabetize
             plugins = self.Manager.Plugins;
-            [~, sortind] = sort({plugins.Name});
-            res = plugins(sortind);
+
+            if isempty(plugins)
+                res = [];
+            else
+                [~, sortind] = sort({plugins.Name});
+                res = plugins(sortind);
+            end
         end
     end
 
