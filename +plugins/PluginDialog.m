@@ -170,40 +170,47 @@ classdef PluginDialog < hgsetget
 
             callback = @(s,e)self.setStatus(e);
 
-            switch lower(method)
-                case 'url'
-                    % URL dialog
-                    url = inputdlg( ...
-                        'Please enter the plugin URL', ...
-                        'Import Plugin from URL');
+            try
+                switch lower(method)
+                    case 'url'
+                        % URL dialog
+                        url = inputdlg( ...
+                            'Please enter the plugin URL', ...
+                            'Import Plugin from URL');
 
-                    if isempty(url)
-                        return
-                    end
+                        if isempty(url)
+                            return
+                        end
 
-                    if iscell(url)
-                        url = strcat(url{:});
-                    end
+                        if iscell(url)
+                            url = strcat(url{:});
+                        end
 
-                    result = self.Manager.import(url, callback);
-                case 'file'
-                    % Will automatically prompt the user to select the file
-                    result = self.Manager.import('', callback);
-                otherwise
-                    error(sprintf('%s:InvalidMethod', mfilename), ...
-                        'Import method must be either "url" or "file".');
+                        result = self.Manager.import(url, callback);
+                    case 'file'
+                        % Will automatically prompt the user to select the file
+                        result = self.Manager.import('', callback);
+                    otherwise
+                        error(sprintf('%s:InvalidMethod', mfilename), ...
+                            'Import method must be either "url" or "file".');
+                end
+
+                % If it was a successful import, then refresh the plugin
+                % manager to trigger the appropriate events
+
+                self.Manager.refresh();
+
+                if result
+                    self.setStatus('Import successful.')
+                end
+
+            catch ME
+                message = {'Import failed', ME.message};
+                self.setStatus(message, 'red');
             end
 
-            % If it was a successful import, then refresh the plugin
-            % manager to trigger the appropriate events
-
-            if ispc; pause(1); end
-            self.Manager.refresh();
-
-            if result
-                self.setStatus('Import successful.')
-                self.clearStatus(3);
-            end
+            % Clear the status eventually
+            self.clearStatus(3);
         end
 
         function initGUI(self)
