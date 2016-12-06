@@ -15,7 +15,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
     % License, v. 2.0. If a copy of the MPL was not distributed with this
     % file, You can obtain one at http://mozilla.org/MPL/2.0/.
     %
-    % Copyright (c) 2016 DENSEanalysis Contributors
+    % Copyright (c) 2016 Jonathan Suever
 
     properties (SetAccess = 'protected')
         Name        % Plugin name specified in menus and elsewhere
@@ -41,6 +41,7 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
     end
 
     events
+        Updated     % Event to be fired when this plugin is updated
         Status      % Messaging event carrying a status message payload
     end
 
@@ -151,18 +152,31 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             set(hwait, varargin{:})
         end
 
-        function bool = hasUpdate(self)
+        function varargout = hasUpdate(self, callback)
             % hasUpdate - Determines whether an update is available online
             %
             % USAGE:
-            %   bool = self.hasUpdate()
+            %   [bool, latest] = self.hasUpdate()
             %
             % OUTPUTS:
             %   bool:   Logical, Indicates whether an update is available
             %           (true) or not (false)
+            %
+            %   latest: Struct, Information about the latest available
+            %           release.
 
             updater = Updater.create(self, 'Config', self.Config.updater);
-            bool = updater.updateAvailable();
+
+            if ~exist('callback', 'var')
+                callback = @(s,e)fprintf('%s\n', e.Message);
+            end
+
+            listener = addlistener(updater, 'Status', callback);
+            cleanupobj = onCleanup(@()delete(listener));
+
+            [varargout{1:max(nargout, 1)}] = updater.updateAvailable();
+
+            self.Config.updater.hasUpdate = varargout{1};
         end
 
         function bool = update(self, varargin)
@@ -183,15 +197,86 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
             % Always force the update without a prompt for plugins
             updater = Updater.create(self, 'Config', self.Config.updater);
+
+            listener = addlistener(updater, 'Status', @(s,e)notify(self, 'Status', e));
+            cleanupobj = onCleanup(@()delete(listener));
+
             [bool, versionNumber] = updater.launch(varargin{:});
 
             if bool
-                % Refresh configuration from plugin.json
-                load(self.Config)
+                % Update the configuration based upon the new values
+
+                % Make a copy of the current configuration
+                oldconfig = copy(self.Config);
+
+                % Now load in the settings that were downloaded with the
+                % new version of the plugin
+                load(self.Config);
+
+                % Now update the downloaded settings.json with the old
+                % values so that we don't forget the user's settings. If
+                % the user wants to change this behavior (i.e. force old
+                % values to be deleted) they will need to overload this
+                % method.
+                update(self.Config, oldconfig);
 
                 % Keep track of the "internal" version number
                 self.Config.updater.version = versionNumber;
+
+                % Since we just updated we can indicate that we do not have
+                % available updates
+                self.Config.updater.hasUpdate = false;
+
+                % Fire the update event
+                notify(self, 'Updated');
             end
+        end
+
+        function success = uninstall(self, force)
+            % uninstall - Uninstalls the plugin and removes configurations
+            %
+            % USAGE:
+            %   success = self.uninstall(force)
+            %
+            % INPUTS:
+            %   force:      Boolean, Indicates whether to confirm with the
+            %               user or not whether to completely remove the
+            %               plugin (default = false).
+            %
+            % OUTPUTS:
+            %   success:    Boolean, Signals whether the uninstall was
+            %               completed successfully.
+
+            if ~exist('force', 'var')
+                force = false;
+            end
+
+            success = false;
+
+            if ~force
+
+                message = [
+                    'Are you sure that you want to completely remove ', ...
+                    'the plugin "', self.Name, '" and all associated ', ...
+                    'settings?'
+                ];
+
+                titlestr = 'Confirm Plugin Removal';
+
+                selection = questdlg(message, titlestr, 'Yes', 'No', 'No');
+
+                if strcmpi(selection, 'No')
+                    return
+                end
+            end
+
+            % Just blow away the install dir
+            if exist(self.InstallDir, 'dir')
+                success = rmdir(self.InstallDir, 's');
+            end
+
+            % Go ahead and delete myself here
+            delete(self);
         end
 
         function h = uimenu(self, parent, callback, varargin)
