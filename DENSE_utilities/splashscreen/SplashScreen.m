@@ -391,8 +391,14 @@ classdef SplashScreen < hgsetget
         end
 
         function set.Opacity(self, val)
-            com.sun.awt.AWTUtilities.setWindowOpacity(self.frame, val);
-            self.opacity = val;
+            % Opacity isn't going to be supported on all platforms and
+            % versions of MATLAB so we will at least try, otherwise we will
+            % ignore it and leave opacity at 100%
+            try
+                com.sun.awt.AWTUtilities.setWindowOpacity(self.frame, val);
+                self.opacity = val;
+            catch
+            end
         end
 
         function set.Size(self, val)
