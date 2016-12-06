@@ -100,6 +100,12 @@ classdef PluginDialog < hgsetget
             % Update the displayed names (and version)
             set(self.Handles.list, 'String', self.MenuLabels);
 
+            % Strangely, on Windows we need this explicit pause for the
+            % graphics to catch up. Also, drawnow isn't sufficient
+            if ispc
+                pause(0.2)
+            end
+
             % Clear out the plugin if there is no plugin selected
             if isempty(self.CurrentPlugin)
                 self.Handles.markdown.Content = '';
@@ -191,6 +197,7 @@ classdef PluginDialog < hgsetget
             % If it was a successful import, then refresh the plugin
             % manager to trigger the appropriate events
 
+            if ispc; pause(1); end
             self.Manager.refresh();
 
             if result
@@ -343,7 +350,7 @@ classdef PluginDialog < hgsetget
             privdir = fullfile(thisdir, 'private');
 
             self.Handles.markdown.StyleSheets = {
-                fullfile('file://', fullfile(privdir, 'style.css'));
+                fullfile('file:///', fullfile(privdir, 'style.css'));
             };
 
             % Make sure that the markdown panel is rendered before we try
