@@ -398,3 +398,4 @@ This Software uses code from other open source projects.
 * Components from jsonlab by Qianqian Fang from https://www.mathworks.com/matlabcentral/fileexchange/33381-jsonlab--a-toolbox-to-encode-decode-json-files-in-matlab-octave
 * MarkdownPanel by Jonathan Suever from https://github.com/suever/MarkdownPanel
 * structobj by Jonathan Suever from https://github.com/suever/structobj
+* SplashScreen by Jonathan Suever from https://github.com/suever/splashscreen

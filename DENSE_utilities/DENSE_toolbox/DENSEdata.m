@@ -30,7 +30,7 @@ classdef DENSEdata < hgsetget
     end
 
     % private properties
-    properties (SetAccess='private', GetAccess='private')
+    properties (Hidden, SetAccess='private')
 
         % loading flags
         autodensetypes   = {'xy','xyz'};
@@ -173,151 +173,9 @@ classdef DENSEdata < hgsetget
     end
 end
 
-function [out, uipath, uifile] = DICOMDirectoryLoader(obj, startpath)
-    % empty workspace file output
-    uifile = [];
-    out = [];
-
-    % load DICOM data
-    [seq, uipath] = DICOMseqinfo(startpath, 'OptionsPanel', true);
-    if isempty(seq)
-        uipath = [];
-        return;
-    end
-
-    % try to locate groups
-    dns = autoDENSEgroups(seq,'Types',obj.autodensetypes,'verbose',false);
-
-    % load slice information & add to seq
-    slcdata = DICOMslice(seq,{seq.NumberInSequence});
-    tags = fieldnames(slcdata);
-    for k = 1:numel(seq)
-        for ti = 1:numel(tags)
-            seq(k).(tags{ti}) = slcdata(k).(tags{ti});
-        end
-    end
-
-    % generate sequence name & program UID
-    for k = 1:numel(seq)
-        sd = seq(k).SeriesDescription;
-        if isempty(sd) || ~ischar(sd)
-            sd = 'unknown';
-        end
-        seq(k).DENSEanalysisName = sd;
-        seq(k).DENSEanalysisUID  = dicomuid;
-        seq(k).TranslationRC = [0 0];
-    end
-
-    % shift new fields to top of structure
-    Nfield = numel(fieldnames(seq));
-    Nnew   = 2;
-    seq = orderfields(seq,[Nfield+(1-Nnew:0),1:Nfield-Nnew]);
-
-    % load imagery
-    cancel = ~[seq.ValidSequence];
-    img = DICOMseqread(seq,'CancelRead',cancel);
-
-    if isempty(img);
-        uipath = [];
-        return;
-    end
-
-    % empty roi
-    roi = repmat(struct,[0 1]);
-
-    out.dns = dns;
-    out.roi = roi;
-    out.seq = seq;
-    out.img = img;
-end
-
-function [out, uipath, uifile] = DNSFileLoader(~, startpath)
-    % If no filename was provided explicitly, then prompt the user
-    out = [];
-
-    if ~exist('startpath', 'var')
-        startpath = pwd;
-    elseif exist(startpath, 'file') == 2
-        filename = startpath;
-        startpath = pwd;
-    end
-
-    if ~exist('filename', 'var')
-        % locate a file to load
-        [uifile,uipath] = uigetfile(...
-            {'*.dns','DENSE workspace (*.dns)'},...
-            'Select DNS file',startpath);
-        if isequal(uipath,0)
-            uipath = [];
-            return;
-        end
-
-        filename = fullfile(uipath, uifile);
-    else
-        [uipath, uifile] = fileparts(filename);
-    end
-
-    % create load waitbar
-    hwait = waitbartimer;
-    cleanupObj = onCleanup(@()delete(hwait(isvalid(hwait))));
-    hwait.WindowStyle = 'modal';
-    hwait.String      = 'Loading workspace...';
-    hwait.start;
-    drawnow
-
-    % load file
-    S = load(filename,'-mat');
-    if ~all(isfield(S,{'seq','img','dns','roi'}))
-        error(sprintf('%s:invalidFile',mfilename),...
-            '".dns" file does not contain appropriate data.');
-    end
-
-    seq = S.seq(:);
-    img = S.img(:);
-    dns = S.dns(:);
-    roi = S.roi(:);
-    clear S
-
-    % run a quick hack error check:
-    % if "autoDENSEgroups" returns without error, we probably have
-    % good valid seq with some sort of DENSE data in it.
-    autoDENSEgroups(seq);
-
-    % re-parse the "ImageComments" field of the first image in
-    % all DENSE sequences to find the Partition information.
-    % this needs to be done for backward compatability.
-    for k = 1:numel(seq)
-        if ~isempty(seq(k).DENSEid)
-            if iscell(seq(k).ImageComments)
-                str = seq(k).ImageComments{1};
-            else
-                str = seq(k).ImageComments;
-            end
-            [~,data] = parseImageCommentsDENSE(str);
-            seq(k).DENSEdata.Partition = data.Partition;
-        end
-    end
-
-    % re-parse the slice identifiers
-    slcdata = DICOMslice(seq,{seq.NumberInSequence});
-    tags = fieldnames(slcdata);
-    for k = 1:numel(seq)
-        for ti = 1:numel(tags)
-            seq(k).(tags{ti}) = slcdata(k).(tags{ti});
-        end
-    end
-
-    out.seq = seq;
-    out.img = img;
-    out.dns = dns;
-    out.roi = roi;
-end
-
 %% LOAD DENSE DATA
 % This function allows the user to load two types of data from file:
 % 1) DICOM data, 2) MAT-file data (using the ".dns" extension)
-%
-%
 
 function [uipath,uifile] = loadFcn(obj, loader, startpath)
 
@@ -330,28 +188,18 @@ function [uipath,uifile] = loadFcn(obj, loader, startpath)
             case 'dicom'
                 loader = @DICOMDirectoryLoader;
             case 'dns'
-                loader = @DNSFileLoader;
+                loader = @(obj, folder)DNSFileLoader(folder);
             case 'mat'
                 warning(sprintf('%s:DeprecatedType', mfilename), ...
                     'Usage of "mat" type is deprecated and should be replaced with "dns".')
-                loader = @DNSFileLoader;
+                loader = @(obj, folder)DNSFileLoader(folder);
             otherwise
                 error(sprintf('%s:invalidInput', mfilename),...
-                    'Valid ''loader'' string options are be [dicom|mat].');
+                    'Valid ''loader'' string options are be [dicom|dns].');
         end
     elseif ~isa(loader, 'function_handle')
         error(sprintf('%s:invalidInput', mfilename), ...
             'Loader should be either a string or function handle');
-    end
-
-    % test startpath
-    if ~ischar(startpath)
-        error(sprintf('%s:invalidInput',mfilename),...
-            '"startpath" must be a valid directory string.');
-    elseif exist(startpath,'dir')~=7
-        warning(sprintf('%s:invalidInput',mfilename),'%s',...
-            'The directory <', startpath, '> could not be located.')
-        startpath = pwd;
     end
 
     [data, uipath, uifile] = loader(obj, startpath); %#ok

@@ -1,8 +1,8 @@
 classdef PluginMenu < hgsetget
-    % PluginMenu - Heirarchical menu for all DENSEanalysis plugins
+    % PluginMenu - Hierarchical menu for all DENSEanalysis plugins
     %
     %   This class provides a menu which displays all plugins in a
-    %   heirarchy and also provides basic menu interaction including
+    %   hierarchy and also provides basic menu interaction including
     %   enabling/disabling menu items as well as mouse rollover effects.
     %
     % USAGE:
@@ -22,7 +22,7 @@ classdef PluginMenu < hgsetget
     % License, v. 2.0. If a copy of the MPL was not distributed with this
     % file, You can obtain one at http://mozilla.org/MPL/2.0/.
     %
-    % Copyright (c) 2016 DENSEanalysis Contributors
+    % Copyright (c) 2016 Jonathan Suever
 
     properties
         Menu        % Handle to the main uimenu
@@ -38,7 +38,7 @@ classdef PluginMenu < hgsetget
 
     properties (Hidden)
         reloadmenu = []     % Handle to the 'Reload Plugins' menu item
-        importmenu = []     % Handle to the 'Import Plugin' menu item
+        managemenu = []     % Handle to the 'Import Plugin' menu item
         loading = false;    % Shadow loading property
         dellistener         % Listener for when a plugin is removed
         menulistener        % Listener for when the menu is destroyed
@@ -176,7 +176,7 @@ classdef PluginMenu < hgsetget
             self.reset();
             delete(self.internalmenus);
 
-            self.Manager.initializePlugins();
+            self.Manager.refresh();
 
             % If there was a menu before, be sure to keep it there
             if ishghandle(self.Menu)
@@ -242,7 +242,7 @@ classdef PluginMenu < hgsetget
         end
 
         function res = get.internalmenus(self)
-            res = [self.importmenu; self.reloadmenu];
+            res = [self.managemenu; self.reloadmenu];
         end
 
         function set.Loading(self, val)
@@ -259,9 +259,9 @@ classdef PluginMenu < hgsetget
             %
             % INPUTS:
             %   plugins:    [M x 1] Handle, Handles to an array of
-            %               subclasses of plugin.DENSEAnalysisPlugin.
+            %               subclasses of plugin.DENSEanalysisPlugin.
             %               These plugins will be added to the menu based
-            %               upon the package and subpackage that they are
+            %               upon the package and sub-package that they are
             %               contained within.
 
             for k = 1:numel(plugins)
@@ -314,7 +314,7 @@ classdef PluginMenu < hgsetget
             %   pm.callback(plugin)
             %
             % INPUTS:
-            %   plugin: Handle, Handle to the DENSEAnalysisPlugin
+            %   plugin: Handle, Handle to the DENSEanalysisPlugin
             %           subclass instance
 
             inputs = cat(2, {self.Manager.Data}, varargin);
@@ -404,15 +404,15 @@ classdef PluginMenu < hgsetget
                                             'ObjectBeingDestroyed', ...
                                             @(s,e)delete(self(isvalid(self))));
 
-            % Ensure that there is always a reload and import menu item
-            % on the bottom
-            if isempty(self.importmenu) || ~ishghandle(self.importmenu)
-                self.importmenu = uimenu('Parent',      self.Menu, ...
-                                         'Separator',   'off', ...
-                                         'Callback',    @(s,e)self.importPlugin(), ...
-                                         'Label',       'Import Plugin');
+            % Ensure that there are always reload and manage menu items
+            if isempty(self.managemenu) || ~ishghandle(self.managemenu)
+                self.managemenu = uimenu( ...
+                    'Parent',      self.Menu, ...
+                    'Separator',   'off', ...
+                    'Callback',    @(s,e)plugins.PluginDialog(self.Manager), ...
+                    'Label',       'Manage Plugins');
 
-                setToolTipText(self.importmenu, 'Import plugin from URL or file')
+                setToolTipText(self.managemenu, 'Manage installed plugins')
             end
 
             if isempty(self.reloadmenu) || ~ishghandle(self.reloadmenu)

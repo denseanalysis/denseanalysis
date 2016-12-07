@@ -1,0 +1,36 @@
+body {
+    margin-top: 0px;
+    font-size: 10pt;
+    font-family: Arial, sans-serif;
+}
+
+blockquote {
+    padding: 10px;
+    background-color: #EFEFEF;
+    border-radius: 5px;
+    border: 1px solid #CCCCCC;
+}
+
+table {
+    border-collapse: collapse;
+    font-size: inherit;
+}
+
+table td {
+    padding: 5px;
+    border: 1px solid #CCC;
+}
+
+pre  {
+    background-color: #EFEFEF;
+    margin-left: 15px;
+    padding: 5px;
+}
+
+a {
+    color: #777;
+}
+
+h3 {
+    padding: 0px;
+}

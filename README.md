@@ -18,10 +18,8 @@ The current stable version (0.4.0) of *DENSEanalysis* requires:
 * MATLAB C-Compiler
 
 If you are running a newer version of MATLAB (R2014b or newer), you will want
-to use the [master
-branch](https://github.com/denseanalysis/denseanalysis/tree/master) of the
-project which is the development version which includes support for all recent
-versions of MATLAB.
+to use the [master branch][master] of the project which is the development
+version which includes support for all recent versions of MATLAB.
 
 #### Configuration of Mex Compiler
 
@@ -53,13 +51,12 @@ folders to remove.
 #### Download Software
 
 The latest stable release of *DENSEanalysis* can be downloaded
-[here](https://github.com/denseanalysis/denseanalysis/releases/latest) either
+[here][latest] either
 as a .zip or .tar.gz archive.
 
 > If you wish to use a bleeding-edge version of DENSEanalysis or you
 wish to contribute to DENSEanalysis, you can go to the DENSEanalysis [Github
-page](https://github.com/denseanalysis/denseanalysis) and download the source
-as needed.
+page][github] and download the source as needed.
 
 Once downloaded, you'll want to extract the contents of the archive to a
 directory of your choice on your machine.
@@ -89,9 +86,9 @@ Additional information, including screenshots and examples, can be found at the
 following locations
 
 
-* [DENSEanalysis manual](http://www.denseanalysis.com/docs/DENSEanalysis_manual.pdf)
-* [DENSEms manual](http://www.denseanalysis.com/docs/DENSEms_manual.pdf)
-* [RV features manual](http://www.denseanalysis.com/docs/RV_manual.pdf)
+* [DENSEanalysis manual][denseanalysis_manual]
+* [DENSEms manual][densems_manual]
+* [RV features manual][rv_manual]
 
 #### A Note on "Motion-Guided Segmentation" ####
 
@@ -109,20 +106,38 @@ If you have used the *DENSEanalysis* software for your research or it has
 influenced your work, we ask that you include the following relevant citations
 in your work.
 
->Spottiswoode, B. S., Zhong, X., Hess, a T., Kramer, C. M., Meintjes, E. M., Mayosi, B. M., & Epstein, F. H. (2007). Tracking myocardial motion from cine DENSE images using spatiotemporal phase unwrapping and temporal fitting. IEEE Transactions on Medical Imaging, 26(1), 15–30. http://doi.org/10.1109/TMI.2006.884215
+>Spottiswoode, B. S., Zhong, X., Hess, a T., Kramer, C. M., Meintjes, E. M.,
+>Mayosi, B. M., & Epstein, F. H. (2007). Tracking myocardial motion from cine
+>DENSE images using spatiotemporal phase unwrapping and temporal fitting. IEEE
+>Transactions on Medical Imaging, 26(1), 15–30.
+>http://doi.org/10.1109/TMI.2006.884215
 
->Gilliam, A.D., Suever, J.D., and contributors (2016). DENSEanalysis. Retrieved from https://github.com/denseanalysis/denseanalysis
+>Gilliam, A.D., Suever, J.D., and contributors (2016). DENSEanalysis. Retrieved
+>from https://github.com/denseanalysis/denseanalysis
 
 ### Contributing
 
 We welcome contributions from any members of the DENSE user community. Feel
 free to [submit a pull
-request](https://github.com/denseanalysis/denseanalysis/compare?expand=1) with
+request][pr] with
 your contributions. Please see the [CONTRIBUTING
-file](https://github.com/denseanalysis/denseanalysis/blob/master/CONTRIBUTING.md)
+file][contributing]
 for guidelines for contributing to *DENSEanalysis*.
 
 Our contributors include:
 
-* [Andrew Gilliam](http://www.adgilliam.com/) (Original Creator)
-* [Jonathan Suever](https://github.com/suever) (Maintainer)
+* [Andrew Gilliam][gilliam] (Original Creator)
+* [Jonathan Suever][suever] (Maintainer)
+* A list of all contributors can be found in the [AUTHORS][authors] file.
+
+[master]: https://github.com/denseanalysis/denseanalysis/tree/master
+[latest]: https://github.com/denseanalysis/denseanalysis/releases/latest
+[github]: https://github.com/denseanalysis/denseanalysis
+[denseanalysis_manual]: http://www.denseanalysis.com/docs/DENSEanalysis_manual.pdf
+[densems_manual]: http://www.denseanalysis.com/docs/DENSEms_manual.pdf
+[rv_manual]: http://www.denseanalysis.com/docs/RV_manual.pdf
+[pr]: https://github.com/denseanalysis/denseanalysis/pulls
+[contributing]: https://github.com/denseanalysis/denseanalysis/blob/master/CONTRIBUTING.md
+[authors]: https://github.com/denseanalysis/denseanalysis/blob/master/AUTHORS
+[gilliam]: http://www.adgilliam.com
+[suever]: https://github.com/suever

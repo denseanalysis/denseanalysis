@@ -17,7 +17,7 @@ classdef PluginManager < handle
     % License, v. 2.0. If a copy of the MPL was not distributed with this
     % file, You can obtain one at http://mozilla.org/MPL/2.0/.
     %
-    % Copyright (c) 2016 DENSEanalysis Contributors
+    % Copyright (c) 2016 Jonathan Suever
 
     properties (Dependent)
         Plugins     % List of handles to all plugin instances
@@ -38,12 +38,14 @@ classdef PluginManager < handle
         baseclass_          % Shadowed (char) version of baseclass
         listeners           % Listeners for destruction of plugins
         statuslisteners     % Listeners for status events from plugins
+        updatelisteners     % Listeners for update events from plugins
     end
 
     events
         Status              % Event to be fired when a status is received
-        PluginRemoved       % Event when a plugin is removed or invalidated
         PluginAdded         % Event fired when a plugin is added/imported
+        PluginRemoved       % Event when a plugin is removed or invalidated
+        PluginUpdated       % Event when a plugin is updated
     end
 
     methods
@@ -81,21 +83,63 @@ classdef PluginManager < handle
                 self.Data = data;
             end
 
-            self.initializePlugins();
+            self.refresh();
         end
 
-        function initializePlugins(self)
-            % initializePlugins - Locates all plugins
+        function refresh(self)
+            % refresh - Looks for any new plugins and manages them
             %
             % USAGE:
-            %   self.initializePlugins()
+            %   self.refresh()
 
+            classes = self.findAllPlugins(self.BaseClass);
 
-            self.Classes = self.findAllPlugins(self.BaseClass);
+            % Compare this list of classes with the ones that we already
+            % have loaded
+            existing = arrayfun(@class, self.Plugins, 'UniformOutput', 0);
 
-            % Now actually construct them all
-            plugs = arrayfun(@(x)feval(x.Name), self.Classes, 'uni', 0);
-            self.Plugins = cat(1, plugs{:});
+            classes = classes(~ismember({classes.Name}, existing));
+
+            % Append them to the list of classes
+            self.Classes = cat(1, self.Classes(:), classes);
+
+            newplugins = arrayfun(@(x)feval(x.Name), classes, 'Uniform', 0);
+
+            self.Plugins = cat(1, self.Plugins(:), newplugins{:});
+
+            % Now fire an event that some plugins were added
+            if numel(newplugins)
+                notify(self, 'PluginAdded');
+            end
+        end
+
+        function plugin = getPlugin(self, cls)
+            % getPlugin - Retrieve a plugin based upon it's class
+            %
+            % USAGE:
+            %   plugin = self.getPlugin(cls)
+            %
+            % INPUTS:
+            %   cls:    String or meta.class, Specifies the class of plugin
+            %           that we would like to retrieve.
+            %
+            % OUTPUTS:
+            %   plugin: Object, Instance of the requested plugin. If there
+            %           were multiple instances of the same class, then all
+            %           instances will be returned.
+
+            if isa(cls, 'meta.class')
+                cls = cls.Name;
+            end
+
+            [tf, ind] = ismember(cls, {self.Classes.Name});
+
+            if tf
+                plugin = self.Plugins(ind);
+            else
+                error(sprintf('%s:PluginNotFound', mfilename), ...
+                    'Unable to find a plugin of class %s', cls);
+            end
         end
 
         function clear(self)
@@ -104,12 +148,20 @@ classdef PluginManager < handle
             % USAGE:
             %   self.clear()
 
+            nPlugins = numel(self.Plugins);
+
             delete(self.listeners);
             delete(self.Plugins);
             self.Plugins(1:end) = [];
             self.Classes(1:end) = [];
             self.listeners = [];
             self.statuslisteners = [];
+            self.updatelisteners = [];
+
+            % If there were plugins, go ahead and fire a removed event
+            if nPlugins
+                notify(self, 'PluginRemoved');
+            end
         end
 
         function h = uimenu(self, varargin)
@@ -137,6 +189,7 @@ classdef PluginManager < handle
         function delete(self)
             delete(self.listeners);
             delete(self.statuslisteners);
+            delete(self.updatelisteners);
             delete@handle(self);
         end
     end
@@ -146,6 +199,7 @@ classdef PluginManager < handle
         function set.Plugins(self, val)
             delete(self.listeners)
             delete(self.statuslisteners)
+            delete(self.updatelisteners)
 
             self.plugins_ = val;
 
@@ -160,6 +214,12 @@ classdef PluginManager < handle
             func = @(x)addlistener(x, 'Status', cback);
             listens = arrayfun(func, val, 'uni', 0);
             self.statuslisteners = cat(1, listens{:});
+
+            % Add listeners to the update event
+            cback = @(s,e)self.pluginUpdated(s);
+            func = @(x)addlistener(x, 'Updated', cback);
+            listens = arrayfun(func, val, 'uni', 0);
+            self.updatelisteners = cat(1, listens{:});
         end
 
         function res = get.Plugins(self)
@@ -236,7 +296,7 @@ classdef PluginManager < handle
             %           update (0), or if the user requested to not be
             %           notified again for this update (-1)
 
-            result = plugin.update(varargin);
+            result = plugin.update(varargin{:});
         end
 
         function [result, info] = import(url, callback)
@@ -287,6 +347,7 @@ classdef PluginManager < handle
             end
 
             listener = addlistener(updater, 'Status', callback);
+            cleanupobj = onCleanup(@()delete(listener));
 
             % Get the latest release
             newest = updater.latestRelease();
@@ -311,16 +372,28 @@ classdef PluginManager < handle
 
             % Install the software in the needed location
             result = updater.install(folder, installDir);
-
-            delete(listener);
         end
     end
 
     methods (Access = 'protected')
+
+        function pluginUpdated(self, plugin)
+            % pluginUpdated - Callback when a plugin is updated
+
+            % Since there was an update we need to first remove and then
+            % re-add the plugin
+            cls = class(plugin);
+            delete(plugin);
+
+            self.Classes(end+1) = meta.class.fromName(cls);
+            self.Plugins(end+1) = feval(cls);
+
+            self.notify('PluginUpdated');
+        end
+
         function pluginDestroyed(self, plugin)
             % pluginDestroyed - callback for when a plugin is deleted
 
-            % Find it in the menu and remove if necessary
             toremove = arrayfun(@(x)x == plugin, self.Plugins);
             self.Classes(toremove) = [];
 

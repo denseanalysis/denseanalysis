@@ -67,6 +67,11 @@ function DENSEanalysis_OpeningFcn(~, ~, handles, varargin)
 
     % start pointer manager
     iptPointerManager(handles.hfig,'enable')
+
+    if isfield(handles, 'splash') && ~isempty(handles.splash) && ...
+            isvalid(handles.splash)
+        delete(handles.splash)
+    end
 end
 
 
@@ -256,8 +261,19 @@ function handles = initFcn(hfig)
 % support objects (tabs, playbars, images, etc.) and the setting of
 % permanent display parameters (colors, axes properties, listeners).
 
+    thisdir = fileparts(mfilename('fullpath'));
+
+    splash = SplashScreen( ...
+        'Icon', fullfile(thisdir, 'images', 'splash.png'), ...
+        'Size', [500 325], ...
+        'BackgroundColor', [0 0 0], ...
+        'ForegroundColor', [1 1 1], ...
+        'Status', 'Loading...');
+
+    status = @(msg)set(splash, 'Status', msg);
+
     % report
-    disp('Initializing software...');
+    status('Initializing software...');
 
     % set some appdata
     setappdata(hfig,'GUIInitializationComplete',false);
@@ -286,6 +302,8 @@ function handles = initFcn(hfig)
     % file.  Note if this doesn't work, we ensure that the variables
     % contain some default information.
 
+    status('Loading configurations...')
+
     % Initialize configuration object
     folder = fullfile(userdir(), '.denseanalysis');
     exists = exist(folder, 'file');
@@ -301,6 +319,8 @@ function handles = initFcn(hfig)
 
     % CREATE DENSE DATA OBJECT---------------------------------------------
     hdata = DENSEdata;
+
+    status('Initializing GUI...');
 
     dicom_hpanel = uipanel(...
         'parent',handles.hfig,...
@@ -407,9 +427,7 @@ function handles = initFcn(hfig)
     handles.hpan                = hpan;
     handles.hrot                = hrot;
     handles.hcontrast           = hcontrast;
-
-
-
+    handles.splash              = splash;
 
     % some of the toolbar items have strange tags, so lets gather 'em up.
     handles.htools = allchild(handles.htoolbar);
@@ -445,8 +463,11 @@ function handles = initFcn(hfig)
 
     % If auto updates are disabled
     if getfield(config.updater, 'auto', true);
+        status('Checking for updates...')
         checkForUpdate(handles);
     end
+
+    status('Reticulating splines...'); pause(0.2);
 
     % Add a menu item that allows us to check for updates manually and also
     % a toggle for turning automatic update off / on
@@ -819,6 +840,18 @@ end
 
 %% MENU: RUN ANALYSIS
 function menu_runanalysis_Callback(hObject, eventdata, handles)
+
+    % First check to make sure that we've already accepted the RUO
+    % statement
+    if ~getfield(handles.config, 'AcceptedRUO', false)
+        accept = ruodialog();
+
+        % Don't allow analysis to run until this is accepted
+        if ~accept; return; end
+
+        handles.config.AcceptedRUO = accept;
+    end
+
     didx = handles.hdense.DENSEIndex;
     ridx = handles.hdense.ROIIndex;
     frame = handles.hdense.Frame;
