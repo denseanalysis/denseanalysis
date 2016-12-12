@@ -25,6 +25,25 @@ classdef GitlabUpdater < Updater
             querystring = sprintf('&%s=%s', varargin{:});
             url = getURL@Updater(self, strcat(path, '?', querystring(2:end)));
         end
+
+        function [data, status] = request(self, varargin)
+            [data, status] = urlread2(self.getURL(varargin{:}));
+
+            if status.status.value == 401
+                self.fetchToken();
+                [data, status] = self.request(varargin{:});
+                return;
+            elseif ~status.isGood
+               error(sprintf('%s:APIError', mfilename), ...
+                    'Message from server: "%s"', status.status.msg);
+           end
+
+           if strcmp(data, '[]')
+               data = [];
+           else
+               data = loadjson(data);
+           end
+       end
     end
 
     methods
@@ -146,7 +165,7 @@ classdef GitlabUpdater < Updater
 
             msg2 = sprintf('<html><a href="">%s</a></html>', url);
 
-            msg3 = ['<html>After creation, opy and paste the ', ...
+            msg3 = ['<html>After creation, copy and paste the ', ...
                     '<b>Personal Access Token</b> value ', ...
                     'into the text box below to access the API</html>'];
 
