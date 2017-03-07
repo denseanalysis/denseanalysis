@@ -151,7 +151,7 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
     maxfiles = 4000;
 
     % DICOM file filters
-    filefilters = {'*.ima','*.dcm','*.'};
+    filefilters = {'*.ima','*.dcm','*'};
 
     % use the "quick" ISDICOM check prior to DICOMINFO
     % This isn't necessary & may slow down the function, but we didn't
@@ -545,7 +545,7 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
 
             %-----DENSE DATA-----
             if strwcmpi(str,'dense*')
-                [id,data] = parseImageCommentsDENSE(str);
+                [id,data] = parseImageCommentsDENSE(str, filedata(k));
                 filedata(k).DENSEid = id;
                 if ~isempty(id) && ~strcmpi(id,'unknown')
                     filedata(k).DENSEindex = data.Index;
