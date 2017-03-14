@@ -114,7 +114,7 @@ function [out, uipath, uifile] = DNSFileLoader(startpath)
             else
                 str = seq(k).ImageComments;
             end
-            [~,data] = parseImageCommentsDENSE(str);
+            [~,data] = parseImageCommentsDENSE(str, seq(k));
             seq(k).DENSEdata.Partition = data.Partition;
         end
     end
