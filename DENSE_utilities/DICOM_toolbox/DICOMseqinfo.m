@@ -156,7 +156,7 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
     % use the "quick" ISDICOM check prior to DICOMINFO
     % This isn't necessary & may slow down the function, but we didn't
     % remove it from the code entirely for some reason.
-    FLAG_isdicom = false;
+    FLAG_isdicom = true;
 
 
 
@@ -339,7 +339,7 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
         end
 
         % If this is Philips, attempt to grab the TagSpacing
-        if strwcmpi(getfieldr(dcmdata, 'Manufacturer', ''), '*philips*')
+        if isstruct(dcmdata) && strwcmpi(getfieldr(dcmdata, 'Manufacturer', ''), '*philips*')
 
             % Make sure that this is a protocol that we expect
             if regexp(dcmdata.ProtocolName, '\<3DDE\>')
