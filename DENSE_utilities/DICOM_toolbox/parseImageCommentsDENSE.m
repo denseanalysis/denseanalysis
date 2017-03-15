@@ -1,9 +1,10 @@
-function [id,data] = parseImageCommentsDENSE(str)
+function varargout = parseImageCommentsDENSE(str, dcm)
 
 %PARSEIMAGECOMMENTSDENSE parse ImageComments field of DENSE file
 %
 %INPUTS
 %   str....ImageComments string
+%   dcm....DICOM Header
 %
 %OUTPUTS
 %   id.....parsed DENSE identifier string. Valid outputs are:
@@ -63,7 +64,7 @@ function [id,data] = parseImageCommentsDENSE(str)
     % the 'id' output is empty if not a DENSE IC string,
 
     % check for single input
-    narginchk(1, 1);
+    narginchk(1, 2);
 
     % check for string
     if isempty(str) || ~ischar(str)
@@ -75,6 +76,121 @@ function [id,data] = parseImageCommentsDENSE(str)
     % ignore case
     str = lower(str);
 
+    if ~exist('dcm', 'var')
+        dcm = struct();
+    end
+
+    if ~isfield(dcm, 'SequenceName')
+        seq = '';
+    else
+        seq = dcm.SequenceName;
+    end
+
+    % Check the sequence
+    if strwcmpi(seq, 'dense2d1_*')
+        [varargout{1:nargout}] = parseImageCommentsEPIDENSE(str, dcm);
+    else
+        [varargout{1:nargout}] = parseImageCommentsSpiralDENSE(str, dcm);
+    end
+end
+
+function [id, data] = parseImageCommentsEPIDENSE(str, dcm)
+    % NOTES: For now, there is only a 2D EPI DENSE acquisition so we can
+    %        safely ignore 3D cases
+
+    % DENSE PE-enc pha - ResiFac:1.0000 EncFreq:0.10cyc/mm Phs:11/13 SlcInfoBfNormOrien: PosV:[27.3184,-8.37659,2.67394] RowV:[-0.970907,0.0785646,0.226201] ColV:[0.18521,0.845144,0.501427] NormV:[0.151778,-0.528734,0.835107] Swap:1
+
+    if     strwcmpi(str, 'dense*pe-enc*mag*')
+        id = 'mag.y';
+    elseif strwcmpi(str, 'dense*ro-enc*mag*')
+        id = 'mag.x';
+    elseif strwcmpi(str, 'dense*pe-enc*pha*')
+        id = 'pha.y';
+    elseif strwcmpi(str, 'dense*ro-enc*pha*')
+        id = 'pha.x';
+    else
+        id = 'unknown';
+        data = [];
+        return;
+    end
+
+    data = struct(...
+        'Type',         id, ... % identifier
+        'Index',        [], ... % image index
+        'Number',       [], ... % number of images in sequence
+        'Partition',    [1 1], ... % 3D partition index
+        'Scale',        [], ... % scale parameter (phase-only)
+        'EncFreq',      [], ... % encoding frequency (phase-only)
+        'SwapFlag',     [], ... % swap flag
+        'NegFlag',      []);
+
+    % Now actually parse the comment contents
+    cnt = zeros(1, 6);
+    [scale,     cnt(1)] = findvals(str, 'resifac:', '%f', 1);
+    [encfreq,   cnt(2)] = findvals(str, 'encfreq:', '%fcyc/mm', 1);
+    [phs,       cnt(3)] = findvals(str, 'phs:', '%d%*c%d', 2);
+    [rcswap,    cnt(4)] = findvals(str, 'swap:', '%d', 1);
+    [rowvec,    cnt(5)] = findvals(str, 'rowv:', '[%f,%f,%f]', 3);
+    [colvec,    cnt(6)] = findvals(str, 'colv:', '[%f,%f,%f]', 3);
+
+    if strwcmpi(id, 'pha*')
+        tf = all(cnt(2:6) == [1 2 1 3 3]);
+    else
+        tf = all(cnt(3:6) == [2 1 3 3]);
+    end
+
+    if ~tf
+        id = 'unknown';
+        data = [];
+        return;
+    end
+
+    if nargout > 1
+        idx = double(phs(1));
+        nbr = double(phs(2));
+
+        if isempty(scale) && strwcmpi(id, 'pha*')
+            scale = 1.0;
+        else
+            scale = double(scale);
+        end
+
+        encfreq = double(encfreq);
+        rcswap = logical(rcswap);
+
+        IOP = round(dcm.ImageOrientationPatient * 1000);
+        row = round(rowvec(:) * 1000);
+        col = round(colvec(:) * 1000);
+
+        % Check that the row vector is equal to the IOP
+        if isequal(abs(IOP(1:3)), abs(row)) && isequal(abs(IOP(4:6)), abs(col))
+            % No flip required
+            rcswap = false;
+        elseif isequal(abs(IOP(4:6)), abs(row)) && isequal(abs(IOP(1:3)), abs(col))
+            rcswap = true;
+            [rowvec, colvec] = deal(colvec, rowvec);
+        else
+            error('Orientation vectors do not match the data')
+        end
+
+        % Figure out if we need to negate any of the displacements
+        neg = false(1, 3);
+        neg(1) = ~isequal(sign(rowvec(:)), sign(dcm.ImageOrientationPatient(1:3)));
+        neg(2) = ~isequal(sign(colvec(:)), sign(dcm.ImageOrientationPatient(4:6)));
+
+        data = struct(...
+            'Type',         id, ...
+            'Index',        idx, ...
+            'Number',       nbr, ...
+            'Partition',    [1 1], ...
+            'Scale',        scale, ...
+            'EncFreq',      encfreq, ...
+            'SwapFlag',     rcswap, ...
+            'NegFlag',      neg);
+    end
+end
+
+function [id, data] = parseImageCommentsSpiralDENSE(str, varargin)
 
     % find valid identifier
     if strwcmpi(str,'dense*')
@@ -135,6 +251,7 @@ function [id,data] = parseImageCommentsDENSE(str)
     else
         tf = all(cnt([6 7 8]) == [2 1 3]);
     end
+
     if ~tf
         id = 'unknown';
         data = [];
@@ -187,10 +304,7 @@ function [id,data] = parseImageCommentsDENSE(str)
             'EncFreq',   encfreq,...
             'SwapFlag',  rcswap, ...
             'NegFlag',   rcsflip);
-
     end
-
-
 end
 
 
