@@ -27,6 +27,12 @@ classdef GitlabUpdater < Updater
         end
 
         function [data, status] = request(self, varargin)
+
+            % If the token is empty, then we need to fetch a new one
+            if isempty(self.Token)
+                self.fetchToken()
+            end
+
             [data, status] = urlread2(self.getURL(varargin{:}));
 
             if status.status.value == 401
