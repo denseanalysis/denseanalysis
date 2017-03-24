@@ -272,6 +272,9 @@ function handles = initFcn(hfig)
 
     status = @(msg)set(splash, 'Status', msg);
 
+    clnup = onCleanup(@()delete(splash));
+    setappdata(hfig,'SplashScreen',clnup)
+
     % report
     status('Initializing software...');
 
@@ -441,6 +444,9 @@ function handles = initFcn(hfig)
         handles.menu_save,handles.menu_saveas],'Enable');
     setappdata(handles.tool_save,'linkMenuToolEnable',hlink);
 
+    % Go ahead and store GUIDATA so that plugins can access it as needed
+    guidata(handles.hfig, handles);
+
     % Load plugins
     base = 'plugins.DENSEanalysisPlugin';
     handles.hmanager = plugins.PluginManager(base, hdata);
@@ -562,7 +568,9 @@ function resizeFcn(hfig)
     % Redraw only the visible tab because the others will automatically
     % redraw when the tab is changed
     objs = {h.hdicom, h.hdense, h.hanalysis};
-    objs{h.hsidebar.ActiveTab}.redraw();
+    if h.hsidebar.ActiveTab <= numel(objs)
+        objs{h.hsidebar.ActiveTab}.redraw();
+    end
 end
 
 
