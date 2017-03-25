@@ -272,7 +272,7 @@ function handles = initFcn(hfig)
 
     status = @(msg)set(splash, 'Status', msg);
 
-    clnup = onCleanup(@()delete(splash));
+    clnup = onCleanup(@()delete(splash(isvalid(splash))));
     setappdata(hfig,'SplashScreen',clnup)
 
     % report
