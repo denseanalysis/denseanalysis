@@ -161,6 +161,10 @@ classdef popuptabs < handle
             addTabFcn(obj,varargin{:});
         end
 
+        function removeTab(obj, varargin)
+            removeTabFcn(obj, varargin{:});
+        end
+
         function redraw(obj)
             redrawFcn(obj);
         end
@@ -418,6 +422,48 @@ function setIsOpenFcn(obj,val)
 end
 
 
+%% REMOVE TAB
+
+function removeTabFcn(obj, tab)
+    % The tab can be either: The index, the graphics handle, or the name
+    if ischar(tab)
+        [tf, ind] = ismember(tab, obj.TabNames);
+    elseif ishghandle(tab, 'uipanel')
+        [tf, ind] = ismember(tab, obj.hrefpanels);
+    elseif isnumeric(tab)
+        try
+            obj.hrefpanels(tab)
+            tf = true;
+            ind = tab;
+        catch
+            tf = false;
+        end
+    end
+
+    % If we couldn't locate the tab, then throw an error
+    if ~tf
+        error(sprintf('%s:InvalidTab', mfilename), ...
+            'Unable to find the specified tab');
+    end
+
+    obj.redrawenable = false;
+    obj.NumberOfTabs = obj.NumberOfTabs - numel(ind);
+
+    % Now actually remove the tab
+    delete(obj.htabs(ind));
+    obj.htabs(ind) = [];
+    obj.hchecks(ind) = [];
+    delete(obj.hrefpanels(ind));
+    obj.hrefpanels(ind) = [];
+
+    obj.TabNames(ind) = [];
+    obj.Visible(ind) = [];
+    obj.PanelHeights(ind) = [];
+    obj.Enable(ind) = [];
+
+    obj.redrawenable = true;
+    redrawFcn(obj);
+end
 
 %% ADD TAB
 % this function allows the user to add new tabs to the POPUPTABS object,
