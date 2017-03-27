@@ -592,7 +592,7 @@ function handles = resetFcn(hfig)
 
     % reset tabs to initial state
     handles.hsidebar.ActiveTab      = 1;
-    handles.hsidebar.Enable(2:end)  = {'off'};
+    handles.hsidebar.Enable(2:3)    = {'off'};  % De-activate the second and third tabs
     handles.hpopup.Visible(:)       = {'on'};
     handles.hpopup.Visible([2 end]) = {'off'};
     handles.hpopup.Enable(:)        = {'off'};
