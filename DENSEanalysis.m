@@ -67,11 +67,6 @@ function DENSEanalysis_OpeningFcn(~, ~, handles, varargin)
 
     % start pointer manager
     iptPointerManager(handles.hfig,'enable')
-
-    if isfield(handles, 'splash') && ~isempty(handles.splash) && ...
-            isvalid(handles.splash)
-        delete(handles.splash)
-    end
 end
 
 
@@ -430,7 +425,6 @@ function handles = initFcn(hfig)
     handles.hpan                = hpan;
     handles.hrot                = hrot;
     handles.hcontrast           = hcontrast;
-    handles.splash              = splash;
 
     % some of the toolbar items have strange tags, so lets gather 'em up.
     handles.htools = allchild(handles.htoolbar);
