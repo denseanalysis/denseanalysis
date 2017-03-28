@@ -84,7 +84,7 @@ end
 
 
 %% DELETION FUNCTION
-function hfig_DeleteFcn(hobj, evnt, handles)
+function hfig_DeleteFcn(~, ~, handles)
     % ensure all objects/listeners are deleted
     tags = {'hlisten_sidebar','hsidebar','hpopup',...
         'hdicom','hdense','hanalysis','hdata'};
@@ -105,31 +105,31 @@ end
 
 %% LOAD/SAVE
 
-function menu_new_Callback(hobj, evnt, handles)
+function menu_new_Callback(~, ~, handles)
     loadFcn(handles,'dicom');
 end
 
-function menu_open_Callback(hobj, evnt, handles)
+function menu_open_Callback(~, ~, handles)
     loadFcn(handles,'dns');
 end
 
-function menu_save_Callback(hobj, evnt, handles)
+function menu_save_Callback(~, ~, handles)
     saveFcn(handles,false);
 end
 
-function menu_saveas_Callback(hObject, eventdata, handles)
+function menu_saveas_Callback(~, ~, handles)
     saveFcn(handles,true);
 end
 
-function tool_new_ClickedCallback(hobj, evnt, handles)
+function tool_new_ClickedCallback(~, ~, handles)
     loadFcn(handles,'dicom');
 end
 
-function tool_open_ClickedCallback(hobj, evnt, handles)
+function tool_open_ClickedCallback(~, ~, handles)
     loadFcn(handles,'dns');
 end
 
-function tool_save_ClickedCallback(hobj, evnt, handles)
+function tool_save_ClickedCallback(~, ~, handles)
     saveFcn(handles,false);
 end
 
@@ -725,7 +725,7 @@ end
 
 
 %% ROI TOOL CALLBACK
-function tool_roi_ClickedCallback(hObject, eventdata, handles)
+function tool_roi_ClickedCallback(~, ~, handles) %#ok<*DEFNU>
 % hObject    handle to tool_roi (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -741,7 +741,7 @@ end
 
 
 %% MENU: EXPORT UIMENU SELECT
-function menu_export_Callback(hObject, eventdata, handles)
+function menu_export_Callback(~, ~, handles)
 
     switch handles.hsidebar.ActiveTab
         case 1, h = handles.hdicom;
@@ -784,7 +784,7 @@ end
 
 
 %% MENU: EXPORT IMAGE/VIDEO
-function menu_exportimage_Callback(hObject, eventdata, handles)
+function menu_exportimage_Callback(~, ~, handles)
     switch handles.hsidebar.ActiveTab
         case 1, h = handles.hdicom;
         case 2, h = handles.hdense;
@@ -799,7 +799,7 @@ function menu_exportimage_Callback(hObject, eventdata, handles)
     set(handles.config, 'export.image.location', fileparts(file));
 end
 
-function menu_exportvideo_Callback(hObject, eventdata, handles)
+function menu_exportvideo_Callback(~, ~, handles)
     switch handles.hsidebar.ActiveTab
         case 1, h = handles.hdicom;
         case 2, h = handles.hdense;
@@ -816,7 +816,7 @@ end
 
 
 %% MENU: EXPORT MAT/EXCEL/ROI
-function menu_exportmat_Callback(hObject, eventdata, handles)
+function menu_exportmat_Callback(~, ~, handles)
 
     exportpath = get(handles.config, 'export.mat.location', '');
 
@@ -826,7 +826,7 @@ function menu_exportmat_Callback(hObject, eventdata, handles)
     set(handles.config, 'export.mat.location', fileparts(file))
 end
 
-function menu_exportexcel_Callback(hObject, eventdata, handles)
+function menu_exportexcel_Callback(~, ~, handles)
 
     exportpath = get(handles.config, 'export.excel.location', '');
 
@@ -836,7 +836,7 @@ function menu_exportexcel_Callback(hObject, eventdata, handles)
     set(handles.config, 'export.excel.location', fileparts(file));
 end
 
-function menu_exportroi_Callback(hObject, eventdata, handles)
+function menu_exportroi_Callback(~, ~, handles)
     exportpath = get(handles.config, 'export.roi.location', '');
     path = handles.hdense.exportROI(exportpath);
     if isempty(path), return; end
@@ -845,7 +845,7 @@ end
 
 
 %% MENU: ANALYSIS UIMENU SELECT
-function menu_analysis_Callback(hObject, eventdata, handles)
+function menu_analysis_Callback(~, ~, handles)
     enable = 'off';
     if handles.hsidebar.ActiveTab == 2
         didx  = handles.hdense.DENSEIndex;
@@ -861,7 +861,7 @@ end
 
 
 %% MENU: RUN ANALYSIS
-function menu_runanalysis_Callback(hObject, eventdata, handles)
+function menu_runanalysis_Callback(~, ~, handles)
 
     % First check to make sure that we've already accepted the RUO
     % statement
@@ -884,19 +884,19 @@ end
 
 
 %% MENU: ANALYSIS DISPLAY OPTIONS
-function menu_analysisopt_Callback(hObject, eventdata, handles)
+function menu_analysisopt_Callback(~, ~, handles)
     handles.hanalysis.strainoptions;
 end
 
 
 %% MENU: ABOUT THE PROGRAM
-function menu_about_Callback(hObject, eventdata, handles)
+function menu_about_Callback(varargin)
 
     screenpos = get(0,'screensize');
     sz = [400 400];
     pos = [(screenpos(3:4)-sz)/2,sz];
 
-    hfig = figure('windowstyle','modal','resize','off',...
+    figure('windowstyle','modal','resize','off',...
         'position',pos,'Name','About DENSEanalysis','NumberTitle','off');
     I = imread('DENSEabout.png');
     imshow(I,[],'init','fit');
@@ -906,132 +906,5 @@ end
 
 
 %% MENU: TEST FUNCTION
-function menu_test_Callback(hobj, evnt, handles)
-%     handles.hdata.roi
-%     handles.hdense.ROIIndex
-%     seq = handles.hdata.seq;
-%     save('seqdata.mat','seq')
-
-
-hdata = handles.hdata
-hdata.roi(end).IsClosed
-
-return
-
-
-%
-% vert = data.fv.vertices';
-% vert
-%     dX =
-%
-%     for k = 1:
-%     dX = fnvalmod(hdata.spl.spldx,vert);
-%     dY = fnvalmod(hdata.spl.spldy,vert);
-%     dZ = fnvalmod(hdata.spl.spldz,vert);
-
-%     dxbulk = mean(dx);
-%     dybulk = mean(dy(mask0));
-%     dzbulk = mean(dz(mask0));
-%     dx = dx - dxbulk;
-%     dy = dy - dybulk;
-%     dz = dz - dzbulk;
-
-
-    return
-
-    handles.dicom_hpanel
-    handles.hdicom.DisplayParent
-
-    set(handles.dicom_hpanel,'BackgroundColor',rand(1,3))
-%     pfig = getpixelposition(handles.hfig);
-%     setpixelposition(handles.hfig,pfig + [10 10 0 0]);
-    return
-
-    handles.hanalysis.straindata
-    handles.hanalysis.straindata.fvpix
-    handles.hanalysis.straindata.fv
-
-    fv = handles.hanalysis.straindata.fvpix
-    mn = min(fv.vertices,[],1);
-    mx = max(fv.vertices,[],1);
-    dsprng = [mn-5; mx+5];
-
-    hfig = figure('colormap',jet(256));
-    hax  = axes('parent',hfig,'dataaspectratio',[1 1 1],...
-        'xlim',dsprng(:,1),'ylim',dsprng(:,2),...
-        'zlim',[0 1],'box','on','ydir','reverse',...
-        'clim',[-180 180]);
-
-%     val = fv.orientation;
-%     rng =
-
-    obj = handles.hanalysis;
-
-    Isz = size(handles.hdata.spl.Xwrap(:,:,1));
-    Nfr = size(handles.hdata.spl.Xwrap,3);
-
-    x = 1:Isz(2);
-    y = 1:Isz(1);
-    [X,Y,Z] = meshgrid(x,y,0);
-
-    mask0 = handles.hdata.spl.MaskFcn(...
-        X,Y,handles.hdata.spl.RestingContour);
-    Npts = sum(mask0(:));
-
-    X = X(mask0);
-    Y = Y(mask0);
-
-
-    origin  = obj.straindata.PositionA;
-    posB    = obj.straindata.PositionB;
-    flag_clockwise = obj.straindata.Clockwise;
-
-    theta0 = atan2(posB(2)-origin(2),posB(1)-origin(1));
-    theta  = atan2(Y-origin(2),X-origin(1)) - theta0;
-    if ~flag_clockwise, theta = -theta; end
-
-    theta(theta<0) = theta(theta<0) + 2*pi;
-
-    theta = theta*180/pi;
-    set(hax,'clim',[min(theta),max(theta)]);
-%     theta = obj.straindata.fvpix.orientation;
-%
-%         % transform orientation into 0->2pi angle
-%
-%     theta0*180/pi
-
-%         if ~flag_clockwise, theta = -theta; end
-%         theta = theta - theta0;
-
-    hpatch = patch('vertices',fv.vertices,...
-        'faces',fv.faces,'parent',hax,...
-        'facecolor','flat','edgecolor','none',...
-        'facevertexcdata',theta);
-    colorbar
-%     [handles.hdata.seq.ImagePositionPatient]
-%     [handles.hdata.seq.ImageOrientationPatient]
-%     handles.hdata.seq.sliceid
-
-
-
-
-% %     [val,id] = unique([handles.hdata.seq.sliceid]);
-% %     extents = cat(3,handles.hdata.seq(id).extents3D);
-% %
-% %
-% %     mn = min(extents(:,:),[],1);
-% %     mx = max(extents(:,:),[],1);
-% %     hfig = figure;
-% %     hax  = axes('parent',hfig,'dataaspectratio',[1 1 1],...
-% %         'xlim',[mn(1),mx(1)],'ylim',[mn(2),mx(2)],...
-% %         'zlim',[mn(3),mx(3)],'box','on');
-% %     view(hax,3)
-% %     axis vis3d
-% %     for k = 1:size(extents,3)
-% %         patch('vertices',extents(:,:,k),'faces',1:4,'facecolor','none',...
-% %             'edgecolor','r');
-% %     end
-
-
-%     hax =
+function menu_test_Callback(varargin)
 end
