@@ -77,7 +77,8 @@ end
 
 %% OUTPUT FUNCTION
 % Outputs from this function are returned to the command line.
-function varargout = DENSEanalysis_OutputFcn(hobj, evnt, handles)
+function varargout = DENSEanalysis_OutputFcn(varargin)
+    varargout = {};
 end
 
 
@@ -633,7 +634,6 @@ function handles = resetFcn(hfig)
     % (panels are resized via "hsidebar" object)
     handles.hsidebar.redraw();
     handles.hpopup.redraw();
-
 end
 
 
