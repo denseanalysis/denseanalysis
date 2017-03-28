@@ -96,7 +96,7 @@ function hfig_DeleteFcn(hobj, evnt, handles)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
             fprintf('could not delete handles.%s...\n',tags{ti});
         end
     end
@@ -385,8 +385,6 @@ function handles = initFcn(hfig)
     % initialize SIDETABS listener
     hlisten_sidebar = addlistener(hsidebar,...
         'SwitchTab',@(varargin)switchstate(handles.hfig));
-    hlisten_sidebar.Enabled = false;
-
 
     % ZOOM/PAN/ROTATE BEHAVIOR---------------------------------------------
 
@@ -409,7 +407,6 @@ function handles = initFcn(hfig)
         handles.renderer = repmat({'painters'},[3 1]);
     end
     handles.LastTab = 1;
-
 
     % CLEANUP--------------------------------------------------------------
 
@@ -587,15 +584,21 @@ function handles = resetFcn(hfig)
     handles.hpan.Enable  = 'off';
     handles.hrot.Enable  = 'off';
 
-    % deactivate listeners
-    handles.hlisten_sidebar.Enabled   = false;
-
     % reset tabs to initial state
     handles.hsidebar.ActiveTab      = 1;
-    handles.hsidebar.Enable(2:3)    = {'off'};  % De-activate the second and third tabs
-    handles.hpopup.Visible(:)       = {'on'};
-    handles.hpopup.Visible([2 end]) = {'off'};
-    handles.hpopup.Enable(:)        = {'off'};
+
+    handles.hsidebar.Enable()
+
+    inds = handles.hsidebar.find([handles.dense_hpanel,handles.analysis_hpanel]);
+    handles.hsidebar.Enable(inds)   = {'off'};
+
+    H = [handles.popup_dicom, handles.popup_dense, handles.popup_arial, ...
+         handles.popup_slice, handles.popup_analysis];
+    inds = handles.hpopup.find(H);
+
+    handles.hpopup.Visible(:) = {'off'};
+    handles.hpopup.Visible(inds) = {'on'};
+    handles.hpopup.Enable(:) = {'off'};
 
     % reset renderer
     handles.renderer(:) = {'painters'};
@@ -616,14 +619,12 @@ function handles = resetFcn(hfig)
     end
 
     % enable/open popups
-    handles.hpopup.Enable(:) = {'on'};
-    handles.hpopup.IsOpen(:) = 1;
+    handles.hpopup.Enable(inds) = {'on'};
+    handles.hpopup.IsOpen(inds) = 1;
 
     % enable sidetabs
-    handles.hsidebar.Enable(1:3) = {'on'};
-
-    % activate listeners
-    handles.hlisten_sidebar.Enabled = true;
+    inds = handles.hsidebar.find([handles.dense_hpanel,handles.analysis_hpanel]);
+    handles.hsidebar.Enable(inds) = {'on'};
 
     % activate/deactivate stuff
     switchstate(handles.hfig)
@@ -640,8 +641,18 @@ end
 function switchstate(hfig)
     handles = guidata(hfig);
 
+    % Get the indices of the sidebar tabs
+    sidebarinds = handles.hsidebar.find([
+        handles.dicom_hpanel
+        handles.dense_hpanel
+        handles.analysis_hpanel]);
+
     % current tab
     tabidx = handles.hsidebar.ActiveTab;
+
+    if ~ismember(tabidx, sidebarinds)
+        return
+    end
 
     % store current renderer
     handles.renderer{handles.LastTab} = get(handles.hfig,'renderer');
@@ -654,18 +665,23 @@ function switchstate(hfig)
     handles.hdense.ROIEdit = 'off';
     set(handles.tool_roi,'State','off','enable','on');
 
+    popupinds = handles.hpopup.find([
+        handles.popup_dicom
+        handles.popup_arial
+        handles.popup_dense
+        handles.popup_slice
+        handles.popup_analysis
+    ]);
 
     switch tabidx
 
         case 1
 
             tf = logical([1 0 1 1 0]);
-            handles.hpopup.Visible( tf) = {'on'};
-            handles.hpopup.Visible(~tf) = {'off'};
+            handles.hpopup.Visible(popupinds(tf))  = {'on'};
+            handles.hpopup.Visible(popupinds(~tf)) = {'off'};
 
             handles.hanalysis.Enable = 'off';
-    %         suspend(handles.hdense);
-    %         restore(handles.hdicom);
 
             % transfer slice/arial to DICOM viewer
             handles.hdense.SliceViewer = [];
@@ -676,12 +692,10 @@ function switchstate(hfig)
 
         case 2
             tf = logical([0 1 1 1 0]);
-            handles.hpopup.Visible( tf) = {'on'};
-            handles.hpopup.Visible(~tf) = {'off'};
+            handles.hpopup.Visible(popupinds(tf))  = {'on'};
+            handles.hpopup.Visible(popupinds(~tf)) = {'off'};
 
             handles.hanalysis.Enable = 'off';
-    %         suspend(handles.hdicom);
-    %         restore(handles.hdense);
 
             % transfer slice/arial to DENSE viewer
             handles.hdicom.SliceViewer = [];
@@ -694,8 +708,8 @@ function switchstate(hfig)
         case 3
 
             tf = logical([0 0 0 0 1]);
-            handles.hpopup.Visible( tf) = {'on'};
-            handles.hpopup.Visible(~tf) = {'off'};
+            handles.hpopup.Visible(popupinds(tf))  = {'on'};
+            handles.hpopup.Visible(popupinds(~tf)) = {'off'};
             handles.hanalysis.Enable = 'on';
             set(handles.tool_roi,'enable','off');
             redraw(handles.hanalysis);
