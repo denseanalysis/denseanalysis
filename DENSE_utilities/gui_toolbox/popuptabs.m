@@ -169,11 +169,40 @@ classdef popuptabs < handle
             redrawFcn(obj);
         end
 
+        function inds = find(obj, criteria)
+            % find - Find a tab via it's tag, title, or uipanel
+            %
+            % USAGE:
+            %   inds = find(obj, tag)
+            %   inds = find(obj, title)
+            %   inds = find(obj, hpanel)
+
+            if ischar(criteria)
+                % Then this is a tag name or a popup title
+                objs = findobj(obj.hrefpanels, 'Tag', criteria);
+
+                if isempty(objs)
+                    tf = cellfun(@(x)isequal(criteria, x), obj.TabNames);
+                    inds = find(tf);
+                else
+                    inds = find(obj, objs);
+                end
+            elseif iscellstr(criteria)
+                inds = find(cellfun(@(x)isequal(criteria, x), obj.TabNames));
+            elseif ishghandle(criteria, 'uicontainer')
+                inds = find(ismember(double(obj.hrefpanels), double(criteria)));
+            else
+                error(sprintf('%s:InvalidCriteria', mfilename), ...
+                    'You must specify either a tag, title, or uipanel object');
+            end
+        end
+
 
         % GET/SET dependent properties
         function val = get.Parent(obj)
             val = obj.hparent;
         end
+
         function set.Parent(obj,val)
             setParentFcn(obj,val);
             redrawFcn(obj);
@@ -183,6 +212,7 @@ classdef popuptabs < handle
             val = get(obj.hchecks,'Value');
             if iscell(val), val = [val{:}]'; end
         end
+
         function set.IsOpen(obj,val)
             setIsOpenFcn(obj,val);
             redrawFcn(obj);
@@ -200,19 +230,23 @@ classdef popuptabs < handle
                 set(0,'DefaultUIControlFontAngle'));
             redrawFcn(obj);
         end
+
         function set.FontName(obj,val)
             obj.FontName = checkFontNameFcn(val);
             redrawFcn(obj);
         end
+
         function set.FontSize(obj,val)
             obj.FontSize = checkPositiveScalarFcn(val,'FontSize');
             redrawFcn(obj);
         end
+
         function set.FontWeight(obj,val)
             obj.FontWeight = checkStringsFcn(val,'FontWeight',...
                 set(0,'DefaultUIControlFontWeight'));
             redrawFcn(obj);
         end
+
         function set.FontColor(obj,val)
             obj.FontColor = checkColorFcn(val);
             redrawFcn(obj);
@@ -222,10 +256,12 @@ classdef popuptabs < handle
             obj.TabWidth = checkPositiveScalarFcn(val,'TabWidth');
             redrawFcn(obj);
         end
+
         function set.TabHeight(obj,val)
             obj.TabHeight = checkPositiveScalarFcn(val,'TabHeight');
             redrawFcn(obj);
         end
+
         function set.LeftOffset(obj,val)
             obj.LeftOffset = checkLeftOffsetFcn(val);
             redrawFcn(obj);
@@ -245,19 +281,14 @@ classdef popuptabs < handle
             obj.Enable = checkEnableFcn(obj,val);
             redrawFcn(obj);
         end
-
     end
-
 
     % hidden overloaded properties
     methods (Hidden=true)
-
         function pos = getpixelposition(obj)
             pos = getpixelposition(obj.hmainpanel);
         end
-
     end
-
 end
 
 
@@ -447,13 +478,21 @@ function removeTabFcn(obj, tab)
     end
 
     obj.redrawenable = false;
+
     obj.NumberOfTabs = obj.NumberOfTabs - numel(ind);
 
     % Now actually remove the tab
     delete(obj.htabs(ind));
     obj.htabs(ind) = [];
     obj.hchecks(ind) = [];
-    delete(obj.hrefpanels(ind));
+
+    % This circles everything back around
+    if ~strcmpi(get(obj.hrefpanels(ind), 'BeingDeleted'), 'on')
+        delete(obj.hrefpanels(ind));
+    end
+
+
+
     obj.hrefpanels(ind) = [];
 
     obj.TabNames(ind) = [];

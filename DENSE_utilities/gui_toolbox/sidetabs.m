@@ -162,7 +162,7 @@
 classdef sidetabs < handle
 
     % general properties
-    properties
+    properties (SetObservable)
 
         BackgroundColor = [.7 .7 .7];
         BorderColor     = [100 121 162]/255;
@@ -239,6 +239,26 @@ classdef sidetabs < handle
         end
         function delete(obj)
             deleteFcn(obj);
+        end
+
+        function inds = find(obj, criteria)
+            if ischar(criteria)
+                objs = findobj(obj.hrefpanels, 'Tag', criteria);
+
+                if isempty(objs)
+                    tf = cellfun(@(x)isequal(criteria, x), obj.TabNames);
+                    inds = find(tf);
+                else
+                    inds = find(obj, objs);
+                end
+            elseif iscellstr(criteria)
+                inds = find(cellfun(@(x)isequal(criteria, x), obj.TabNames));
+            elseif ishghandle(criteria, 'uicontainer')
+                inds = find(ismember(double(obj.hrefpanels), double(criteria)));
+            else
+                error(sprintf('%s:InvalidCriteria', mfilename), ...
+                    'You must specify either a tag, title, or uipanel object');
+            end
         end
 
 
