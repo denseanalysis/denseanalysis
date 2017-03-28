@@ -587,7 +587,7 @@ function handles = resetFcn(hfig)
     % reset tabs to initial state
     handles.hsidebar.ActiveTab      = 1;
 
-    handles.hsidebar.Enable()
+    handles.hsidebar.Enable();
 
     inds = handles.hsidebar.find([handles.dense_hpanel,handles.analysis_hpanel]);
     handles.hsidebar.Enable(inds)   = {'off'};
