@@ -187,7 +187,10 @@ classdef sidetabs < handle
     properties (SetAccess='private')
         NumberOfTabs = 0;
     end
+
     properties (Dependent=true,SetAccess='private')
+        CurrentPanel
+        Panels
         Parent
         Width
     end
@@ -285,10 +288,18 @@ classdef sidetabs < handle
             pos = getpixelposition(obj.hsidepanel);
             val = pos(3);
         end
+
         function val = get.Parent(obj)
             val = obj.hparent;
         end
 
+        function val = get.Panels(obj)
+            val = obj.hrefpanels;
+        end
+
+        function val = get.CurrentPanel(obj)
+            val = obj.hrefpanels(obj.ActiveTab);
+        end
 
         % SET functions
         function obj = set.Parent(obj,h)
