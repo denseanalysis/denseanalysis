@@ -331,12 +331,6 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
 
             % If this plugin is active, then show them
             h.hpopup.Visible(index) = {'off'};
-
-
-            % Setup a listener to delete this as needed
-            %L = addlistener(hpanel, 'ObjectBeingDestroyed', ...
-            %    @(s,e)h.hpopup.removeTab(hpanel));
-            %setappdata(hpanel, 'popuptabslistener', L)
         end
 
         function [index, hpanel] = addTab(self, name, hpanel)
@@ -362,9 +356,14 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             index = h.hsidebar.NumberOfTabs;
 
             % Make sure that when the panel is deleted we delete the tab
-            L = addlistener(hpanel, 'ObjectBeingDestroyed', ...
-                @(s,e)h.hsidebar.removeTab(index));
+            L = addlistener(hpanel, 'ObjectBeingDestroyed', @(s,e)cleanup(s));
             setappdata(hpanel, 'SidebarListener', L);
+
+            function cleanup(hpanel)
+                if isvalid(h.hsidebar)
+                    h.hsidebar.removeTab(h.hsidebar.find(hpanel));
+                end
+            end
 
             % Add a listener to changing of tab events
             self.hlistener = addlistener(h.hsidebar, ...
