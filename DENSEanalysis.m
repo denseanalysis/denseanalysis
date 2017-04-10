@@ -478,6 +478,9 @@ function handles = initFcn(hfig)
         checkForUpdate(handles);
     end
 
+    movegui(handles.hfig, 'center')
+    drawnow
+
     status('Reticulating splines...'); pause(0.2);
 
     % Add a menu item that allows us to check for updates manually and also
