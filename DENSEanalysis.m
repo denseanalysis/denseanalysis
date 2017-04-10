@@ -186,18 +186,16 @@ function windowkeypress(src, evnt)
 
     handles = guidata(src);
 
-    tab         = handles.LastTab;
-    viewertypes = {'hdicom', 'hdense', 'hanalysis'};
-    viewer      = handles.(viewertypes{tab});
-    playbar     = viewer.hplaybar;
+    viewer  = getCurrentDataViewer(handles);
+    playbar = viewer.hplaybar;
 
     switch key
         case {'n', 'rightarrow', 'd'}
-            if ~playbar.IsPlaying
+            if ~isempty(playbar.Value) && ~playbar.IsPlaying
                 playbar.Value = mod(playbar.Value, playbar.Max) + 1;
             end
         case {'b', 'leftarrow', 'a'}
-            if ~playbar.IsPlaying
+            if ~isempty(playbar.Value) && ~playbar.IsPlaying
                 playbar.Value = mod((playbar.Value - 2), playbar.Max) + 1;
             end
         case {'control-z', 'command-z'}
@@ -234,6 +232,11 @@ function windowkeypress(src, evnt)
             cb = get(handles.tool_roi, 'ClickedCallback');
             feval(cb, handles.tool_roi, []);
         case 'space'
+
+            if isempty(playbar.Value)
+                return
+            end
+
             if playbar.IsPlaying
                 playbar.stop()
             else
@@ -362,8 +365,11 @@ function handles = initFcn(hfig)
     % initialize the SIDETABS object
     hsidebar = sidetabs(handles.hfig);
     hsidebar.addTab({'DICOM','data'},dicom_hpanel);
+    set(dicom_hpanel, 'UserData', hdicom);
     hsidebar.addTab({'DENSE','data'},dense_hpanel);
+    set(dense_hpanel, 'UserData', hdense);
     hsidebar.addTab({'DENSE','analysis'},analysis_hpanel);
+    set(analysis_hpanel, 'UserData', hanalysis);
     hsidebar.TabWidth  = 40;
     hsidebar.TabHeight = 70;
 
@@ -407,6 +413,7 @@ function handles = initFcn(hfig)
     else
         handles.renderer = repmat({'painters'},[3 1]);
     end
+
     handles.LastTab = 1;
 
     % CLEANUP--------------------------------------------------------------
@@ -649,13 +656,13 @@ function switchstate(hfig)
 
     % current tab
     tabidx = handles.hsidebar.ActiveTab;
+    handles.renderer{handles.LastTab} = get(handles.hfig, 'renderer');
 
     if ~ismember(tabidx, sidebarinds)
         return
     end
 
-    % store current renderer
-    handles.renderer{handles.LastTab} = get(handles.hfig,'renderer');
+    set(handles.hfig, 'Colormap', gray)
 
     wild = {'*zoom*','*pan','*rotate*','tool*','*save*','*contrast*'};
     tf = cellfun(@(tag)any(strwcmpi(tag,wild)),get(handles.htools,'tag'));
@@ -723,6 +730,16 @@ function switchstate(hfig)
 
 end
 
+function h = getCurrentDataViewer(handles)
+    % getCurrentDataViewer - Returns a handle to the current DataViewer
+    h = get(handles.hsidebar.CurrentPanel, 'UserData');
+
+    if ~isa(h, 'DataViewer')
+        h = [];
+    end
+end
+
+
 
 %% ROI TOOL CALLBACK
 function tool_roi_ClickedCallback(~, ~, handles) %#ok<*DEFNU>
@@ -732,10 +749,9 @@ function tool_roi_ClickedCallback(~, ~, handles) %#ok<*DEFNU>
 
     state = get(handles.tool_roi,'State');
 
-    if handles.hsidebar.ActiveTab == 2
-        handles.hdense.ROIEdit = state;
-    else
-        handles.hdicom.ROIEdit = state;
+    viewer = getCurrentDataViewer(handles);
+    if isprop(viewer, 'ROIEdit')
+        viewer.ROIEdit = state;
     end
 end
 
@@ -743,10 +759,10 @@ end
 %% MENU: EXPORT UIMENU SELECT
 function menu_export_Callback(~, ~, handles)
 
-    switch handles.hsidebar.ActiveTab
-        case 1, h = handles.hdicom;
-        case 2, h = handles.hdense;
-        case 3, h = handles.hanalysis;
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return
     end
 
     imgen = h.isAllowExportImage;
@@ -785,10 +801,10 @@ end
 
 %% MENU: EXPORT IMAGE/VIDEO
 function menu_exportimage_Callback(~, ~, handles)
-    switch handles.hsidebar.ActiveTab
-        case 1, h = handles.hdicom;
-        case 2, h = handles.hdense;
-        case 3, h = handles.hanalysis;
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return
     end
 
     exportpath = get(handles.config, 'export.image.location', '');
@@ -800,10 +816,10 @@ function menu_exportimage_Callback(~, ~, handles)
 end
 
 function menu_exportvideo_Callback(~, ~, handles)
-    switch handles.hsidebar.ActiveTab
-        case 1, h = handles.hdicom;
-        case 2, h = handles.hdense;
-        case 3, h = handles.hanalysis;
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return;
     end
 
     exportpath = get(handles.config, 'export.video.location', '');
