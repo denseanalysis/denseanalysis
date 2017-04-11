@@ -810,12 +810,18 @@ function menu_exportimage_Callback(~, ~, handles)
         return
     end
 
+    if ~isfield(handles.config, 'export.image')
+        handles.config.export.image = structobj();
+    end
+
     exportpath = get(handles.config, 'export.image.location', '');
 
     file = h.exportImage(exportpath);
     if isempty(file), return; end
 
-    set(handles.config, 'export.image.location', fileparts(file));
+    export = handles.config.export.image;
+    export.location = fileparts(file);
+    save(handles.config);
 end
 
 function menu_exportvideo_Callback(~, ~, handles)
@@ -825,12 +831,18 @@ function menu_exportvideo_Callback(~, ~, handles)
         return;
     end
 
+    if ~isfield(handles.config, 'export.video')
+        set(handles.config, 'export.video', structobj())
+    end
+
     exportpath = get(handles.config, 'export.video.location', '');
 
     file = h.exportVideo(exportpath);
     if isempty(file), return; end
 
-    set(handles.config, 'export.video.location', fileparts(file));
+    export = handles.config.export.video;
+    export.location = fileparts(file);
+    save(handles.config);
 end
 
 
