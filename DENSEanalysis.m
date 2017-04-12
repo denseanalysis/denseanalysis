@@ -770,20 +770,17 @@ function menu_export_Callback(~, ~, handles)
 
     imgen = h.isAllowExportImage;
     viden = h.isAllowExportVideo;
-    if h == handles.hanalysis
-        maten = h.isAllowExportMat;
-        exlen = h.isAllowExportExcel;
-    else
-        maten = false;
-        exlen = false;
-    end
+
+    funcs = methods(h);
+
+    exlen = ismember('exportExcel', funcs) && h.isAllowExportExcel;
+    maten = ismember('exportMat', funcs) && h.isAllowExportMat;
 
     if h == handles.hdense
         roien = isAllowExportROI(handles.hdata,h.ROIIndex);
     else
         roien = false;
     end
-
 
     strs  = {'off','on'};
     imgen = strs{imgen+1};
@@ -810,18 +807,12 @@ function menu_exportimage_Callback(~, ~, handles)
         return
     end
 
-    if ~isfield(handles.config, 'export.image')
-        handles.config.export.image = structobj();
-    end
-
     exportpath = get(handles.config, 'export.image.location', '');
 
     file = h.exportImage(exportpath);
     if isempty(file), return; end
 
-    export = handles.config.export.image;
-    export.location = fileparts(file);
-    save(handles.config);
+    handles.config.export.image.location = fileparts(file);
 end
 
 function menu_exportvideo_Callback(~, ~, handles)
@@ -831,18 +822,12 @@ function menu_exportvideo_Callback(~, ~, handles)
         return;
     end
 
-    if ~isfield(handles.config, 'export.video')
-        set(handles.config, 'export.video', structobj())
-    end
-
     exportpath = get(handles.config, 'export.video.location', '');
 
     file = h.exportVideo(exportpath);
     if isempty(file), return; end
 
-    export = handles.config.export.video;
-    export.location = fileparts(file);
-    save(handles.config);
+    handles.config.export.video.location = fileparts(file);
 end
 
 
@@ -851,33 +836,49 @@ function menu_exportmat_Callback(~, ~, handles)
 
     exportpath = get(handles.config, 'export.mat.location', '');
 
-    file = handles.hanalysis.exportMat(exportpath);
-    if isempty(file), return; end
+    h = getCurrentDataViewer(handles);
 
-    set(handles.config, 'export.mat.location', fileparts(file))
+    if isempty(h)
+        return;
+    end
+
+    file = h.exportMat(exportpath);
+    if isempty(file)
+        return;
+    end
+
+    handles.config.export.mat.location = fileparts(file);
 end
 
 function menu_exportexcel_Callback(~, ~, handles)
 
     exportpath = get(handles.config, 'export.excel.location', '');
 
-    file = handles.hanalysis.exportExcel(exportpath);
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return;
+    end
+
+    file = h.exportExcel(exportpath);
     if isempty(file), return; end
 
-    set(handles.config, 'export.excel.location', fileparts(file));
+    handles.config.export.excel.location = fileparts(file);
 end
 
 function menu_exportroi_Callback(~, ~, handles)
     exportpath = get(handles.config, 'export.roi.location', '');
-    path = handles.hdense.exportROI(exportpath);
-    if isempty(path), return; end
-    set(handles.config, 'export.roi.location', path);
+    uipath = handles.hdense.exportROI(exportpath);
+    if isempty(uipath), return; end
+
+    handles.config.export.roi.location = uipath;
 end
 
 
 %% MENU: ANALYSIS UIMENU SELECT
 function menu_analysis_Callback(~, ~, handles)
     enable = 'off';
+
     if handles.hsidebar.ActiveTab == 2
         didx  = handles.hdense.DENSEIndex;
         ridx  = handles.hdense.ROIIndex;
