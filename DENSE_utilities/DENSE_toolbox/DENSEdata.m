@@ -37,6 +37,10 @@ classdef DENSEdata < hgsetget
         manualdensetypes = {'x','y','z','xy','xyz'};
     end
 
+    properties (Transient)
+        roitypes = [];
+    end
+
     %
     events
         NewState
@@ -47,6 +51,15 @@ classdef DENSEdata < hgsetget
         % constructor
         function obj = DENSEdata(varargin)
            % do nothing
+        end
+
+        function addROIType(obj, roiinfo)
+            obj.roitypes = cat(1, obj.roitypes(:), roiinfo);
+        end
+
+        function [tf, ind] = hasROIType(obj, roitype)
+            classes = arrayfun(@class, obj.roitypes, 'UniformOutput', false);
+            [tf, ind] = ismember(roitype, classes);
         end
 
         % load data from file
@@ -366,7 +379,7 @@ function roiidx = createROIFcn(obj,seqidx)
     % default name
     name = sprintf('ROI.%d',numel(obj.roi) + 1);
 
-    roi = newroigui(obj,seqidx,'Name',name);
+    roi = newroigui(obj, seqidx, 'Name', name, 'ROITypes', obj.roitypes);
     if isempty(roi)
         roiidx = [];
         return;
