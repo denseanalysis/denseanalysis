@@ -1,6 +1,6 @@
 classdef ClosedContour < ROIType
-    methods (Static)
-        function res = cdata()
+    methods
+        function self = ClosedContour()
             red = [
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN NaN
@@ -55,31 +55,9 @@ classdef ClosedContour < ROIType
                 NaN NaN NaN NaN NaN NaN NaN 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
 
-            res = cat(3, red, green, blue);
-        end
+            cdata = cat(3, red, green, blue);
 
-        function res = description()
-            res = 'Closed Contour';
-        end
-
-        function res = tag()
-            res = 'hclosed';
-        end
-
-        function res = isclosed()
-            res = true;
-        end
-
-        function res = iscurved()
-            res = true;
-        end
-
-        function res = type()
-            res = 'closed';
-        end
-
-        function res = nlines()
-            res = 1;
+            self@ROIType('hclosed', 'Closed Contour', 1, 'closed', cdata, true, true);
         end
     end
 end

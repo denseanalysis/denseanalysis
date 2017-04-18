@@ -1,6 +1,6 @@
 classdef OpenContour < ROIType
-    methods (Static)
-        function res = cdata()
+    methods
+        function self = OpenContour()
 
             red = [
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
@@ -56,31 +56,9 @@ classdef OpenContour < ROIType
                 NaN NaN NaN NaN NaN NaN NaN 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
 
-            res = cat(3, red, green, blue);
-        end
+            cdata = cat(3, red, green, blue);
 
-        function res = description()
-            res = 'Open Contour';
-        end
-
-        function res = tag()
-            res = 'hopen';
-        end
-
-        function res = isclosed()
-            res = false;
-        end
-
-        function res = iscurved()
-            res = true;
-        end
-
-        function res = nlines()
-            res = 1;
-        end
-
-        function res = type()
-            res = 'open';
+            self@ROIType('hopen', 'Open Contour', 1, 'open', cdata, false, true)
         end
     end
 end

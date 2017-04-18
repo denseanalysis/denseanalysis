@@ -1,7 +1,6 @@
 classdef CurvedRegion < ROIType
-    methods (Static)
-        function res = cdata()
-
+    methods
+        function self = CurvedRegion()
             red = [
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN 0.5020 0 0.5020 NaN NaN NaN NaN NaN NaN NaN
@@ -56,31 +55,9 @@ classdef CurvedRegion < ROIType
                 NaN NaN NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
 
-            res = cat(3, red, green ,blue);
-        end
+            cdata = cat(3, red, green ,blue);
 
-        function res = description()
-            res = 'Curved Region';
-        end
-
-        function res = tag()
-            res = 'hcurved';
-        end
-
-        function res = isclosed()
-            res = true;
-        end
-
-        function res = iscurved()
-            res = true;
-        end
-
-        function res = nlines()
-            res = 1;
-        end
-
-        function res = type()
-            res = 'curved';
+            self@ROIType('hcurved', 'Curved Region', 1, 'curved', cdata, true, true);
         end
     end
 end

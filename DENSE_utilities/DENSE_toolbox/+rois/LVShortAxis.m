@@ -1,7 +1,7 @@
 classdef LVShortAxis < ROIType
+    methods
+        function self = LVShortAxis()
 
-    methods (Static)
-        function res = cdata()
             red = [
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
@@ -56,31 +56,9 @@ classdef LVShortAxis < ROIType
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
 
-            res = cat(3, red, green, blue);
-        end
+            cdata = cat(3, red, green, blue);
 
-        function res = description()
-            res = 'Cardiac Region: LV Short Axis';
-        end
-
-        function res = isclosed()
-            res = true;
-        end
-
-        function res = iscurved()
-            res = true;
-        end
-
-        function res = tag()
-            res = 'hSA';
-        end
-
-        function res = nlines()
-            res = 2;
-        end
-
-        function res = type()
-            res = 'SA';
+            self@ROIType('hSA', 'Cardiac Region: LV Short Axis', 2, 'SA', cdata, true, true);
         end
     end
 end

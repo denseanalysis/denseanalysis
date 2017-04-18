@@ -1,31 +1,6 @@
 classdef PolylineRegion < ROIType
-    methods (Static)
-        function res = description()
-            res = 'Polyline Region';
-        end
-
-        function res = tag()
-            res = 'hpoly';
-        end
-
-        function res = isclosed()
-            res = true;
-        end
-
-        function res = iscurved()
-            res = false;
-        end
-
-        function res = nlines()
-            res = 1;
-        end
-
-        function res = type()
-            res = 'line';
-        end
-
-        function res = cdata()
-
+    methods
+        function self = PolylineRegion()
             red = [
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN 0.5020 0 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN NaN
@@ -80,7 +55,9 @@ classdef PolylineRegion < ROIType
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
 
-            res = cat(3, red, green, blue);
+            cdata = cat(3, red, green, blue);
+
+            self@ROIType('hpoly', 'Polyline Region', 1, 'poly', cdata, true, false);
         end
     end
 end

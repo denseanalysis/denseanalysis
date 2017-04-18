@@ -1,7 +1,6 @@
 classdef LVLongAxis < ROIType
-
-    methods (Static)
-        function res = cdata()
+    methods
+        function self = LVLongAxis()
 
             red = [
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
@@ -57,31 +56,9 @@ classdef LVLongAxis < ROIType
                 NaN NaN NaN 0 0 0 0 0 NaN NaN NaN NaN NaN NaN NaN NaN
                 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
 
-            res = cat(3, red, green, blue);
-        end
+            cdata = cat(3, red, green, blue);
 
-        function res = description()
-            res = 'Cardiac Region: LV Long Axis';
-        end
-
-        function res = tag()
-            res = 'hLA';
-        end
-
-        function res = isclosed()
-            res = false;
-        end
-
-        function res = iscurved()
-            res = true;
-        end
-
-        function res = nlines()
-            res = 2;
-        end
-
-        function res = type()
-            res = 'LA';
+            self@ROIType('hLA', 'Cardiac Region: LV Long Axis', 2, 'LA', cdata, false, true)
         end
     end
 end
