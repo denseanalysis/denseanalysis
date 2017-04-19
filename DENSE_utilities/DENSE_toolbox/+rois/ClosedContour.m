@@ -60,4 +60,10 @@ classdef ClosedContour < ROIType
             self@ROIType('hclosed', 'Closed Contour', 1, 'closed', cdata, true, true);
         end
     end
+
+    methods (Static)
+        function tf = mask(X, Y, C)
+            tf = maskLine(X, Y, C);
+        end
+    end
 end

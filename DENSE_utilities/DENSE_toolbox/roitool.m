@@ -832,47 +832,21 @@ function contextMenuFcn(obj)
         notify(obj,'Suspend');
         cleanupObj = onCleanup(@()notify(obj,'Restore'));
 
-        % gather data, based on object type
-        switch lower(obj.Type)
+        % Get the ROI that corresponds to the tag
+        ROI = findobj(obj.hdata.roitypes, 'Type', obj.Type);
 
-            case 'sa'
-                [epi,endo] = getSA(hax);
-                pos   = {epi,endo};
-                iscls = {true};
-                iscrv = {true};
-                iscrn = {false};
-
-            case 'la'
-                [epi,endo] = getLA(hax);
-                pos   = {epi,endo};
-                iscls = {false};
-                iscrv = {true};
-                iscrn = {false};
-
-            otherwise
-                iscls = ~strcmpi(obj.Type,'open');
-                iscrv = ~strcmpi(obj.Type,'line');
-
-                if any(strcmpi(obj.Type,{'open','closed'}))
-                    clr = [1 .5 0];
-                else
-                    clr = 'b';
-                end
-                h = getcline(hax,...
-                    'IsClosed',iscls,...
-                    'IsCurved',iscrv,...
-                    'color',clr,...
-                    'markersize',10,...
-                    'linewidth',2);
-                pos   = h.Position;
-                iscls = h.IsClosed;
-                iscrv = h.IsCurved;
-                iscrn = h.IsCorner;
-                delete(h);
+        % Check if this is empty, because that's an issue...
+        % TODO: Do some robust handling of this
+        if isempty(ROI)
+            error(sprintf('%s:InvalidROIType', mfilename), ...
+                'Unable to locate this ROI Type.')
         end
 
+        [pos, iscls, iscrv, iscrn] = ROI.drawContour(hax, ...
+            'MarkerSize', 10, 'LineWidth', 2);
+
         % save to DENSEdata object
-        saveROI(pos,iscls,iscrv,iscrn);
+        saveROI(pos, iscls, iscrv, iscrn);
     end
 
 

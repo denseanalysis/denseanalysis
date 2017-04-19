@@ -60,5 +60,22 @@ classdef LVShortAxis < ROIType
 
             self@ROIType('hSA', 'Cardiac Region: LV Short Axis', 2, 'SA', cdata, true, true);
         end
+
+        function [pos, iscls, iscrv, iscrn] = drawContour(self, hax, varargin)
+            [epi, endo] = getSA(hax, varargin{:});
+
+            pos = {epi, endo};
+            iscls = {self.Closed};
+            iscrv = {self.Curved};
+            iscrn = {false};
+        end
+    end
+
+    methods (Static)
+        function tf = mask(X, Y, C)
+            [inep, onep] = inpolygon(X, Y, C{1}(:,1), C{1}(:,2));
+            [inen, onen] = inpolygon(X, Y, C{2}(:,1), C{2}(:,2));
+            tf = (inep & ~inen) | onep | onen;
+        end
     end
 end

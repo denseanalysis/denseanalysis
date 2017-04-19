@@ -61,4 +61,10 @@ classdef OpenContour < ROIType
             self@ROIType('hopen', 'Open Contour', 1, 'open', cdata, false, true)
         end
     end
+
+    methods (Static)
+        function tf = mask(X, Y, C)
+            tf = maskLine(X, Y, C);
+        end
+    end
 end

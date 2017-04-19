@@ -928,17 +928,8 @@ function cndata = contourData(obj,ridx,frames,checkonlyflag)
         maskfcn = [];
         C = [];
     else
-        % mask function
-        switch lower(roi.Type)
-            case 'sa',
-                maskfcn = @(X,Y,C)maskSA(X,Y,C);
-            case 'la',
-                maskfcn = @(X,Y,C)maskLA(X,Y,C);
-            case {'closed','open'}
-                maskfcn = @(X,Y,C)maskLine(X,Y,C);
-            otherwise
-                maskfcn = @(X,Y,C)maskGeneral(X,Y,C);
-        end
+        ROI = findobj(obj.roitypes, 'Type', roi.Type);
+        maskfcn = @(X,Y,C)ROI.mask(X,Y,C);
 
         % contour retrieval
         C = repmat({zeros(0,2)},size(pos));

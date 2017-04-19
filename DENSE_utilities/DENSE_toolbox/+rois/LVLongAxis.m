@@ -60,5 +60,21 @@ classdef LVLongAxis < ROIType
 
             self@ROIType('hLA', 'Cardiac Region: LV Long Axis', 2, 'LA', cdata, false, true)
         end
+
+        function [pos, iscls, iscrv, iscrn] = drawContour(self, hax, varargin)
+            [epi, endo] = getLA(hax, varargin{:});
+
+            pos = {epi, endo};
+            iscls = {self.Closed};
+            iscrv = {self.Curved};
+            iscrn = {false};
+        end
+    end
+
+    methods (Static)
+        function tf = maskLA(X, Y, C)
+            C = cat(1, C{:});
+            tf = inpolygon(X, Y, C(:,1), C(:,2));
+        end
     end
 end

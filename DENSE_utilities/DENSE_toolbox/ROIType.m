@@ -2,9 +2,10 @@ classdef ROIType < handle & matlab.mixin.Heterogeneous
 
     properties (SetAccess = 'private')
         CData
-        Description
         Closed
+        Color = 'b'
         Curved
+        Description
         NLines
         Tag
         Type
@@ -29,7 +30,24 @@ classdef ROIType < handle & matlab.mixin.Heterogeneous
     end
 
     methods (Static)
-        function pos = drawContour(hax)
+        function tf = mask(X, Y, C)
+            tf = maskGeneral(X, Y, C);
+        end
+    end
+
+    methods
+        function [pos, iscls, iscrv, iscrn] = drawContour(self, hax, varargin)
+            h = getcline(hax, ...
+                'IsClosed', self.Closed, ...
+                'IsCurved', self.Curved, ...
+                'Color',    self.Color, ...
+                varargin{:});
+
+            pos     = h.Position;
+            iscls   = h.IsClosed;
+            iscrv   = h.IsCurved;
+            iscrn   = h.IsCorner;
+            delete(h);
         end
     end
 end
