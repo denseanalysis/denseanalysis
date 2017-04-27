@@ -58,7 +58,7 @@ classdef LVShortAxis < ROIType
 
             cdata = cat(3, red, green, blue);
 
-            self@ROIType('hSA', 'Cardiac Region: LV Short Axis', 2, 'SA', cdata, true, true);
+            self@ROIType('hSA', 'Cardiac Region: LV Short Axis', 2, 'SA', cdata, true, true, []);
         end
 
         function [pos, iscls, iscrv, iscrn] = drawContour(self, hax, varargin)

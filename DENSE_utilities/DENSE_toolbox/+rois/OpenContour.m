@@ -58,7 +58,9 @@ classdef OpenContour < ROIType
 
             cdata = cat(3, red, green, blue);
 
-            self@ROIType('hopen', 'Open Contour', 1, 'open', cdata, false, true)
+            color = [1 0.5 0];
+
+            self@ROIType('hopen', 'Open Contour', 1, 'open', cdata, false, true, color)
         end
     end
 

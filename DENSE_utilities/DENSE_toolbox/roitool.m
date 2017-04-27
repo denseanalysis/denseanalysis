@@ -385,22 +385,18 @@ function redrawFcn(obj)
     % reset position constraint function
     obj.hcline.PositionConstraintFcn = obj.pcfcn;
 
+    ena = {obj.Enable, 'off'};
+
+    ROI = findobj(obj.hdata.roitypes, 'Type', obj.Type);
+
     % visible flags (imcline/imcardiac)
     if strcmpi(obj.Visible,'off')
-        vis = {'off','off'};
-    elseif any(strcmpi(obj.Type,{'SA','LA'}))
-        vis = {'off','on'};
+        vis = {'off', 'off'};
+    elseif any(strcmpi(ROI.Type, {'SA', 'LA'}))
+        vis = {'off', 'on'};
+        ena = {'off', obj.Enable};
     else
-        vis = {'on','off'};
-    end
-
-    % enable flags (imcline/imcardiac)
-    if strcmpi(obj.Enable,'off')
-        ena = {'off','off'};
-    elseif any(strcmpi(obj.Type,{'SA','LA'}))
-        ena = {'off','on'};
-    else
-        ena = {'on','off'};
+        vis = {'on', 'off'};
     end
 
     % replicate flags
@@ -419,21 +415,23 @@ function redrawFcn(obj)
     [obj.himcardiac.Enable]  = deal(ena{:,2});
 
     % set color
-    if any(strcmpi(obj.Type,{'SA','LA'}))
-        flag_clr = false;
-    elseif any(strcmpi(obj.Type,{'open','closed'}))
-        flag_clr = true;
-        clr = [1 .5 0];
-    else
-        flag_clr = true;
-        clr = [0 0 1];
-    end
+    flag_clr = ~isempty(ROI.Color);
 
     if flag_clr
+        clr = ROI.Color;
         for k = 1:numel(obj.himcline)
             A = obj.himcline(k).Appearance;
-            A.Color = clr;
-            A.MarkerFaceColor = clr;
+
+            if iscell(clr)
+                for m = 1:obj.hcline.NumberOfLines
+                    A(m).Color = clr{m};
+                    A(m).MarkerFaceColor = clr{m};
+                end
+            else
+                [A.Color] = deal(clr);
+                [A.MarkerFaceColor] = deal(clr);
+            end
+
             obj.himcline(k).Appearance = A;
         end
     end

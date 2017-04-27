@@ -57,7 +57,9 @@ classdef ClosedContour < ROIType
 
             cdata = cat(3, red, green, blue);
 
-            self@ROIType('hclosed', 'Closed Contour', 1, 'closed', cdata, true, true);
+            color = [1 0.5 0];
+
+            self@ROIType('hclosed', 'Closed Contour', 1, 'closed', cdata, true, true, color);
         end
     end
 

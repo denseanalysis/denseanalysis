@@ -12,7 +12,7 @@ classdef ROIType < handle & matlab.mixin.Heterogeneous
     end
 
     methods
-        function self = ROIType(tag, desc, nlines, type, cdata, clsd, crvd)
+        function self = ROIType(tag, desc, nlines, type, cdata, clsd, crvd, color)
             self.CData = cdata;
             self.Description = desc;
             self.Closed = clsd;
@@ -20,6 +20,10 @@ classdef ROIType < handle & matlab.mixin.Heterogeneous
             self.NLines = nlines;
             self.Tag = tag;
             self.Type = type;
+
+            if exist('color', 'var')
+                self.Color = color;
+            end
         end
     end
 
