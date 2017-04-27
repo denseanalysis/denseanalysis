@@ -2,61 +2,31 @@ classdef LVLongAxis < ROIType
     methods
         function self = LVLongAxis()
 
-            red = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 1 1 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 1 1 1 1 NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 1 1 1 1 1 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 1 1 1 1 1 0 NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 1 1 1 1 0 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 1 1 1 1 0 NaN NaN NaN NaN NaN 0 NaN NaN NaN
-                NaN NaN 1 1 1 0 NaN NaN NaN NaN NaN 0 1 1 NaN NaN
-                NaN 1 1 1 1 0 NaN NaN NaN NaN 0 1 1 1 1 NaN
-                NaN 1 1 1 0 NaN NaN NaN NaN 0 1 1 1 1 1 NaN
-                NaN 1 1 1 0 NaN NaN 0 0 1 1 1 1 1 NaN NaN
-                NaN 1 1 1 1 0 0 1 1 1 1 1 1 NaN NaN NaN
-                NaN 1 1 1 1 1 1 1 1 1 1 1 NaN NaN NaN NaN
-                NaN NaN 1 1 1 1 1 1 1 1 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 1 1 1 1 1 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
+            cdata = [
+                4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+                4 4 4 4 4 4 2 3 4 4 4 4 4 4 4 4
+                4 4 4 4 4 2 3 3 3 4 4 4 4 4 4 4
+                4 4 4 4 2 3 3 3 3 1 4 4 4 4 4 4
+                4 4 4 2 3 3 3 3 1 4 4 4 4 4 4 4
+                4 4 4 2 3 3 3 1 4 4 4 4 4 4 4 4
+                4 4 2 3 3 3 1 4 4 4 4 4 1 4 4 4
+                4 4 2 3 3 1 4 4 4 4 4 1 3 3 4 4
+                4 2 3 3 3 1 4 4 4 4 1 3 3 3 3 4
+                4 2 3 3 1 4 4 4 4 1 3 3 3 3 2 4
+                4 2 3 3 1 4 4 1 1 3 3 3 3 2 4 4
+                4 2 3 3 3 1 1 3 3 3 3 3 2 4 4 4
+                4 2 3 3 3 3 3 3 3 3 2 2 4 4 4 4
+                4 4 2 3 3 3 3 3 2 2 4 4 4 4 4 4
+                4 4 4 2 2 2 2 2 4 4 4 4 4 4 4 4
+                4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4];
 
-            green = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 0 1 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0 1 1 1 NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 0 1 1 1 1 1 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 1 1 1 1 1 NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 1 1 1 1 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 0 1 1 1 1 NaN NaN NaN NaN NaN 1 NaN NaN NaN
-                NaN NaN 0 1 1 1 NaN NaN NaN NaN NaN 1 1 1 NaN NaN
-                NaN 0 1 1 1 1 NaN NaN NaN NaN 1 1 1 1 1 NaN
-                NaN 0 1 1 1 NaN NaN NaN NaN 1 1 1 1 1 0 NaN
-                NaN 0 1 1 1 NaN NaN 1 1 1 1 1 1 0 NaN NaN
-                NaN 0 1 1 1 1 1 1 1 1 1 1 0 NaN NaN NaN
-                NaN 0 1 1 1 1 1 1 1 1 0 0 NaN NaN NaN NaN
-                NaN NaN 0 1 1 1 1 1 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
+            cmap = [
+                0   1   0
+                1   0   0
+                1   1   0
+                NaN NaN NaN];
 
-            blue = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 0 0 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0 0 0 0 NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 0 0 0 0 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 0 NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 0 0 0 0 0 NaN NaN NaN NaN NaN 0 NaN NaN NaN
-                NaN NaN 0 0 0 0 NaN NaN NaN NaN NaN 0 0 0 NaN NaN
-                NaN 0 0 0 0 0 NaN NaN NaN NaN 0 0 0 0 0 NaN
-                NaN 0 0 0 0 NaN NaN NaN NaN 0 0 0 0 0 0 NaN
-                NaN 0 0 0 0 NaN NaN 0 0 0 0 0 0 0 NaN NaN
-                NaN 0 0 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN
-                NaN 0 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN NaN
-                NaN NaN 0 0 0 0 0 0 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
-
-            cdata = cat(3, red, green, blue);
+            cdata = ind2rgb(cdata, cmap);
 
             self@ROIType('hLA', 'Cardiac Region: LV Long Axis', 2, 'LA', cdata, false, true, [])
         end

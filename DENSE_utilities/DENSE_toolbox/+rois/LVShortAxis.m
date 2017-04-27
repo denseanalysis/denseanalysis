@@ -2,61 +2,31 @@ classdef LVShortAxis < ROIType
     methods
         function self = LVShortAxis()
 
-            red = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 1 1 1 1 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 1 1 1 1 1 1 1 1 NaN NaN NaN NaN
-                NaN NaN NaN 1 1 1 1 1 1 1 1 1 1 NaN NaN NaN
-                NaN NaN NaN 1 1 1 1 0 0 1 1 1 1 NaN NaN NaN
-                NaN NaN 1 1 1 1 0 NaN NaN 0 1 1 1 1 NaN NaN
-                NaN NaN 1 1 1 0 NaN NaN NaN NaN 0 1 1 1 NaN NaN
-                NaN NaN 1 1 1 0 NaN NaN NaN NaN 0 1 1 1 NaN NaN
-                NaN NaN 1 1 1 1 0 NaN NaN 0 1 1 1 1 NaN NaN
-                NaN NaN NaN 1 1 1 1 0 0 1 1 1 1 NaN NaN NaN
-                NaN NaN NaN 1 1 1 1 1 1 1 1 1 1 NaN NaN NaN
-                NaN NaN NaN NaN 1 1 1 1 1 1 1 1 NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 1 1 1 1 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
+            cdata = [
+                4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+                4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+                4 4 4 4 4 4 2 2 2 2 4 4 4 4 4 4
+                4 4 4 4 2 2 3 3 3 3 2 2 4 4 4 4
+                4 4 4 2 3 3 3 3 3 3 3 3 2 4 4 4
+                4 4 4 2 3 3 3 1 1 3 3 3 2 4 4 4
+                4 4 2 3 3 3 1 4 4 1 3 3 3 2 4 4
+                4 4 2 3 3 1 4 4 4 4 1 3 3 2 4 4
+                4 4 2 3 3 1 4 4 4 4 1 3 3 2 4 4
+                4 4 2 3 3 3 1 4 4 1 3 3 3 2 4 4
+                4 4 4 2 3 3 3 1 1 3 3 3 2 4 4 4
+                4 4 4 2 3 3 3 3 3 3 3 3 2 4 4 4
+                4 4 4 4 2 2 3 3 3 3 2 2 4 4 4 4
+                4 4 4 4 4 4 2 2 2 2 4 4 4 4 4 4
+                4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4
+                4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4];
 
-            green = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 0 0 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 0 0 1 1 1 1 0 0 NaN NaN NaN NaN
-                NaN NaN NaN 0 1 1 1 1 1 1 1 1 0 NaN NaN NaN
-                NaN NaN NaN 0 1 1 1 0.7529 0.7529 1 1 1 0 NaN NaN NaN
-                NaN NaN 0 1 1 1 0.7529 NaN NaN 0.7529 1 1 1 0 NaN NaN
-                NaN NaN 0 1 1 0.7529 NaN NaN NaN NaN 0.7529 1 1 0 NaN NaN
-                NaN NaN 0 1 1 0.7529 NaN NaN NaN NaN 0.7529 1 1 0 NaN NaN
-                NaN NaN 0 1 1 1 0.7529 NaN NaN 0.7529 1 1 1 0 NaN NaN
-                NaN NaN NaN 0 1 1 1 0.7529 0.7529 1 1 1 0 NaN NaN NaN
-                NaN NaN NaN 0 1 1 1 1 1 1 1 1 0 NaN NaN NaN
-                NaN NaN NaN NaN 0 0 1 1 1 1 0 0 NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 0 0 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
+            cmap = [
+                     0    0.7529         0
+                1.0000         0         0
+                1.0000    1.0000         0
+                   NaN       NaN       NaN];
 
-            blue = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 0 0 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 0 0 0 0 0 0 0 0 NaN NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN
-                NaN NaN 0 0 0 0 0 NaN NaN 0 0 0 0 0 NaN NaN
-                NaN NaN 0 0 0 0 NaN NaN NaN NaN 0 0 0 0 NaN NaN
-                NaN NaN 0 0 0 0 NaN NaN NaN NaN 0 0 0 0 NaN NaN
-                NaN NaN 0 0 0 0 0 NaN NaN 0 0 0 0 0 NaN NaN
-                NaN NaN NaN 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN
-                NaN NaN NaN 0 0 0 0 0 0 0 0 0 0 NaN NaN NaN
-                NaN NaN NaN NaN 0 0 0 0 0 0 0 0 NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN 0 0 0 0 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
-
-            cdata = cat(3, red, green, blue);
+            cdata = ind2rgb(cdata, cmap);
 
             self@ROIType('hSA', 'Cardiac Region: LV Short Axis', 2, 'SA', cdata, true, true, []);
         end

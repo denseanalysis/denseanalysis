@@ -2,62 +2,32 @@ classdef OpenContour < ROIType
     methods
         function self = OpenContour()
 
-            red = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0.5020 0.2510 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 1 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 1 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 1 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 1 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN 0.5020 0.2510 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN
-                NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN NaN NaN 0.5020 0.2510 0.5020 NaN
-                NaN NaN 1 NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN
-                NaN NaN 1 NaN NaN NaN NaN NaN NaN NaN NaN NaN 1 NaN NaN NaN
-                NaN NaN NaN 1 NaN NaN NaN 0.7529 0.5020 0.7529 NaN 1 NaN NaN NaN NaN
-                NaN NaN NaN NaN 1 1 1 0.5020 0.2510 0.5020 1 NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN 0.7529 0.5020 0.7529 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
+            cdata = [
+                5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+                5 5 5 5 5 3 2 3 5 5 5 5 5 5 5 5
+                5 5 5 5 5 2 1 2 5 5 5 5 5 5 5 5
+                5 5 5 5 4 3 2 3 5 5 5 5 5 5 5 5
+                5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5
+                5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5
+                5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5
+                5 3 2 3 5 5 5 5 5 5 5 5 5 5 5 5
+                5 2 1 2 5 5 5 5 5 5 5 5 3 2 3 5
+                5 3 2 3 5 5 5 5 5 5 5 5 2 1 2 5
+                5 5 4 5 5 5 5 5 5 5 5 5 3 2 3 5
+                5 5 4 5 5 5 5 5 5 5 5 5 4 5 5 5
+                5 5 5 4 5 5 5 3 2 3 5 4 5 5 5 5
+                5 5 5 5 4 4 4 2 1 2 4 5 5 5 5 5
+                5 5 5 5 5 5 5 3 2 3 5 5 5 5 5 5
+                5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5];
 
-            green = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0.6275 0.2510 0.6275 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0.2510 0.1255 0.2510 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 0.5020 0.6275 0.2510 0.6275 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN 0.6275 0.2510 0.6275 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN 0.2510 0.1255 0.2510 NaN NaN NaN NaN NaN NaN NaN NaN 0.6275 0.2510 0.6275 NaN
-                NaN 0.6275 0.2510 0.6275 NaN NaN NaN NaN NaN NaN NaN NaN 0.2510 0.1255 0.2510 NaN
-                NaN NaN 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.6275 0.2510 0.6275 NaN
-                NaN NaN 0.5020 NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.5020 NaN NaN NaN
-                NaN NaN NaN 0.5020 NaN NaN NaN 0.6275 0.2510 0.6275 NaN 0.5020 NaN NaN NaN NaN
-                NaN NaN NaN NaN 0.5020 0.5020 0.5020 0.2510 0.1255 0.2510 0.5020 NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN 0.6275 0.2510 0.6275 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
+            cmap = [
+                0.2510    0.1255         0
+                0.5020    0.2510         0
+                0.7529    0.6275    0.5059
+                1.0000    0.5020         0
+                NaN       NaN          NaN];
 
-            blue = [
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN 0 0 0 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN 0 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN 0 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 0 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN NaN 0 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
-                NaN 0 0 0 NaN NaN NaN NaN NaN NaN NaN NaN 0.5059 0 0.5059 NaN
-                NaN 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN NaN NaN 0 0 0 NaN
-                NaN NaN 0 NaN NaN NaN NaN NaN NaN NaN NaN NaN 0.5059 0 0.5059 NaN
-                NaN NaN 0 NaN NaN NaN NaN NaN NaN NaN NaN NaN 0 NaN NaN NaN
-                NaN NaN NaN 0 NaN NaN NaN 0.5059 0 0.5059 NaN 0 NaN NaN NaN NaN
-                NaN NaN NaN NaN 0 0 0 0 0 0 0 NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN 0.5059 0 0.5059 NaN NaN NaN NaN NaN NaN
-                NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN];
-
-            cdata = cat(3, red, green, blue);
-
+            cdata = ind2rgb(cdata, cmap);
             color = [1 0.5 0];
 
             self@ROIType('hopen', 'Open Contour', 1, 'open', cdata, false, true, color)
