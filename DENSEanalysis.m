@@ -329,6 +329,14 @@ function handles = initFcn(hfig)
 
     status('Initializing GUI...');
 
+    % Add the basic ROI types
+    addROIType(hdata, rois.CurvedRegion)
+    addROIType(hdata, rois.PolylineRegion)
+    addROIType(hdata, rois.LVShortAxis)
+    addROIType(hdata, rois.LVLongAxis)
+    addROIType(hdata, rois.ClosedContour)
+    addROIType(hdata, rois.OpenContour)
+
     dicom_hpanel = uipanel(...
         'parent',handles.hfig,...
         'BorderType','none',...

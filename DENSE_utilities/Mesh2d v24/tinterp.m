@@ -22,7 +22,7 @@ fi = zeros(size(pi,1),1);
 out = isnan(i);
 if any(out)
    % Do nearest neighbour extrapolation for outside points
-   d = dsearch(p(:,1),p(:,2),t,pi(out,1),pi(out,2));
+   d = dsearchn(p, t, pi(out,:));
    fi(out) = f(d);
 end
 

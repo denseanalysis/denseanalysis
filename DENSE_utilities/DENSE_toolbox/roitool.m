@@ -385,22 +385,18 @@ function redrawFcn(obj)
     % reset position constraint function
     obj.hcline.PositionConstraintFcn = obj.pcfcn;
 
+    ena = {obj.Enable, 'off'};
+
+    ROI = findobj(obj.hdata.roitypes, 'Type', obj.Type);
+
     % visible flags (imcline/imcardiac)
     if strcmpi(obj.Visible,'off')
-        vis = {'off','off'};
-    elseif any(strcmpi(obj.Type,{'SA','LA'}))
-        vis = {'off','on'};
+        vis = {'off', 'off'};
+    elseif any(strcmpi(ROI.Type, {'SA', 'LA'}))
+        vis = {'off', 'on'};
+        ena = {'off', obj.Enable};
     else
-        vis = {'on','off'};
-    end
-
-    % enable flags (imcline/imcardiac)
-    if strcmpi(obj.Enable,'off')
-        ena = {'off','off'};
-    elseif any(strcmpi(obj.Type,{'SA','LA'}))
-        ena = {'off','on'};
-    else
-        ena = {'on','off'};
+        vis = {'on', 'off'};
     end
 
     % replicate flags
@@ -419,21 +415,23 @@ function redrawFcn(obj)
     [obj.himcardiac.Enable]  = deal(ena{:,2});
 
     % set color
-    if any(strcmpi(obj.Type,{'SA','LA'}))
-        flag_clr = false;
-    elseif any(strcmpi(obj.Type,{'open','closed'}))
-        flag_clr = true;
-        clr = [1 .5 0];
-    else
-        flag_clr = true;
-        clr = [0 0 1];
-    end
+    flag_clr = ~isempty(ROI.Color);
 
     if flag_clr
+        clr = ROI.Color;
         for k = 1:numel(obj.himcline)
             A = obj.himcline(k).Appearance;
-            A.Color = clr;
-            A.MarkerFaceColor = clr;
+
+            if iscell(clr)
+                for m = 1:obj.hcline.NumberOfLines
+                    A(m).Color = clr{m};
+                    A(m).MarkerFaceColor = clr{m};
+                end
+            else
+                [A.Color] = deal(clr);
+                [A.MarkerFaceColor] = deal(clr);
+            end
+
             obj.himcline(k).Appearance = A;
         end
     end
@@ -832,47 +830,21 @@ function contextMenuFcn(obj)
         notify(obj,'Suspend');
         cleanupObj = onCleanup(@()notify(obj,'Restore'));
 
-        % gather data, based on object type
-        switch lower(obj.Type)
+        % Get the ROI that corresponds to the tag
+        ROI = findobj(obj.hdata.roitypes, 'Type', obj.Type);
 
-            case 'sa'
-                [epi,endo] = getSA(hax);
-                pos   = {epi,endo};
-                iscls = {true};
-                iscrv = {true};
-                iscrn = {false};
-
-            case 'la'
-                [epi,endo] = getLA(hax);
-                pos   = {epi,endo};
-                iscls = {false};
-                iscrv = {true};
-                iscrn = {false};
-
-            otherwise
-                iscls = ~strcmpi(obj.Type,'open');
-                iscrv = ~strcmpi(obj.Type,'line');
-
-                if any(strcmpi(obj.Type,{'open','closed'}))
-                    clr = [1 .5 0];
-                else
-                    clr = 'b';
-                end
-                h = getcline(hax,...
-                    'IsClosed',iscls,...
-                    'IsCurved',iscrv,...
-                    'color',clr,...
-                    'markersize',10,...
-                    'linewidth',2);
-                pos   = h.Position;
-                iscls = h.IsClosed;
-                iscrv = h.IsCurved;
-                iscrn = h.IsCorner;
-                delete(h);
+        % Check if this is empty, because that's an issue...
+        % TODO: Do some robust handling of this
+        if isempty(ROI)
+            error(sprintf('%s:InvalidROIType', mfilename), ...
+                'Unable to locate this ROI Type.')
         end
 
+        [pos, iscls, iscrv, iscrn] = ROI.drawContour(hax, ...
+            'MarkerSize', 10, 'LineWidth', 2);
+
         % save to DENSEdata object
-        saveROI(pos,iscls,iscrv,iscrn);
+        saveROI(pos, iscls, iscrv, iscrn);
     end
 
 

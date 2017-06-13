@@ -37,6 +37,10 @@ classdef DENSEdata < hgsetget
         manualdensetypes = {'x','y','z','xy','xyz'};
     end
 
+    properties (Transient)
+        roitypes = [];
+    end
+
     %
     events
         NewState
@@ -47,6 +51,15 @@ classdef DENSEdata < hgsetget
         % constructor
         function obj = DENSEdata(varargin)
            % do nothing
+        end
+
+        function addROIType(obj, roiinfo)
+            obj.roitypes = cat(1, obj.roitypes(:), roiinfo);
+        end
+
+        function [tf, ind] = hasROIType(obj, roitype)
+            classes = arrayfun(@class, obj.roitypes, 'UniformOutput', false);
+            [tf, ind] = ismember(roitype, classes);
         end
 
         % load data from file
@@ -366,7 +379,7 @@ function roiidx = createROIFcn(obj,seqidx)
     % default name
     name = sprintf('ROI.%d',numel(obj.roi) + 1);
 
-    roi = newroigui(obj,seqidx,'Name',name);
+    roi = newroigui(obj, seqidx, 'Name', name, 'ROITypes', obj.roitypes);
     if isempty(roi)
         roiidx = [];
         return;
@@ -915,17 +928,8 @@ function cndata = contourData(obj,ridx,frames,checkonlyflag)
         maskfcn = [];
         C = [];
     else
-        % mask function
-        switch lower(roi.Type)
-            case 'sa',
-                maskfcn = @(X,Y,C)maskSA(X,Y,C);
-            case 'la',
-                maskfcn = @(X,Y,C)maskLA(X,Y,C);
-            case {'closed','open'}
-                maskfcn = @(X,Y,C)maskLine(X,Y,C);
-            otherwise
-                maskfcn = @(X,Y,C)maskGeneral(X,Y,C);
-        end
+        ROI = findobj(obj.roitypes, 'Type', roi.Type);
+        maskfcn = @(X,Y,C)ROI.mask(X,Y,C);
 
         % contour retrieval
         C = repmat({zeros(0,2)},size(pos));
