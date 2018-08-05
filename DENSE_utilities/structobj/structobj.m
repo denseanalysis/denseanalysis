@@ -187,7 +187,10 @@ classdef structobj < handle
             try
                 out = builtin('subsasgn', dat, s, varargin{:});
             catch ME
-                if strcmpi(ME.identifier, 'MATLAB:noPublicFieldForClass')
+                valid = {'MATLAB:noPublicFieldForClass'
+                         'MATLAB:noSuchMethodOrField'};
+
+                if any(strcmpi(ME.identifier, valid))
                     item = subsref(dat, s(1));
                     ignore = subsasgn(item, s(2:end), varargin{:}); %#ok
                     out = dat;

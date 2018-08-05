@@ -118,7 +118,6 @@ function fv = spl2patchGeneral(api)
     % number of points per contour
     Npts = cellfun(@(x)size(x,1),Ccell);
 
-
     % we don't NEED to, but we still include the ability to correctly
     % mesh cardiac contours just in case...
     switch lower(type)
@@ -138,6 +137,9 @@ function fv = spl2patchGeneral(api)
             face = {1:size(edge,1)};
 
         otherwise
+            edge = [];
+            face = [];
+            %{
             edge = cell(Nc,1);
             face = cell(Nc,1);
             offsetedge = [0 cumsum(Npts)];
@@ -151,6 +153,7 @@ function fv = spl2patchGeneral(api)
                 offsetface = offsetface + len;
             end
             edge = cat(1,edge{:});
+            %}
     end
 
 

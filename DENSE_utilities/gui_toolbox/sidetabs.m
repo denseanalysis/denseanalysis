@@ -162,7 +162,7 @@
 classdef sidetabs < handle
 
     % general properties
-    properties
+    properties (SetObservable)
 
         BackgroundColor = [.7 .7 .7];
         BorderColor     = [100 121 162]/255;
@@ -187,7 +187,10 @@ classdef sidetabs < handle
     properties (SetAccess='private')
         NumberOfTabs = 0;
     end
+
     properties (Dependent=true,SetAccess='private')
+        CurrentPanel
+        Panels
         Parent
         Width
     end
@@ -241,6 +244,26 @@ classdef sidetabs < handle
             deleteFcn(obj);
         end
 
+        function inds = find(obj, criteria)
+            if ischar(criteria)
+                objs = findobj(obj.hrefpanels, 'Tag', criteria);
+
+                if isempty(objs)
+                    tf = cellfun(@(x)isequal(criteria, x), obj.TabNames);
+                    inds = find(tf);
+                else
+                    inds = find(obj, objs);
+                end
+            elseif iscellstr(criteria)
+                inds = find(cellfun(@(x)isequal(criteria, x), obj.TabNames));
+            elseif ishghandle(criteria, 'uicontainer')
+                inds = find(ismember(double(obj.hrefpanels), double(criteria)));
+            else
+                error(sprintf('%s:InvalidCriteria', mfilename), ...
+                    'You must specify either a tag, title, or uipanel object');
+            end
+        end
+
 
         % ACTION functions
         function obj = addTab(obj,varargin)
@@ -265,10 +288,18 @@ classdef sidetabs < handle
             pos = getpixelposition(obj.hsidepanel);
             val = pos(3);
         end
+
         function val = get.Parent(obj)
             val = obj.hparent;
         end
 
+        function val = get.Panels(obj)
+            val = obj.hrefpanels;
+        end
+
+        function val = get.CurrentPanel(obj)
+            val = obj.hrefpanels(obj.ActiveTab);
+        end
 
         % SET functions
         function obj = set.Parent(obj,h)

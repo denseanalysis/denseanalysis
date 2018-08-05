@@ -26,6 +26,12 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
         URL         % Url where the plugin was obtained from
     end
 
+    properties (Access = 'protected')
+        hfig        % Handle to the Figure window
+        hlistener   % Listener for Tab events
+        htabs       % List of popuptabs
+    end
+
     properties (SetAccess = 'private')
         Config      % Configuration object
     end
@@ -89,6 +95,11 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             elseif ~isa(self.Config.updater, 'structobj')
                 self.Config.updater = structobj(self.Config.updater);
             end
+
+            % Locate the DENSEanalysis figure
+            self.hfig = findall(0, ...
+                'Type', 'figure', ...
+                'tag', 'hfig');
         end
 
         function setStatus(self, message, varargin)
@@ -114,6 +125,14 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
             %   can be checked with `isAvailable()`
 
             return;
+        end
+
+        function delete(self)
+            % Disable the tab listener and delete it
+            if ~isempty(self.hlistener) && isvalid(self.hlistener)
+                self.hlistener.Enabled = false;
+                delete(self.hlistener)
+            end
         end
 
         function cleanup(self, varargin)
@@ -285,9 +304,105 @@ classdef DENSEanalysisPlugin < hgsetget &  matlab.mixin.Heterogeneous
                        'Label', self.Name, ...
                        'Tag', class(self), varargin{:});
         end
+
+        function [index, hpanel] = addPopup(self, name, height, hpanel)
+            if ~ishghandle(self.hfig)
+                hpanel = [];
+                index = 0;
+                return;
+            end
+
+            h = guidata(self.hfig);
+
+            if ~exist('height', 'var')
+                height = 200;
+            end
+
+            if ~exist('hpanel', 'var')
+                hpanel = uipanel('Parent', self.hfig);
+            end
+
+            % Set the tag to be the class of this plugin so we can find it
+            set(hpanel, 'Tag', class(self));
+
+            h.hpopup.addTab(name, hpanel);
+            index = h.hpopup.NumberOfTabs;
+            h.hpopup.PanelHeights(index) = height;
+
+            % If this plugin is active, then show them
+            h.hpopup.Visible(index) = {'off'};
+        end
+
+        function [index, hpanel] = addTab(self, name, hpanel)
+            % addTab - Add a sidetab for this plugin
+
+            % Don't add a tab if there is no figure
+            if ~ishghandle(self.hfig)
+                hpanel = [];
+                index = 0;
+                return;
+            end
+
+            h = guidata(self.hfig);
+
+            if ~exist('hpanel', 'var')
+                hpanel = uipanel('Parent', self.hfig);
+            end
+
+            % Set the tag to be the class of this plugin so we can find it
+            set(hpanel, 'Tag', class(self));
+
+            h.hsidebar.addTab(name, hpanel);
+            index = h.hsidebar.NumberOfTabs;
+
+            % Make sure that when the panel is deleted we delete the tab
+            L = addlistener(hpanel, 'ObjectBeingDestroyed', @(s,e)cleanup(s));
+            setappdata(hpanel, 'SidebarListener', L);
+
+            function cleanup(hpanel)
+                if isvalid(h.hsidebar)
+                    h.hsidebar.removeTab(h.hsidebar.find(hpanel));
+                end
+            end
+
+            % Add a listener to changing of tab events
+            self.hlistener = addlistener(h.hsidebar, ...
+                'SwitchTab', @(s,e)changetab_(self, s, index));
+        end
+
+        function activateUI(self, hdata)
+            % Hide the popups which aren't relevant here
+            visible = repmat({'off'}, size(hdata.hpopup.Visible));
+
+            % Now toggle the ones that we need for this plugin on
+            inds = hdata.hpopup.find(class(self));
+            visible(inds) = {'on'};
+
+            hdata.hpopup.Visible = visible;
+            hdata.hpopup.Enable(inds) = {'on'};
+            hdata.hpopup.IsOpen(inds) = true;
+        end
+
+        function deactivateUI(self, hdata)
+            inds = hdata.hpopup.find(class(self));
+            hdata.hpopup.Visible(inds) = {'off'};
+        end
     end
 
     methods (Sealed)
+        function changetab_(self, hsidebar, index)
+            if ~isequal(index, hsidebar.ActiveTab)
+                % Disable event
+                deactivateUI(self, guidata(self.hfig));
+            else
+                % Disable all controls by default
+                activateUI(self, guidata(self.hfig));
+
+                % Go through and enable and expand all of the controls
+
+            end
+        end
+
         function [available, msg] = isAvailable(self, data, varargin)
             % isAvailable - Indicates whether the plugin can run
             %

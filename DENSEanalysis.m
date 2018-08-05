@@ -77,13 +77,14 @@ end
 
 %% OUTPUT FUNCTION
 % Outputs from this function are returned to the command line.
-function varargout = DENSEanalysis_OutputFcn(hobj, evnt, handles)
+function varargout = DENSEanalysis_OutputFcn(varargin)
+    varargout = {};
 end
 
 
 
 %% DELETION FUNCTION
-function hfig_DeleteFcn(hobj, evnt, handles)
+function hfig_DeleteFcn(~, ~, handles)
     % ensure all objects/listeners are deleted
     tags = {'hlisten_sidebar','hsidebar','hpopup',...
         'hdicom','hdense','hanalysis','hdata'};
@@ -96,7 +97,7 @@ function hfig_DeleteFcn(hobj, evnt, handles)
             elseif ishandle(h)
                 delete(h);
             end
-        catch ERR
+        catch
             fprintf('could not delete handles.%s...\n',tags{ti});
         end
     end
@@ -104,31 +105,31 @@ end
 
 %% LOAD/SAVE
 
-function menu_new_Callback(hobj, evnt, handles)
+function menu_new_Callback(~, ~, handles)
     loadFcn(handles,'dicom');
 end
 
-function menu_open_Callback(hobj, evnt, handles)
+function menu_open_Callback(~, ~, handles)
     loadFcn(handles,'dns');
 end
 
-function menu_save_Callback(hobj, evnt, handles)
+function menu_save_Callback(~, ~, handles)
     saveFcn(handles,false);
 end
 
-function menu_saveas_Callback(hObject, eventdata, handles)
+function menu_saveas_Callback(~, ~, handles)
     saveFcn(handles,true);
 end
 
-function tool_new_ClickedCallback(hobj, evnt, handles)
+function tool_new_ClickedCallback(~, ~, handles)
     loadFcn(handles,'dicom');
 end
 
-function tool_open_ClickedCallback(hobj, evnt, handles)
+function tool_open_ClickedCallback(~, ~, handles)
     loadFcn(handles,'dns');
 end
 
-function tool_save_ClickedCallback(hobj, evnt, handles)
+function tool_save_ClickedCallback(~, ~, handles)
     saveFcn(handles,false);
 end
 
@@ -185,18 +186,16 @@ function windowkeypress(src, evnt)
 
     handles = guidata(src);
 
-    tab         = handles.LastTab;
-    viewertypes = {'hdicom', 'hdense', 'hanalysis'};
-    viewer      = handles.(viewertypes{tab});
-    playbar     = viewer.hplaybar;
+    viewer  = getCurrentDataViewer(handles);
+    playbar = viewer.hplaybar;
 
     switch key
         case {'n', 'rightarrow', 'd'}
-            if ~playbar.IsPlaying
+            if ~isempty(playbar.Value) && ~playbar.IsPlaying
                 playbar.Value = mod(playbar.Value, playbar.Max) + 1;
             end
         case {'b', 'leftarrow', 'a'}
-            if ~playbar.IsPlaying
+            if ~isempty(playbar.Value) && ~playbar.IsPlaying
                 playbar.Value = mod((playbar.Value - 2), playbar.Max) + 1;
             end
         case {'control-z', 'command-z'}
@@ -233,6 +232,11 @@ function windowkeypress(src, evnt)
             cb = get(handles.tool_roi, 'ClickedCallback');
             feval(cb, handles.tool_roi, []);
         case 'space'
+
+            if isempty(playbar.Value)
+                return
+            end
+
             if playbar.IsPlaying
                 playbar.stop()
             else
@@ -271,6 +275,9 @@ function handles = initFcn(hfig)
         'Status', 'Loading...');
 
     status = @(msg)set(splash, 'Status', msg);
+
+    clnup = onCleanup(@()delete(splash(isvalid(splash))));
+    setappdata(hfig,'SplashScreen',clnup)
 
     % report
     status('Initializing software...');
@@ -322,6 +329,14 @@ function handles = initFcn(hfig)
 
     status('Initializing GUI...');
 
+    % Add the basic ROI types
+    addROIType(hdata, rois.CurvedRegion)
+    addROIType(hdata, rois.PolylineRegion)
+    addROIType(hdata, rois.LVShortAxis)
+    addROIType(hdata, rois.LVLongAxis)
+    addROIType(hdata, rois.ClosedContour)
+    addROIType(hdata, rois.OpenContour)
+
     dicom_hpanel = uipanel(...
         'parent',handles.hfig,...
         'BorderType','none',...
@@ -358,8 +373,11 @@ function handles = initFcn(hfig)
     % initialize the SIDETABS object
     hsidebar = sidetabs(handles.hfig);
     hsidebar.addTab({'DICOM','data'},dicom_hpanel);
+    set(dicom_hpanel, 'UserData', hdicom);
     hsidebar.addTab({'DENSE','data'},dense_hpanel);
+    set(dense_hpanel, 'UserData', hdense);
     hsidebar.addTab({'DENSE','analysis'},analysis_hpanel);
+    set(analysis_hpanel, 'UserData', hanalysis);
     hsidebar.TabWidth  = 40;
     hsidebar.TabHeight = 70;
 
@@ -382,8 +400,6 @@ function handles = initFcn(hfig)
     % initialize SIDETABS listener
     hlisten_sidebar = addlistener(hsidebar,...
         'SwitchTab',@(varargin)switchstate(handles.hfig));
-    hlisten_sidebar.Enabled = false;
-
 
     % ZOOM/PAN/ROTATE BEHAVIOR---------------------------------------------
 
@@ -405,8 +421,8 @@ function handles = initFcn(hfig)
     else
         handles.renderer = repmat({'painters'},[3 1]);
     end
-    handles.LastTab = 1;
 
+    handles.LastTab = 1;
 
     % CLEANUP--------------------------------------------------------------
 
@@ -441,6 +457,9 @@ function handles = initFcn(hfig)
         handles.menu_save,handles.menu_saveas],'Enable');
     setappdata(handles.tool_save,'linkMenuToolEnable',hlink);
 
+    % Go ahead and store GUIDATA so that plugins can access it as needed
+    guidata(handles.hfig, handles);
+
     % Load plugins
     base = 'plugins.DENSEanalysisPlugin';
     handles.hmanager = plugins.PluginManager(base, hdata);
@@ -466,6 +485,9 @@ function handles = initFcn(hfig)
         status('Checking for updates...')
         checkForUpdate(handles);
     end
+
+    movegui(handles.hfig, 'center')
+    drawnow
 
     status('Reticulating splines...'); pause(0.2);
 
@@ -562,7 +584,9 @@ function resizeFcn(hfig)
     % Redraw only the visible tab because the others will automatically
     % redraw when the tab is changed
     objs = {h.hdicom, h.hdense, h.hanalysis};
-    objs{h.hsidebar.ActiveTab}.redraw();
+    if h.hsidebar.ActiveTab <= numel(objs)
+        objs{h.hsidebar.ActiveTab}.redraw();
+    end
 end
 
 
@@ -579,15 +603,21 @@ function handles = resetFcn(hfig)
     handles.hpan.Enable  = 'off';
     handles.hrot.Enable  = 'off';
 
-    % deactivate listeners
-    handles.hlisten_sidebar.Enabled   = false;
-
     % reset tabs to initial state
     handles.hsidebar.ActiveTab      = 1;
-    handles.hsidebar.Enable(2:end)  = {'off'};
-    handles.hpopup.Visible(:)       = {'on'};
-    handles.hpopup.Visible([2 end]) = {'off'};
-    handles.hpopup.Enable(:)        = {'off'};
+
+    handles.hsidebar.Enable();
+
+    inds = handles.hsidebar.find([handles.dense_hpanel,handles.analysis_hpanel]);
+    handles.hsidebar.Enable(inds)   = {'off'};
+
+    H = [handles.popup_dicom, handles.popup_dense, handles.popup_arial, ...
+         handles.popup_slice, handles.popup_analysis];
+    inds = handles.hpopup.find(H);
+
+    handles.hpopup.Visible(:) = {'off'};
+    handles.hpopup.Visible(inds) = {'on'};
+    handles.hpopup.Enable(:) = {'off'};
 
     % reset renderer
     handles.renderer(:) = {'painters'};
@@ -608,14 +638,12 @@ function handles = resetFcn(hfig)
     end
 
     % enable/open popups
-    handles.hpopup.Enable(:) = {'on'};
-    handles.hpopup.IsOpen(:) = 1;
+    handles.hpopup.Enable(inds) = {'on'};
+    handles.hpopup.IsOpen(inds) = 1;
 
     % enable sidetabs
-    handles.hsidebar.Enable(1:3) = {'on'};
-
-    % activate listeners
-    handles.hlisten_sidebar.Enabled = true;
+    inds = handles.hsidebar.find([handles.dense_hpanel,handles.analysis_hpanel]);
+    handles.hsidebar.Enable(inds) = {'on'};
 
     % activate/deactivate stuff
     switchstate(handles.hfig)
@@ -624,7 +652,6 @@ function handles = resetFcn(hfig)
     % (panels are resized via "hsidebar" object)
     handles.hsidebar.redraw();
     handles.hpopup.redraw();
-
 end
 
 
@@ -632,11 +659,21 @@ end
 function switchstate(hfig)
     handles = guidata(hfig);
 
+    % Get the indices of the sidebar tabs
+    sidebarinds = handles.hsidebar.find([
+        handles.dicom_hpanel
+        handles.dense_hpanel
+        handles.analysis_hpanel]);
+
     % current tab
     tabidx = handles.hsidebar.ActiveTab;
+    handles.renderer{handles.LastTab} = get(handles.hfig, 'renderer');
 
-    % store current renderer
-    handles.renderer{handles.LastTab} = get(handles.hfig,'renderer');
+    if ~ismember(tabidx, sidebarinds)
+        return
+    end
+
+    set(handles.hfig, 'Colormap', gray)
 
     wild = {'*zoom*','*pan','*rotate*','tool*','*save*','*contrast*'};
     tf = cellfun(@(tag)any(strwcmpi(tag,wild)),get(handles.htools,'tag'));
@@ -646,18 +683,23 @@ function switchstate(hfig)
     handles.hdense.ROIEdit = 'off';
     set(handles.tool_roi,'State','off','enable','on');
 
+    popupinds = handles.hpopup.find([
+        handles.popup_dicom
+        handles.popup_arial
+        handles.popup_dense
+        handles.popup_slice
+        handles.popup_analysis
+    ]);
 
     switch tabidx
 
         case 1
 
             tf = logical([1 0 1 1 0]);
-            handles.hpopup.Visible( tf) = {'on'};
-            handles.hpopup.Visible(~tf) = {'off'};
+            handles.hpopup.Visible(popupinds(tf))  = {'on'};
+            handles.hpopup.Visible(popupinds(~tf)) = {'off'};
 
             handles.hanalysis.Enable = 'off';
-    %         suspend(handles.hdense);
-    %         restore(handles.hdicom);
 
             % transfer slice/arial to DICOM viewer
             handles.hdense.SliceViewer = [];
@@ -668,12 +710,10 @@ function switchstate(hfig)
 
         case 2
             tf = logical([0 1 1 1 0]);
-            handles.hpopup.Visible( tf) = {'on'};
-            handles.hpopup.Visible(~tf) = {'off'};
+            handles.hpopup.Visible(popupinds(tf))  = {'on'};
+            handles.hpopup.Visible(popupinds(~tf)) = {'off'};
 
             handles.hanalysis.Enable = 'off';
-    %         suspend(handles.hdicom);
-    %         restore(handles.hdense);
 
             % transfer slice/arial to DENSE viewer
             handles.hdicom.SliceViewer = [];
@@ -686,8 +726,8 @@ function switchstate(hfig)
         case 3
 
             tf = logical([0 0 0 0 1]);
-            handles.hpopup.Visible( tf) = {'on'};
-            handles.hpopup.Visible(~tf) = {'off'};
+            handles.hpopup.Visible(popupinds(tf))  = {'on'};
+            handles.hpopup.Visible(popupinds(~tf)) = {'off'};
             handles.hanalysis.Enable = 'on';
             set(handles.tool_roi,'enable','off');
             redraw(handles.hanalysis);
@@ -701,48 +741,54 @@ function switchstate(hfig)
 
 end
 
+function h = getCurrentDataViewer(handles)
+    % getCurrentDataViewer - Returns a handle to the current DataViewer
+    h = get(handles.hsidebar.CurrentPanel, 'UserData');
+
+    if ~isa(h, 'DataViewer')
+        h = [];
+    end
+end
+
+
 
 %% ROI TOOL CALLBACK
-function tool_roi_ClickedCallback(hObject, eventdata, handles)
+function tool_roi_ClickedCallback(~, ~, handles) %#ok<*DEFNU>
 % hObject    handle to tool_roi (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
     state = get(handles.tool_roi,'State');
 
-    if handles.hsidebar.ActiveTab == 2
-        handles.hdense.ROIEdit = state;
-    else
-        handles.hdicom.ROIEdit = state;
+    viewer = getCurrentDataViewer(handles);
+    if isprop(viewer, 'ROIEdit')
+        viewer.ROIEdit = state;
     end
 end
 
 
 %% MENU: EXPORT UIMENU SELECT
-function menu_export_Callback(hObject, eventdata, handles)
+function menu_export_Callback(~, ~, handles)
 
-    switch handles.hsidebar.ActiveTab
-        case 1, h = handles.hdicom;
-        case 2, h = handles.hdense;
-        case 3, h = handles.hanalysis;
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return
     end
 
     imgen = h.isAllowExportImage;
     viden = h.isAllowExportVideo;
-    if h == handles.hanalysis
-        maten = h.isAllowExportMat;
-        exlen = h.isAllowExportExcel;
-    else
-        maten = false;
-        exlen = false;
-    end
+
+    funcs = methods(h);
+
+    exlen = ismember('exportExcel', funcs) && h.isAllowExportExcel;
+    maten = ismember('exportMat', funcs) && h.isAllowExportMat;
 
     if h == handles.hdense
         roien = isAllowExportROI(handles.hdata,h.ROIIndex);
     else
         roien = false;
     end
-
 
     strs  = {'off','on'};
     imgen = strs{imgen+1};
@@ -762,11 +808,11 @@ end
 
 
 %% MENU: EXPORT IMAGE/VIDEO
-function menu_exportimage_Callback(hObject, eventdata, handles)
-    switch handles.hsidebar.ActiveTab
-        case 1, h = handles.hdicom;
-        case 2, h = handles.hdense;
-        case 3, h = handles.hanalysis;
+function menu_exportimage_Callback(~, ~, handles)
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return
     end
 
     exportpath = get(handles.config, 'export.image.location', '');
@@ -774,14 +820,14 @@ function menu_exportimage_Callback(hObject, eventdata, handles)
     file = h.exportImage(exportpath);
     if isempty(file), return; end
 
-    set(handles.config, 'export.image.location', fileparts(file));
+    handles.config.export.image.location = fileparts(file);
 end
 
-function menu_exportvideo_Callback(hObject, eventdata, handles)
-    switch handles.hsidebar.ActiveTab
-        case 1, h = handles.hdicom;
-        case 2, h = handles.hdense;
-        case 3, h = handles.hanalysis;
+function menu_exportvideo_Callback(~, ~, handles)
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return;
     end
 
     exportpath = get(handles.config, 'export.video.location', '');
@@ -789,42 +835,58 @@ function menu_exportvideo_Callback(hObject, eventdata, handles)
     file = h.exportVideo(exportpath);
     if isempty(file), return; end
 
-    set(handles.config, 'export.video.location', fileparts(file));
+    handles.config.export.video.location = fileparts(file);
 end
 
 
 %% MENU: EXPORT MAT/EXCEL/ROI
-function menu_exportmat_Callback(hObject, eventdata, handles)
+function menu_exportmat_Callback(~, ~, handles)
 
     exportpath = get(handles.config, 'export.mat.location', '');
 
-    file = handles.hanalysis.exportMat(exportpath);
-    if isempty(file), return; end
+    h = getCurrentDataViewer(handles);
 
-    set(handles.config, 'export.mat.location', fileparts(file))
+    if isempty(h)
+        return;
+    end
+
+    file = h.exportMat(exportpath);
+    if isempty(file)
+        return;
+    end
+
+    handles.config.export.mat.location = fileparts(file);
 end
 
-function menu_exportexcel_Callback(hObject, eventdata, handles)
+function menu_exportexcel_Callback(~, ~, handles)
 
     exportpath = get(handles.config, 'export.excel.location', '');
 
-    file = handles.hanalysis.exportExcel(exportpath);
+    h = getCurrentDataViewer(handles);
+
+    if isempty(h)
+        return;
+    end
+
+    file = h.exportExcel(exportpath);
     if isempty(file), return; end
 
-    set(handles.config, 'export.excel.location', fileparts(file));
+    handles.config.export.excel.location = fileparts(file);
 end
 
-function menu_exportroi_Callback(hObject, eventdata, handles)
+function menu_exportroi_Callback(~, ~, handles)
     exportpath = get(handles.config, 'export.roi.location', '');
-    path = handles.hdense.exportROI(exportpath);
-    if isempty(path), return; end
-    set(handles.config, 'export.roi.location', path);
+    uipath = handles.hdense.exportROI(exportpath);
+    if isempty(uipath), return; end
+
+    handles.config.export.roi.location = uipath;
 end
 
 
 %% MENU: ANALYSIS UIMENU SELECT
-function menu_analysis_Callback(hObject, eventdata, handles)
+function menu_analysis_Callback(~, ~, handles)
     enable = 'off';
+
     if handles.hsidebar.ActiveTab == 2
         didx  = handles.hdense.DENSEIndex;
         ridx  = handles.hdense.ROIIndex;
@@ -839,7 +901,7 @@ end
 
 
 %% MENU: RUN ANALYSIS
-function menu_runanalysis_Callback(hObject, eventdata, handles)
+function menu_runanalysis_Callback(~, ~, handles)
 
     % First check to make sure that we've already accepted the RUO
     % statement
@@ -862,19 +924,19 @@ end
 
 
 %% MENU: ANALYSIS DISPLAY OPTIONS
-function menu_analysisopt_Callback(hObject, eventdata, handles)
+function menu_analysisopt_Callback(~, ~, handles)
     handles.hanalysis.strainoptions;
 end
 
 
 %% MENU: ABOUT THE PROGRAM
-function menu_about_Callback(hObject, eventdata, handles)
+function menu_about_Callback(varargin)
 
     screenpos = get(0,'screensize');
     sz = [400 400];
     pos = [(screenpos(3:4)-sz)/2,sz];
 
-    hfig = figure('windowstyle','modal','resize','off',...
+    figure('windowstyle','modal','resize','off',...
         'position',pos,'Name','About DENSEanalysis','NumberTitle','off');
     I = imread('DENSEabout.png');
     imshow(I,[],'init','fit');
@@ -884,132 +946,5 @@ end
 
 
 %% MENU: TEST FUNCTION
-function menu_test_Callback(hobj, evnt, handles)
-%     handles.hdata.roi
-%     handles.hdense.ROIIndex
-%     seq = handles.hdata.seq;
-%     save('seqdata.mat','seq')
-
-
-hdata = handles.hdata
-hdata.roi(end).IsClosed
-
-return
-
-
-%
-% vert = data.fv.vertices';
-% vert
-%     dX =
-%
-%     for k = 1:
-%     dX = fnvalmod(hdata.spl.spldx,vert);
-%     dY = fnvalmod(hdata.spl.spldy,vert);
-%     dZ = fnvalmod(hdata.spl.spldz,vert);
-
-%     dxbulk = mean(dx);
-%     dybulk = mean(dy(mask0));
-%     dzbulk = mean(dz(mask0));
-%     dx = dx - dxbulk;
-%     dy = dy - dybulk;
-%     dz = dz - dzbulk;
-
-
-    return
-
-    handles.dicom_hpanel
-    handles.hdicom.DisplayParent
-
-    set(handles.dicom_hpanel,'BackgroundColor',rand(1,3))
-%     pfig = getpixelposition(handles.hfig);
-%     setpixelposition(handles.hfig,pfig + [10 10 0 0]);
-    return
-
-    handles.hanalysis.straindata
-    handles.hanalysis.straindata.fvpix
-    handles.hanalysis.straindata.fv
-
-    fv = handles.hanalysis.straindata.fvpix
-    mn = min(fv.vertices,[],1);
-    mx = max(fv.vertices,[],1);
-    dsprng = [mn-5; mx+5];
-
-    hfig = figure('colormap',jet(256));
-    hax  = axes('parent',hfig,'dataaspectratio',[1 1 1],...
-        'xlim',dsprng(:,1),'ylim',dsprng(:,2),...
-        'zlim',[0 1],'box','on','ydir','reverse',...
-        'clim',[-180 180]);
-
-%     val = fv.orientation;
-%     rng =
-
-    obj = handles.hanalysis;
-
-    Isz = size(handles.hdata.spl.Xwrap(:,:,1));
-    Nfr = size(handles.hdata.spl.Xwrap,3);
-
-    x = 1:Isz(2);
-    y = 1:Isz(1);
-    [X,Y,Z] = meshgrid(x,y,0);
-
-    mask0 = handles.hdata.spl.MaskFcn(...
-        X,Y,handles.hdata.spl.RestingContour);
-    Npts = sum(mask0(:));
-
-    X = X(mask0);
-    Y = Y(mask0);
-
-
-    origin  = obj.straindata.PositionA;
-    posB    = obj.straindata.PositionB;
-    flag_clockwise = obj.straindata.Clockwise;
-
-    theta0 = atan2(posB(2)-origin(2),posB(1)-origin(1));
-    theta  = atan2(Y-origin(2),X-origin(1)) - theta0;
-    if ~flag_clockwise, theta = -theta; end
-
-    theta(theta<0) = theta(theta<0) + 2*pi;
-
-    theta = theta*180/pi;
-    set(hax,'clim',[min(theta),max(theta)]);
-%     theta = obj.straindata.fvpix.orientation;
-%
-%         % transform orientation into 0->2pi angle
-%
-%     theta0*180/pi
-
-%         if ~flag_clockwise, theta = -theta; end
-%         theta = theta - theta0;
-
-    hpatch = patch('vertices',fv.vertices,...
-        'faces',fv.faces,'parent',hax,...
-        'facecolor','flat','edgecolor','none',...
-        'facevertexcdata',theta);
-    colorbar
-%     [handles.hdata.seq.ImagePositionPatient]
-%     [handles.hdata.seq.ImageOrientationPatient]
-%     handles.hdata.seq.sliceid
-
-
-
-
-% %     [val,id] = unique([handles.hdata.seq.sliceid]);
-% %     extents = cat(3,handles.hdata.seq(id).extents3D);
-% %
-% %
-% %     mn = min(extents(:,:),[],1);
-% %     mx = max(extents(:,:),[],1);
-% %     hfig = figure;
-% %     hax  = axes('parent',hfig,'dataaspectratio',[1 1 1],...
-% %         'xlim',[mn(1),mx(1)],'ylim',[mn(2),mx(2)],...
-% %         'zlim',[mn(3),mx(3)],'box','on');
-% %     view(hax,3)
-% %     axis vis3d
-% %     for k = 1:size(extents,3)
-% %         patch('vertices',extents(:,:,k),'faces',1:4,'facecolor','none',...
-% %             'edgecolor','r');
-% %     end
-
-
-%     hax =
+function menu_test_Callback(varargin)
 end
