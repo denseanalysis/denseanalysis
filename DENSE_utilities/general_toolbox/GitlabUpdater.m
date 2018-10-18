@@ -66,7 +66,7 @@ classdef GitlabUpdater < Updater
             % The / in the repo name needs to be URL encoded
             repo = regexprep(self.Repo, '/', '%2F');
 
-            self.API = sprintf('https://gitlab.com/api/v3/projects/%s/repository', repo);
+            self.API = sprintf('https://gitlab.com/api/v4/projects/%s/repository', repo);
         end
 
         function release = latestRelease(self)
