@@ -133,9 +133,9 @@ Our contributors include:
 [master]: https://github.com/denseanalysis/denseanalysis/tree/master
 [latest]: https://github.com/denseanalysis/denseanalysis/releases/latest
 [github]: https://github.com/denseanalysis/denseanalysis
-[denseanalysis_manual]: http://www.denseanalysis.com/docs/DENSEanalysis_manual.pdf
-[densems_manual]: http://www.denseanalysis.com/docs/DENSEms_manual.pdf
-[rv_manual]: http://www.denseanalysis.com/docs/RV_manual.pdf
+[denseanalysis_manual]: https://denseanalysis.github.io/docs/DENSEanalysis_manual.pdf
+[densems_manual]: https://denseanalysis.github.io/docs/DENSEms_manual.pdf
+[rv_manual]: https://denseanalysis.github.io/docs/RV_manual.pdf
 [pr]: https://github.com/denseanalysis/denseanalysis/pulls
 [contributing]: https://github.com/denseanalysis/denseanalysis/blob/master/CONTRIBUTING.md
 [authors]: https://github.com/denseanalysis/denseanalysis/blob/master/AUTHORS
