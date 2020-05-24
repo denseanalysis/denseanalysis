@@ -158,8 +158,6 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
     % remove it from the code entirely for some reason.
     FLAG_isdicom = true;
 
-
-
     %% PARSE INPUTS, CHOOSE DIRECTORY
     % This section uses the UIGETDIR matlab tool to interactively choose a
     % directory to investigate.
@@ -312,7 +310,6 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
     end
 
 
-
     %% GATHER DICOM HEADER DATA
     % Identify all the candidate DICOM files in the UIPATH hierarchy via
     % ISDICOM, then read all header informtion via DICOMINFO.
@@ -328,114 +325,21 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
     reportFcn({'Loading DICOM information...\n'},...
         'Loading DICOM information...',0);
 
+    % Load the first image to use some heuristics to attempt to figure out how
+    % to proceed
+    firstImage = dicominfo(files{1});
+
+    % Options:
+    %   Siemens
+    %   Philips
+    %   Philips raw
+
     tic
-    for fi = 1:Nfiles
+    [files, filedata] = load_philips_raw(
+        files, ...
+        @(d)headerFilterFcn(d, excludetags), ...
+        @(k)continueFcn(k, Nfiles, FLAG_verbose, FLAG_waitbar));
 
-        % attempt to load dicom header
-        try
-            dcmdata = dicominfo(files{fi});
-        catch
-            dcmdata = [];
-        end
-
-        % If this is Philips, attempt to grab the TagSpacing
-        if isstruct(dcmdata) && strwcmpi(getfieldr(dcmdata, 'Manufacturer', ''), '*philips*')
-
-            % Make sure that this is a protocol that we expect
-            if regexp(dcmdata.ProtocolName, '\<3DDE\>')
-                % Add some custom fields for Philips data
-                stacks = struct2array(dcmdata.Private_2001_105f);
-
-                % There is a stack for each encoding direction
-                dimensions = numel(stacks);
-                nSlices = double(stacks(1).Private_2001_102d);
-                nPhases = double(dcmdata.Private_2001_1017);
-
-                details = getfieldr(dcmdata, 'Private_2005_140f.Item_1', struct());
-
-                % Get the tag spacing
-                encodingFrequency = 1.0 / details.TagSpacingFirstDimension;
-
-                % Determine if this is a magnitude or phase image
-                if regexp(dcmdata.ImageType, '\\M\\')
-                    imtype = 'mag';
-                else
-                    imtype = 'pha';
-                end
-
-                % Try to fill in the ImageComments as needed so that
-                % the DENSE images are processed appropriately
-                instance = dcmdata.InstanceNumber - 1;
-                currentPhase = mod(instance, nPhases);
-                currentSlice = floor(mod(instance / nPhases, nSlices));
-
-                type_index = mod(floor(instance / (nSlices * nPhases)), dimensions) + 1;
-                directions = 'xyz';
-
-                encoding_direction = directions(type_index);
-
-                fmt = 'DENSE %s-enc %s Scale:1 EncFreq:%0.4f Rep:0/1 Slc:1/0 Par:%d/%d Phs:%d/%d RCswap:0 RCSflip:0/1/0';
-                comments = sprintf(fmt, encoding_direction, imtype, ...
-                    encodingFrequency, currentSlice, nSlices, ...
-                    currentPhase, nPhases);
-
-                dcmdata.ImageComments = comments;
-
-                % Take care of any strange rounding issues
-                dcmdata.ImageOrientationPatient = round(dcmdata.ImageOrientationPatient .* 1000) ./ 1000;
-                dcmdata.ImagePositionPatient = round(dcmdata.ImagePositionPatient .* 1000) ./ 1000;
-                dcmdata.SliceLocation = round(dcmdata.SliceLocation .* 1000) ./ 1000;
-
-                % Modify the series description to provide the user
-                % more information when manually assigning DENSE groups
-                dcmdata.SeriesDescription = sprintf('%s: %s-enc %s Slice:%d', ...
-                    dcmdata.SeriesDescription, encoding_direction, ...
-                    imtype, currentSlice);
-
-                % Update the InstanceNumber to allow the rest of the
-                % load function to operate appropriately.
-                %
-                % TODO: Fix the rest of this function to be more robust
-                % and not as strict with InstanceNumber values
-                dcmdata.InstanceNumber = currentPhase + 1;
-            end
-        end
-
-        % save header fields
-        if ~isempty(dcmdata)
-            tags = fieldnames(dcmdata);
-            tf = false(size(tags));
-            for ti = 1:numel(excludetags)
-                tf = tf | strwcmpi(tags,excludetags{ti});
-            end
-            tags = tags(~tf);
-
-            % gather header data
-            for ti = 1:numel(tags)
-                tag = tags{ti};
-                filedata(fi).(tag) = dcmdata.(tag);
-            end
-
-            valid(fi) = true;
-        end
-
-        % report (with cancellation)
-        if FLAG_verbose || FLAG_waitbar
-            if abortFcn, return; end
-            if fi==Nfiles || mod(fi,round(Nfiles/100))==0
-                reportFcn({},[],fi/Nfiles);
-            end
-            if fi==Nfiles || mod(fi,100)==0
-                reportFcn(...
-                    {'%5d of %5d (%6.1f sec)\n',fi,Nfiles,toc},...
-                    [],[]);
-            end
-        end
-    end
-
-    % eliminate invalid DICOM files
-    files    = files(valid);
-    filedata = filedata(valid);
     Nfiles   = numel(filedata);
 
     % check for files
@@ -447,7 +351,6 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
 
     % report
     reportFcn({'%d valid DICOM files\n',Nfiles},[],[]);
-
 
 
     %% CHECK FOR MANDATORY HEADER FIELDS
@@ -957,6 +860,37 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
 
 end
 
+function tags = headerFilterFcn(dcmdata, excludetags)
+    tags = fieldnames(dcmdata);
+    tf   = false(size(tags));
+
+    for ti = 1:numel(excludetags)
+        tf = tf | strwcmpi(tags,excludetags{ti});
+    end
+    tags = tags(~tf);
+
+    return
+end
+
+function cont = continueFcn(index, nFiles, FLAG_verbose, FLAG_waitbar)
+    cont = true;
+
+    if FLAG_verbose || FLAG_waitbar
+        if abortFcn
+          cont = false;
+          return
+        end
+
+        if index == nFiles || mod(index, round(nFiles / 100)) == 0
+            reportFcn({}, [], index/ nFiles);
+        end
+
+        if index == nFiles || mod(index, 100) == 0
+            reportFcn({'%5d of %5d (%6.1f sec)\n', index, nFiles, toc}, [], []);
+        end
+    end
+end
+
 %% CLEANUP FUNCTIONS
 % we associate "onCleanup" objects with the waitbar, ensuring it is closed
 % if we exit in error...
@@ -967,7 +901,3 @@ function hwaitCleanupFcn(hwait)
         drawnow;
     end
 end
-
-
-
-%% END OF FILE=============================================================
