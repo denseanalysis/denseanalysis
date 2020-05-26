@@ -1,5 +1,4 @@
 function images = DICOMseqread(seqdata,varargin)
-
 %DENSESEQREAD read DENSE associated image sequences from file
 %
 %INPUTS
@@ -105,7 +104,6 @@ function images = DICOMseqread(seqdata,varargin)
         fprintf('Loading DICOM images...\n');
     end
 
-
     % load grayscale imagery
     images = cell(size(seqdata));
     for k = 1:numel(seqdata)
@@ -122,26 +120,18 @@ function images = DICOMseqread(seqdata,varargin)
             waitbar(cnt/Nfiles,hwait);
         end
 
-        % check for Filename existance
-        if isempty(seqdata(k).Filename), continue; end
+        % Check for special LoadFcn
+        if ~isfield(seqdata(k), 'LoadFcn') || isempty(seqdata(k).LoadFcn)
+          continue
+        end
 
-        % load filenames
-        files = seqdata(k).Filename;
-        if ~iscell(files), files = {files}; end
+        loaders = seqdata(k).LoadFcn;
 
-        % check for cell string
-        if ~iscellstr(files), continue; end
-
-        % check for the existance of all files
-        tf = cellfun(@(f)exist(f,'file')==2,files);
-        if any(~tf), continue; end
-
-        % load images (move to next sequence if any image load fails)
-        I = cell([1 1 numel(files)]);
+        I = cell([1 1 numel(loaders)]);
         ERR = [];
-        for fi = 1:numel(files)
+        for fi = 1:numel(loaders)
             try
-                I{fi} = dicomgray(files{fi},'frames',1);
+                I{fi} = loaders{fi}();
             catch ERR
                 break;
             end
@@ -151,7 +141,6 @@ function images = DICOMseqread(seqdata,varargin)
                 cnt = cnt+1;
                 waitbar(cnt/Nfiles,hwait);
             end
-
         end
         if ~isempty(ERR), continue; end
 
@@ -167,7 +156,7 @@ function images = DICOMseqread(seqdata,varargin)
 
         % verbose output
         if FLAG_verbose
-            fprintf('Sequence %3d: %3d files loaded\n',k,numel(files));
+            fprintf('Sequence %3d: %3d files loaded\n',k,numel(loaders));
         end
     end
 
