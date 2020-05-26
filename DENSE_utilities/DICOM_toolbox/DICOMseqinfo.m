@@ -341,7 +341,7 @@ function [seqdata,uipath] = DICOMseqinfo(startpath,varargin)
             [files, filedata] = load_philips_3d(arguments{:});
         else
             % TODO: Update this to use the load_philips_raw
-            [files, filedata] = load_default(arguments{:});
+            [files, filedata] = load_philips_raw(arguments{:});
         end
     else
         [files, filedata] = load_default(arguments{:});
