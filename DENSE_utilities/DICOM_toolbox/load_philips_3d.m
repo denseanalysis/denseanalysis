@@ -18,7 +18,10 @@ function [files, filedata] = load_philips_3d(files, headerFilterFcn, continueFcn
       filedata(k).(tag) = dcmdata.(tag);
     end
 
-    valid(k)    = true
+    % Specify function to load corresponding pixel data
+    filedata(k).LoadFcn = @()dicomgray(filename, 'frames', 1);
+
+    valid(k) = true;
 
     % Check if the user cancelled the load, and bail if needed
     if continueFcn(k) == false
