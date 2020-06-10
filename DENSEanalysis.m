@@ -481,7 +481,7 @@ function handles = initFcn(hfig)
     end
 
     % If auto updates are disabled
-    if getfield(config.updater, 'auto', true);
+    if getfieldr(config.updater, 'auto', true)
         status('Checking for updates...')
         checkForUpdate(handles);
     end
@@ -508,7 +508,7 @@ function handles = initFcn(hfig)
 end
 
 function refreshAutoUpdateMenu(handles)
-    if getfield(handles.config.updater, 'auto', true)
+    if getfieldr(handles.config.updater, 'auto', true)
         set(handles.hautoupdate, 'checked', 'on')
     else
         set(handles.hautoupdate, 'checked', 'off')
@@ -516,7 +516,7 @@ function refreshAutoUpdateMenu(handles)
 end
 
 function toggleAutoUpdate(handles)
-    status = getfield(handles.config.updater, 'auto', true);
+    status = getfieldr(handles.config.updater, 'auto', true);
     handles.config.updater.auto = ~status;
 end
 
@@ -537,7 +537,7 @@ function checkForUpdate(handles, force)
                              'InstallDir', thisdir);
 
     % If it hasn't been at least this 15 minutes since the last check, skip
-    lastcheck = getfield(config.updater, 'lastcheck', 0);
+    lastcheck = getfieldr(config.updater, 'lastcheck', 0);
     maxCheckInterval = [0 0 0 0 15 Inf];
     if ~any(datevec(now - lastcheck) > maxCheckInterval) && ~force
         return;
@@ -550,7 +550,7 @@ function checkForUpdate(handles, force)
     % previously selected to ignore a specific version, we use THAT version
     % as the reference at this point so that only new version trigger an
     % update.
-    refVersion = getfield(config.updater, 'ignoreVersion', u.Version);
+    refVersion = getfieldr(config.updater, 'ignoreVersion', u.Version);
 
     try
         [doupdate, version] = u.launch(false, refVersion);
@@ -905,7 +905,7 @@ function menu_runanalysis_Callback(~, ~, handles)
 
     % First check to make sure that we've already accepted the RUO
     % statement
-    if ~getfield(handles.config, 'AcceptedRUO', false)
+    if ~getfieldr(handles.config, 'AcceptedRUO', false)
         accept = ruodialog();
 
         % Don't allow analysis to run until this is accepted
