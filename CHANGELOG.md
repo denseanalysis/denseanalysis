@@ -1,5 +1,6 @@
 ## v0.5.1
 - Fixes a bug where LV Long axis contours were not properly converted to binary masks
+- Fix a bug in the DENSEanalysis automatic updater
 
 ## v0.5.0
 - Support for versions of MATLAB >= R2012b. Support for 2009b - 2012a has
