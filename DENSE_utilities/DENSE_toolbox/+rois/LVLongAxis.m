@@ -42,7 +42,7 @@ classdef LVLongAxis < ROIType
     end
 
     methods (Static)
-        function tf = maskLA(X, Y, C)
+        function tf = mask(X, Y, C)
             C = cat(1, C{:});
             tf = inpolygon(X, Y, C(:,1), C(:,2));
         end
