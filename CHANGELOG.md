@@ -1,6 +1,8 @@
 ## v0.5.2
 - Address incompatibility issues with MATLAB R2020b
 - Fix a bug in the DENSEanalysis automatic updater
+- Moves project master branch to main branch
+- Compensate for the hardcopy function being removed from MATLAB
 
 ## v0.5.1
 - Fixes a bug where LV Long axis contours were not properly converted to binary masks
