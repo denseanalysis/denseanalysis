@@ -10,16 +10,12 @@ full biventricular 3D analysis.
 
 #### System Requirements
 
-The current stable version (0.4.0) of *DENSEanalysis* requires:
+The current stable version (0.5.2) of *DENSEanalysis* requires:
 
-* MATLAB (R2009b through R2014a)
+* MATLAB (R2009b through R2020b)
 * MATLAB Image Processing Toolbox
 * MATLAB Curve Fitting Toolbox (Spline Toolbox in later versions)
 * MATLAB C-Compiler
-
-If you are running a newer version of MATLAB (R2014b or newer), you will want
-to use the [master branch][master] of the project which is the development
-version which includes support for all recent versions of MATLAB.
 
 #### Configuration of Mex Compiler
 
@@ -112,17 +108,15 @@ in your work.
 >Transactions on Medical Imaging, 26(1), 15–30.
 >http://doi.org/10.1109/TMI.2006.884215
 
->Gilliam, A.D., Suever, J.D., and contributors (2016). DENSEanalysis. Retrieved
+>Gilliam, A.D., Suever, J.D., and contributors (2021). DENSEanalysis. Retrieved
 >from https://github.com/denseanalysis/denseanalysis
 
 ### Contributing
 
-We welcome contributions from any members of the DENSE user community. Feel
-free to [submit a pull
-request][pr] with
-your contributions. Please see the [CONTRIBUTING
-file][contributing]
-for guidelines for contributing to *DENSEanalysis*.
+We welcome contributions from any members of the DENSE user community. Feel free
+to [submit a pull request][pr] with your contributions. Please see the
+[CONTRIBUTING file][contributing] for guidelines for contributing to
+*DENSEanalysis*.
 
 Our contributors include:
 
