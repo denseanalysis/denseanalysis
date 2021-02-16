@@ -409,7 +409,7 @@ function handles = initFcn(hfig)
     hrot  = rotate3d(handles.hfig);
 
     % contrast tool
-    hcontrast = contrasttool(handles.hfig);
+    hcontrast = contrasttool.cached(handles.hfig);
     hcontrast.addToggle(handles.htoolbar);
     hchild = get(handles.htoolbar,'children');
     set(handles.htoolbar,'children',hchild([2:3 1 4:end]));

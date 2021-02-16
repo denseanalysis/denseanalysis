@@ -432,7 +432,7 @@ function setParentFcn(obj,hdisp,hctrl)
     obj.hrot  = rotate3d(hfig_disp);
 
     % contrast tool access
-    obj.hcontrast = contrasttool(hfig_disp);
+    obj.hcontrast = contrasttool.cached(hfig_disp);
 
     % initialize zoom/pan/rotate callbacks
     setZoomPanRot(obj);
