@@ -77,11 +77,11 @@ classdef GithubUpdater < Updater
         function [bool, newest] = updateAvailable(self, current, ref)
 
             if ~exist('current', 'var') || isempty(current);
-                current = getfield(self.Config, 'version', self.Version);
+                current = getfieldr(self.Config, 'version', self.Version);
             end
 
             if ~exist('ref', 'var');
-                ref = getfield(self.Config, 'branch', 'master');
+                ref = getfieldr(self.Config, 'branch', 'master');
             end
 
             % First try to grab the latest release
@@ -149,7 +149,7 @@ classdef GithubUpdater < Updater
             fieldname = sprintf('sha1%s', sha1(url));
 
             % Now look to see if this is in the cache
-            cache = getfield(self.Cache, fieldname, struct);
+            cache = getfieldr(self.Cache, fieldname, struct);
 
             % By default we don't use any headers
             headers = repmat(struct('name', {}, 'value', {}), [0 1]);
