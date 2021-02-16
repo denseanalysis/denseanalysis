@@ -850,14 +850,7 @@ end
 
 
 function val = checkROIEdit(obj,val)
-
-    if ~ischar(val) || ~any(strcmpi(val,{'on','off'}))
-        errstr = 'Invalid ROIEdit; valid strings are [on|off]';
-    end
-
-    if exist('errstr','var')
-        error(sprintf('%s:invalidROIEdit',mfilename),errstr);
-    end
+    validate_on_off(val, sprintf('%s:invalidROIEdit', mfilename))
 end
 
 

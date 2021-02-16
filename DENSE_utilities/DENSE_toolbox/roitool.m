@@ -594,10 +594,7 @@ end
 function setVisibleFcn(obj,val)
 
     % check new property
-    if ~ischar(val) || ~any(strcmpi(val,{'on','off'}))
-        error(sprintf('%s:invalidVisible',mfilename),...
-            'Invalid Visible property; acceptable values are [on|off].');
-    end
+    validate_on_off(val, sprintf('%s:invalidVisible', mfilename))
 
     % determine if enable is allowable
     if strcmpi(val,'on') && isempty(obj.roiidx)
@@ -624,12 +621,8 @@ end
 
 
 function setEnableFcn(obj,val)
-
     % check new property
-    if ~ischar(val) || ~any(strcmpi(val,{'on','off'}))
-        error(sprintf('%s:invalidEnable',mfilename),...
-            'Invalid Enable property; acceptable values are [on|off].');
-    end
+    validate_on_off(val, sprintf('%s:invalidEnable', mfilename))
 
     % determine if enable is allowable
     if strcmpi(val,'on') && isempty(obj.roiidx)
