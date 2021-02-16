@@ -131,12 +131,8 @@ classdef contrasttool < handle
         hmode
     end
 
-
-    methods
-
-        % constructor
-        function obj = contrasttool(hfig)
-
+    methods (Static)
+        function obj = cached(hfig)
             % check figure
             if ~isscalar(hfig) || ~ishghandle(hfig, 'figure')
                 error(sprintf('%s:invalidFigure', mfilename),...
@@ -146,9 +142,25 @@ classdef contrasttool < handle
             % check for previously cached object
             if isappdata(hfig,'contrasttool_cache')
                 obj = getappdata(hfig,'contrasttool_cache');
-            else
-                obj = contrasttoolFcn(obj,hfig);
+                return
             end
+
+            % Otherwise call the constructor
+            obj = contrasttool(hfig);
+        end
+    end
+
+    methods
+
+        % constructor
+        function obj = contrasttool(hfig)
+            % check figure
+            if ~isscalar(hfig) || ~ishghandle(hfig, 'figure')
+                error(sprintf('%s:invalidFigure', mfilename),...
+                    'Invalid figure handle.');
+            end
+
+            obj = contrasttoolFcn(obj, hfig);
         end
 
         % destructor

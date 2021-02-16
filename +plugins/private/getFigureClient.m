@@ -16,7 +16,8 @@ function f = getFigureClient(hfig)
     %
     % Copyright (c) 2016 Jonathan Suever
 
-    warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+    warning('off', 'MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
+    warning('off', 'MATLAB:ui:javaframe:PropertyToBeRemoved')
     jFrame = get(handle(hfig), 'JavaFrame');
 
     try

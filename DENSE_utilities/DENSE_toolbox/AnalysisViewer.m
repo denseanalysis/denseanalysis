@@ -513,11 +513,7 @@ end
 
 function val = setEnableFcn(obj,val)
 
-    % test for valid input
-    if ~ischar(val) || ~any(strcmpi(val,{'on','off'}))
-        error(sprintf('%s:invalidEnable',mfilename),...
-            'Invalid Enable.');
-    end
+    validate_on_off(val, sprintf('%s:invalidEnable', mfilename))
 
     % quit if value has not changed
     if isequal(obj.Enable,val)

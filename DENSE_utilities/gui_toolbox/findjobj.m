@@ -125,6 +125,7 @@ function [handles,levels,parentIdx,listing] = findjobj(container,varargin)
         % R2008b compatibility
         warning('off','MATLAB:HandleGraphics:ObsoletedProperty:JavaFrame');
         warning('off','MATLAB:uitreenode:MigratingFunction');
+        warning('off','MATLAB:ui:javaframe:PropertyToBeRemoved');
 
         % Default container is the current figure's root panel
         if nargin

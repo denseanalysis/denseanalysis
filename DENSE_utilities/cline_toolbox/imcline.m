@@ -1331,7 +1331,8 @@ function val = checkStrings(val,name,vals)
 % name...property name (for error)
 % vals...allowable input strings
 
-    if ~ischar(val) || ~any(strcmpi(val,vals))
+
+    if ~(ischar(val) || isa(val, 'matlab.lang.OnOffSwitchState')) || ~any(strcmpi(val,vals))
         str = sprintf('%s|',vals{:});
         error(sprintf('%s:invalid%s',mfilename,name),'%s',...
             'Invalid ''', name,''' value - valid values are [',...
