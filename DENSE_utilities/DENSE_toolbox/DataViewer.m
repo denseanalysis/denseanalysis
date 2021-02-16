@@ -791,7 +791,7 @@ function filename = exportFcn(obj,type,startpath)
 
                     % get a hardcopy of the figure
                     res = ['-r' num2str(opts.Resolution)];
-                    I = hardcopy(hfig, '-dzbuffer', res, '-loose');
+                    I = getframe(hfig).cdata;
 
                     % delete panel / reset figure
                     delete(hpanel);
