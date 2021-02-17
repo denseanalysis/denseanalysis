@@ -1,3 +1,6 @@
+## [Unreleased]
+- Fixes a warning about empty strings in `popupmenu` when loading `segmentmodel.fig`
+
 ## v0.5.2
 - Address incompatibility issues with MATLAB R2020b
 - Fix a bug in the DENSEanalysis automatic updater
