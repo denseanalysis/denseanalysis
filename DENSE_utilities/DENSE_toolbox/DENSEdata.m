@@ -305,7 +305,7 @@ function file = saveFcn(obj,uipath,uifile,flag_fileselect)
 
     % check file
     file = fullfile(uipath,uifile);
-    if ~isfile(file)
+    if ~is_file(file)
         file = fullfile(uipath,deffile);
         flag_fileselect = true;
     end

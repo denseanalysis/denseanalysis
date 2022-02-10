@@ -4,6 +4,8 @@
 - Fixes an error in newer versions of MATLAB when exporting images and videos
   caused by the 'HitTest' property not being available on `AnnotationPane`
   graphics objects
+- Addresses a naming conflict with the built-in `isfile` function in newer
+  versions of MATLAB
 
 ## v0.5.2
 
