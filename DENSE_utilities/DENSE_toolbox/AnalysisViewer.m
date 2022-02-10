@@ -1569,7 +1569,7 @@ function [file, out] = exportMatFcn(obj,startpath)
 
         file = fullfile(startpath,[header '.mat']);
         cnt = 0;
-        while isfile(file)
+        while is_file(file)
             cnt = cnt+1;
             file = fullfile(startpath,sprintf('%s (%d).mat',header,cnt));
         end

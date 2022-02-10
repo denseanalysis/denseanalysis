@@ -1803,7 +1803,7 @@ function exportMultimedia(hfig)
     % check for default export file existance
     file = fullfile(p,[f,e]);
     cnt  = 0;
-    while isfile(file)
+    while is_file(file)
         cnt = cnt+1;
         file = fullfile(p,sprintf('%s (%d)%s',f,cnt,e));
     end
@@ -1969,7 +1969,7 @@ function exportMultimedia(hfig)
             % (often due to an invalid compression codec)
             catch ERR
                 if ~isempty(aviobj), close(aviobj); end
-                if isfile(exportfile), delete(exportfile); end
+                if is_file(exportfile), delete(exportfile); end
 
                 api.config.exportopts.AVICodec = 'None';
                 api.config.hplaybar.Value = curframe;
@@ -2038,7 +2038,7 @@ function exportMultimedia(hfig)
 
             % video creation problem
             catch ERR
-                if isfile(exportfile), delete(exportfile); end
+                if is_file(exportfile), delete(exportfile); end
                 api.hplaybar.Value = curframe;
                 rethrow(ERR);
             end
@@ -2129,7 +2129,7 @@ function exportExcel(hfig)
     % check for default export file existance
     file = fullfile(p,[f,e]);
     cnt  = 0;
-    while isfile(file)
+    while is_file(file)
         cnt = cnt+1;
         file = fullfile(p,sprintf('%s (%d)%s',f,cnt,e));
     end
@@ -2235,7 +2235,7 @@ function exportExcel(hfig)
     % OUTPUT FILE---------
 
     % delete exiting file
-    if isfile(file), delete(file); end
+    if is_file(file), delete(file); end
 
     % waitbar
     [hwait,cleanupWait] = waitbarnotex(0,{'Exporting',file});
@@ -2277,7 +2277,7 @@ function exportExcel(hfig)
             end
         catch ERR
             fclose(fid);
-            if isfile(file), delete(file); end
+            if is_file(file), delete(file); end
             rethrow(ERR);
         end
         fclose(fid);

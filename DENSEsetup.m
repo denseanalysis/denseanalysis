@@ -177,13 +177,13 @@ function DENSEsetup(varargin)
         mexfile = fullfile(p,[f '.' mexext]);
 
         % locate C file for compilation
-        if ~isfile(cfile)
+        if ~is_file(cfile)
             fprintf('Could not locate %s\n',[f e]);
             continue;
         end
 
         % compile file
-        if api.RecompileMex || ~isfile(mexfile)
+        if api.RecompileMex || ~is_file(mexfile)
             try
                 mex(cfile,'-outdir',p,opts{:})
                 fprintf('Successfully compiled %s\n',[f e]);
@@ -194,7 +194,7 @@ function DENSEsetup(varargin)
         end
 
         % register valid compilation
-        compiled(k) = isfile(mexfile);
+        compiled(k) = is_file(mexfile);
 
     end
 
