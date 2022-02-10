@@ -898,7 +898,8 @@ function hpanel = grabPanel(obj,opts,rect,hfig)
     set(hchild(tf),'ResizeFcn',[]);
 
     % eliminate all interactive behavior
-    set(hchild,'hittest','off');
+    tf = isprop(hchild, 'HitTest');
+    set(hchild(tf), 'HitTest', 'off');
 
     % remove the playbar panel
     h = findobj(hchild,'flat','tag','Playbar');
